@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import {
+  Badge,
   Button,
   Card,
   CardContent,
@@ -14,6 +15,12 @@ import {
   CardTitle,
   Input,
   Label,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   Textarea,
 } from '@/components';
 import { useCart } from '@/contexts/CartContext';
@@ -224,98 +231,78 @@ export function CatalogPageContent() {
       )}
 
       {/* Items Table */}
-      <Card className='overflow-hidden'>
-        <div className='overflow-x-auto'>
-          <table className='min-w-full divide-y divide-border'>
-            <thead className='bg-muted'>
-              <tr>
-                <th className='px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider'>
-                  Name
-                </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider'>
-                  Category
-                </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider'>
-                  Description
-                </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider'>
-                  Price
-                </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider'>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className='bg-card divide-y divide-border'>
-              {filteredItems.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className='px-6 py-8 text-center text-muted-foreground'
-                  >
-                    No items found matching your search.
-                  </td>
-                </tr>
-              ) : (
-                filteredItems.map((item) => (
-                  <tr key={item.id} className='hover:bg-accent/50'>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm font-medium text-foreground'>
-                        {item.name}
-                      </div>
-                    </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <span className='px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary'>
-                        {item.category}
-                      </span>
-                    </td>
-                    <td className='px-6 py-4'>
-                      <div className='text-sm text-muted-foreground max-w-xs truncate'>
-                        {item.description}
-                      </div>
-                    </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm font-medium text-foreground'>
-                        ${item.price.toFixed(2)}
-                      </div>
-                    </td>
-                    <td className='px-6 py-4 whitespace-nowrap text-sm'>
-                      <div className='flex items-center gap-2'>
-                        <Link href={`/catalog/${item.id}`}>
-                          <Button
-                            size='sm'
-                            variant='secondary'
-                            title='View Details'
-                          >
-                            <Eye className='h-4 w-4' />
-                            Details
-                          </Button>
-                        </Link>
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredItems.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className='text-center text-muted-foreground h-24'
+                >
+                  No items found matching your search.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredItems.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className='font-medium'>{item.name}</TableCell>
+                  <TableCell>
+                    <Badge variant='secondary'>{item.category}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className='max-w-xs truncate text-muted-foreground'>
+                      {item.description}
+                    </div>
+                  </TableCell>
+                  <TableCell className='font-medium'>
+                    ${item.price.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <div className='flex items-center gap-2'>
+                      <Link href={`/catalog/${item.id}`}>
                         <Button
                           size='sm'
-                          onClick={() => handleAddToCart(item)}
-                          disabled={addingToCart === item.id}
+                          variant='secondary'
+                          title='View Details'
                         >
-                          {addingToCart === item.id ? (
-                            <>
-                              <Loader2 className='h-4 w-4 animate-spin' />
-                              Adding...
-                            </>
-                          ) : (
-                            <>
-                              <ShoppingCart className='h-4 w-4' />
-                              Add
-                            </>
-                          )}
+                          <Eye className='h-4 w-4' />
+                          Details
                         </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                      </Link>
+                      <Button
+                        size='sm'
+                        onClick={() => handleAddToCart(item)}
+                        disabled={addingToCart === item.id}
+                      >
+                        {addingToCart === item.id ? (
+                          <>
+                            <Loader2 className='h-4 w-4 animate-spin' />
+                            Adding...
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className='h-4 w-4' />
+                            Add
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </Card>
 
       {/* Results Summary */}

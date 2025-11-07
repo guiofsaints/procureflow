@@ -13,10 +13,16 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button, Card, CardContent, CardHeader, Input } from '@/components';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Input,
+} from '@/components';
 import { useCart } from '@/contexts/CartContext';
 import { ItemStatus } from '@/domain/entities';
-import { cn } from '@/lib/utils';
 
 import { mockItems } from '../mock';
 
@@ -106,22 +112,19 @@ export function ProductDetailPageContent() {
             <div className='flex items-start justify-between gap-4'>
               <div className='flex-1'>
                 <div className='flex items-center gap-2 mb-2'>
-                  <span className='inline-flex items-center gap-1 px-3 py-1 bg-accent text-accent-foreground rounded-full text-xs font-medium'>
+                  <Badge variant='secondary' className='gap-1'>
                     <Tag className='h-3 w-3' />
                     {item.category}
-                  </span>
-                  <span
-                    className={cn(
-                      'px-3 py-1 rounded-full text-xs font-medium',
-                      item.status === ItemStatus.Active
-                        ? 'bg-accent text-accent-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    )}
+                  </Badge>
+                  <Badge
+                    variant={
+                      item.status === ItemStatus.Active ? 'default' : 'outline'
+                    }
                   >
                     {item.status === ItemStatus.Active
                       ? 'Available'
                       : 'Inactive'}
-                  </span>
+                  </Badge>
                 </div>
                 <h1 className='text-2xl lg:text-3xl font-bold text-foreground'>
                   {item.name}

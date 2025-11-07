@@ -1,4 +1,5 @@
 // Re-export all UI components from this file for easy importing
+export { Badge } from './ui/badge';
 export { Button } from './ui/button';
 export { Input } from './ui/input';
 export { Textarea } from './ui/textarea';
@@ -27,6 +28,15 @@ export {
   SidebarTrigger,
   useSidebar,
 } from './ui/sidebar';
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table';
 export { Toaster } from './ui/sonner';
 
 // Layout components
