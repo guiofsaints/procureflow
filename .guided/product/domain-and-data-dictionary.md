@@ -3,7 +3,8 @@
 **Version**: 1.0.0  
 **Last Updated**: November 7, 2025  
 **Status**: Active  
-**Related Documents**: 
+**Related Documents**:
+
 - PRD: `.guided/product/PRD.md`
 - Domain Types: `apps/web/src/domain/entities.ts`
 - Mongoose Schemas: `apps/web/src/domain/mongo-schemas.d.ts`
@@ -38,20 +39,20 @@ This domain model is designed for the **tech case scope** (MVP implementation) w
 
 ### Core Entities (MVP)
 
-| Entity | Description | Purpose |
-|--------|-------------|---------|
-| **User** | Authenticated user account | Ownership of carts, requests, and conversations |
-| **Item (CatalogItem)** | Material or service in the procurement catalog | Searchable inventory for purchase requests |
-| **Cart** | Shopping cart with line items | Temporary collection of items before checkout |
-| **PurchaseRequest** | Submitted procurement request (simulated ERP submission) | Immutable record of what was requested |
-| **AgentConversation** | AI agent interaction session | Conversational procurement and debugging logs |
+| Entity                 | Description                                              | Purpose                                         |
+| ---------------------- | -------------------------------------------------------- | ----------------------------------------------- |
+| **User**               | Authenticated user account                               | Ownership of carts, requests, and conversations |
+| **Item (CatalogItem)** | Material or service in the procurement catalog           | Searchable inventory for purchase requests      |
+| **Cart**               | Shopping cart with line items                            | Temporary collection of items before checkout   |
+| **PurchaseRequest**    | Submitted procurement request (simulated ERP submission) | Immutable record of what was requested          |
+| **AgentConversation**  | AI agent interaction session                             | Conversational procurement and debugging logs   |
 
 ### Future Entities (Out of Scope for MVP)
 
-| Entity | Description | Purpose |
-|--------|-------------|---------|
-| **Category** | Hierarchical catalog category | Replace string-based categories with structured taxonomy |
-| **AgentActionLog** | Detailed agent action logging | Separate collection for analytics and training data |
+| Entity             | Description                   | Purpose                                                  |
+| ------------------ | ----------------------------- | -------------------------------------------------------- |
+| **Category**       | Hierarchical catalog category | Replace string-based categories with structured taxonomy |
+| **AgentActionLog** | Detailed agent action logging | Separate collection for analytics and training data      |
 
 ---
 
@@ -61,24 +62,26 @@ This domain model is designed for the **tech case scope** (MVP implementation) w
 
 The User entity represents an authenticated user who can create carts, submit purchase requests, and interact with the AI agent.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `id` | `UserId` (string) | Yes | Unique user identifier | MongoDB ObjectId as string [MVP] |
-| `email` | `string` | Yes | User's email address | Used for login, unique index [MVP] |
-| `name` | `string` | No | User's display name | Optional [MVP] |
-| `passwordHash` | `string` | No | Hashed password | Only for Credentials provider [MVP] |
-| `provider` | `string` | No | OAuth provider (e.g., 'google') | [Future] Google OAuth support |
-| `providerId` | `string` | No | OAuth provider user ID | [Future] Google OAuth support |
-| `role` | `'requester' \| 'buyer' \| 'admin'` | No | User role | [Future] Role-based access control |
-| `createdAt` | `Date` | Yes | Account creation timestamp | Auto-generated [MVP] |
-| `updatedAt` | `Date` | Yes | Last update timestamp | Auto-updated [MVP] |
+| Field          | Type                                | Required | Description                     | Notes                               |
+| -------------- | ----------------------------------- | -------- | ------------------------------- | ----------------------------------- |
+| `id`           | `UserId` (string)                   | Yes      | Unique user identifier          | MongoDB ObjectId as string [MVP]    |
+| `email`        | `string`                            | Yes      | User's email address            | Used for login, unique index [MVP]  |
+| `name`         | `string`                            | No       | User's display name             | Optional [MVP]                      |
+| `passwordHash` | `string`                            | No       | Hashed password                 | Only for Credentials provider [MVP] |
+| `provider`     | `string`                            | No       | OAuth provider (e.g., 'google') | [Future] Google OAuth support       |
+| `providerId`   | `string`                            | No       | OAuth provider user ID          | [Future] Google OAuth support       |
+| `role`         | `'requester' \| 'buyer' \| 'admin'` | No       | User role                       | [Future] Role-based access control  |
+| `createdAt`    | `Date`                              | Yes      | Account creation timestamp      | Auto-generated [MVP]                |
+| `updatedAt`    | `Date`                              | Yes      | Last update timestamp           | Auto-updated [MVP]                  |
 
 **Business Rules**:
+
 - Email must be unique across all users
 - Password must be hashed using a secure algorithm (e.g., bcrypt) before storage
 - Default role (if implemented) should be 'requester'
 
 **Relationships**:
+
 - User → Cart (1:1 or 1:N if drafts are supported in future)
 - User → PurchaseRequest (1:N)
 - User → AgentConversation (1:N)
@@ -90,32 +93,35 @@ The User entity represents an authenticated user who can create carts, submit pu
 
 The Item entity represents a material or service available in the procurement catalog. Items can be seeded from existing data or registered by users.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `id` | `ItemId` (string) | Yes | Unique item identifier | MongoDB ObjectId as string [MVP] |
-| `name` | `string` | Yes | Item name | Descriptive, indexed for search [MVP] |
-| `category` | `string` | Yes | Item category | e.g., "Office Supplies", indexed [MVP] |
-| `description` | `string` | Yes | Detailed description | Supports search and user understanding [MVP] |
-| `price` | `number` | Yes | Estimated unit price | Must be positive, default currency (e.g., USD) [MVP] |
-| `unit` | `string` | No | Unit of measure | e.g., "each", "box", "pack" [Future] |
-| `status` | `ItemStatus` enum | Yes | Item status | Active, PendingReview, Inactive [MVP: Active only] |
-| `preferredSupplier` | `string` | No | Preferred supplier name | [Future] Supplier relationship management |
-| `registeredBy` | `UserId` (string) | No | User who registered this item | Reference to User, null for seeded items [MVP] |
-| `createdAt` | `Date` | Yes | Item creation timestamp | Auto-generated [MVP] |
-| `updatedAt` | `Date` | Yes | Last update timestamp | Auto-updated [MVP] |
+| Field               | Type              | Required | Description                   | Notes                                                |
+| ------------------- | ----------------- | -------- | ----------------------------- | ---------------------------------------------------- |
+| `id`                | `ItemId` (string) | Yes      | Unique item identifier        | MongoDB ObjectId as string [MVP]                     |
+| `name`              | `string`          | Yes      | Item name                     | Descriptive, indexed for search [MVP]                |
+| `category`          | `string`          | Yes      | Item category                 | e.g., "Office Supplies", indexed [MVP]               |
+| `description`       | `string`          | Yes      | Detailed description          | Supports search and user understanding [MVP]         |
+| `price`             | `number`          | Yes      | Estimated unit price          | Must be positive, default currency (e.g., USD) [MVP] |
+| `unit`              | `string`          | No       | Unit of measure               | e.g., "each", "box", "pack" [Future]                 |
+| `status`            | `ItemStatus` enum | Yes      | Item status                   | Active, PendingReview, Inactive [MVP: Active only]   |
+| `preferredSupplier` | `string`          | No       | Preferred supplier name       | [Future] Supplier relationship management            |
+| `registeredBy`      | `UserId` (string) | No       | User who registered this item | Reference to User, null for seeded items [MVP]       |
+| `createdAt`         | `Date`            | Yes      | Item creation timestamp       | Auto-generated [MVP]                                 |
+| `updatedAt`         | `Date`            | Yes      | Last update timestamp         | Auto-updated [MVP]                                   |
 
 **Business Rules**:
+
 - **BR-1.3**: Item name should be unique within the same category (case-insensitive) or system warns of duplicates
 - **BR-1.5**: Price must be a positive number (> 0)
 - **BR-2.5**: Items referenced in active carts should validate existence before checkout
 - Default status is `Active` for MVP; `PendingReview` requires approval workflow (Future)
 
 **Relationships**:
+
 - Item → User (N:1 via `registeredBy` for user-created items)
 - Item ← CartItem (1:N, items can appear in multiple carts)
 - Item ← PurchaseRequestItem (1:N, items can appear in multiple requests, with snapshots)
 
 **Indexes**:
+
 - `name` (text index for search)
 - `category` (for filtering)
 - `status` (for active item queries)
@@ -126,23 +132,25 @@ The Item entity represents a material or service available in the procurement ca
 
 The Cart entity represents a user's shopping cart, containing line items with quantities and price snapshots.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `id` | `CartId` (string) | Yes | Unique cart identifier | MongoDB ObjectId as string [MVP] |
-| `userId` | `UserId` (string) | Yes | User who owns this cart | Reference to User [MVP] |
-| `items` | `CartItem[]` | Yes | Line items in the cart | Embedded sub-documents [MVP] |
-| `totalCost` | `number` | Yes | Total estimated cost | Sum of all item subtotals [MVP] |
-| `createdAt` | `Date` | Yes | Cart creation timestamp | Auto-generated [MVP] |
-| `updatedAt` | `Date` | Yes | Last update timestamp | Updated when items added/removed [MVP] |
-| `isDraft` | `boolean` | No | Indicates saved cart draft | [Future] Save cart without checkout |
+| Field       | Type              | Required | Description                | Notes                                  |
+| ----------- | ----------------- | -------- | -------------------------- | -------------------------------------- |
+| `id`        | `CartId` (string) | Yes      | Unique cart identifier     | MongoDB ObjectId as string [MVP]       |
+| `userId`    | `UserId` (string) | Yes      | User who owns this cart    | Reference to User [MVP]                |
+| `items`     | `CartItem[]`      | Yes      | Line items in the cart     | Embedded sub-documents [MVP]           |
+| `totalCost` | `number`          | Yes      | Total estimated cost       | Sum of all item subtotals [MVP]        |
+| `createdAt` | `Date`            | Yes      | Cart creation timestamp    | Auto-generated [MVP]                   |
+| `updatedAt` | `Date`            | Yes      | Last update timestamp      | Updated when items added/removed [MVP] |
+| `isDraft`   | `boolean`         | No       | Indicates saved cart draft | [Future] Save cart without checkout    |
 
 **Business Rules**:
+
 - **BR-2.1**: Cart must contain at least 1 item to allow checkout
 - **BR-2.3**: Cart data must be associated with authenticated user (if auth is enabled)
 - **BR-2.7**: Cart is cleared after successful checkout
 - **BR-3.4**: Agent-initiated cart operations respect same rules as UI
 
 **Relationships**:
+
 - Cart → User (N:1, each cart belongs to one user)
 - Cart → CartItem (1:N, embedded line items)
 
@@ -152,20 +160,22 @@ The Cart entity represents a user's shopping cart, containing line items with qu
 
 CartItem is an embedded sub-document within Cart, representing a single line item.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `itemId` | `ItemId` (string) | Yes | Reference to catalog item | Link to Item entity [MVP] |
-| `itemName` | `string` | Yes | Snapshot of item name | Captured at add-to-cart time [MVP] |
-| `itemPrice` | `number` | Yes | Snapshot of item price | Captured at add-to-cart time [MVP] |
-| `quantity` | `number` | Yes | Quantity of this item | Min: 1, Max: 999 per BR-2.2 [MVP] |
-| `subtotal` | `number` | Yes | Subtotal for this line | `itemPrice * quantity` [MVP] |
-| `addedAt` | `Date` | Yes | Timestamp when added to cart | For tracking [MVP] |
+| Field       | Type              | Required | Description                  | Notes                              |
+| ----------- | ----------------- | -------- | ---------------------------- | ---------------------------------- |
+| `itemId`    | `ItemId` (string) | Yes      | Reference to catalog item    | Link to Item entity [MVP]          |
+| `itemName`  | `string`          | Yes      | Snapshot of item name        | Captured at add-to-cart time [MVP] |
+| `itemPrice` | `number`          | Yes      | Snapshot of item price       | Captured at add-to-cart time [MVP] |
+| `quantity`  | `number`          | Yes      | Quantity of this item        | Min: 1, Max: 999 per BR-2.2 [MVP]  |
+| `subtotal`  | `number`          | Yes      | Subtotal for this line       | `itemPrice * quantity` [MVP]       |
+| `addedAt`   | `Date`            | Yes      | Timestamp when added to cart | For tracking [MVP]                 |
 
 **Business Rules**:
+
 - **BR-2.2**: Quantity per item: minimum 1, maximum 999
 - Price and name are snapshots to preserve cart state even if catalog item changes
 
 **Notes**:
+
 - CartItem is not a separate collection; it's embedded in Cart documents
 - Snapshot pattern ensures cart consistency even if Item entity is updated or deleted
 
@@ -175,26 +185,28 @@ CartItem is an embedded sub-document within Cart, representing a single line ite
 
 The PurchaseRequest entity represents a submitted procurement request. In the tech case, this is logged to MongoDB instead of being sent to a real ERP.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `id` | `PurchaseRequestId` (string) | Yes | Unique purchase request ID | MongoDB ObjectId as string [MVP] |
-| `userId` | `UserId` (string) | Yes | User who created this request | Reference to User [MVP] |
-| `items` | `PurchaseRequestItem[]` | Yes | List of requested items | Immutable snapshots [MVP] |
-| `totalCost` | `number` | Yes | Total estimated cost | Sum of all item subtotals [MVP] |
-| `notes` | `string` | No | Optional notes/justification | [MVP] |
-| `status` | `PurchaseRequestStatus` enum | Yes | Request status | Submitted, PendingApproval, Approved, Rejected [MVP: Submitted only] |
-| `deliveryLocation` | `string` | No | Delivery location | [Future] Advanced logistics |
-| `requestedDeliveryDate` | `Date` | No | Requested delivery date | [Future] Scheduling |
-| `createdAt` | `Date` | Yes | Request creation timestamp | Auto-generated [MVP] |
-| `updatedAt` | `Date` | Yes | Last update timestamp | Auto-updated [MVP] |
+| Field                   | Type                         | Required | Description                   | Notes                                                                |
+| ----------------------- | ---------------------------- | -------- | ----------------------------- | -------------------------------------------------------------------- |
+| `id`                    | `PurchaseRequestId` (string) | Yes      | Unique purchase request ID    | MongoDB ObjectId as string [MVP]                                     |
+| `userId`                | `UserId` (string)            | Yes      | User who created this request | Reference to User [MVP]                                              |
+| `items`                 | `PurchaseRequestItem[]`      | Yes      | List of requested items       | Immutable snapshots [MVP]                                            |
+| `totalCost`             | `number`                     | Yes      | Total estimated cost          | Sum of all item subtotals [MVP]                                      |
+| `notes`                 | `string`                     | No       | Optional notes/justification  | [MVP]                                                                |
+| `status`                | `PurchaseRequestStatus` enum | Yes      | Request status                | Submitted, PendingApproval, Approved, Rejected [MVP: Submitted only] |
+| `deliveryLocation`      | `string`                     | No       | Delivery location             | [Future] Advanced logistics                                          |
+| `requestedDeliveryDate` | `Date`                       | No       | Requested delivery date       | [Future] Scheduling                                                  |
+| `createdAt`             | `Date`                       | Yes      | Request creation timestamp    | Auto-generated [MVP]                                                 |
+| `updatedAt`             | `Date`                       | Yes      | Last update timestamp         | Auto-updated [MVP]                                                   |
 
 **Business Rules**:
+
 - **BR-4.1**: Purchase request requires at least 1 item (enforced at checkout)
 - **BR-4.2**: Unique request ID generated upon creation
 - **BR-4.3**: Request recorded with timestamp, user ID, items, quantities, total cost
 - Items are immutable snapshots to preserve historical accuracy
 
 **Relationships**:
+
 - PurchaseRequest → User (N:1, each request belongs to one user)
 - PurchaseRequest → PurchaseRequestItem (1:N, embedded line items)
 
@@ -204,22 +216,24 @@ The PurchaseRequest entity represents a submitted procurement request. In the te
 
 PurchaseRequestItem is an embedded sub-document within PurchaseRequest, representing an immutable snapshot of a catalog item at checkout time.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `itemId` | `ItemId` (string) | Yes | Reference to original catalog item | Link to Item entity [MVP] |
-| `itemName` | `string` | Yes | Snapshot: item name at checkout | Immutable [MVP] |
-| `itemCategory` | `string` | Yes | Snapshot: item category at checkout | Immutable [MVP] |
-| `itemDescription` | `string` | Yes | Snapshot: item description at checkout | Immutable [MVP] |
-| `unitPrice` | `number` | Yes | Snapshot: unit price at checkout | Immutable [MVP] |
-| `quantity` | `number` | Yes | Quantity requested | Immutable [MVP] |
-| `subtotal` | `number` | Yes | Subtotal for this line | `unitPrice * quantity` [MVP] |
+| Field             | Type              | Required | Description                            | Notes                        |
+| ----------------- | ----------------- | -------- | -------------------------------------- | ---------------------------- |
+| `itemId`          | `ItemId` (string) | Yes      | Reference to original catalog item     | Link to Item entity [MVP]    |
+| `itemName`        | `string`          | Yes      | Snapshot: item name at checkout        | Immutable [MVP]              |
+| `itemCategory`    | `string`          | Yes      | Snapshot: item category at checkout    | Immutable [MVP]              |
+| `itemDescription` | `string`          | Yes      | Snapshot: item description at checkout | Immutable [MVP]              |
+| `unitPrice`       | `number`          | Yes      | Snapshot: unit price at checkout       | Immutable [MVP]              |
+| `quantity`        | `number`          | Yes      | Quantity requested                     | Immutable [MVP]              |
+| `subtotal`        | `number`          | Yes      | Subtotal for this line                 | `unitPrice * quantity` [MVP] |
 
 **Business Rules**:
+
 - All fields are immutable snapshots captured at checkout
 - Even if the original Item is updated or deleted, the PurchaseRequest preserves historical data
 - `itemId` provides traceability back to catalog (if item still exists)
 
 **Notes**:
+
 - PurchaseRequestItem is not a separate collection; it's embedded in PurchaseRequest documents
 - Snapshot pattern is critical for auditability and ERP integration
 
@@ -229,23 +243,25 @@ PurchaseRequestItem is an embedded sub-document within PurchaseRequest, represen
 
 The AgentConversation entity represents a conversational session between a user and the AI agent, including message history and action logs.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `id` | `AgentConversationId` (string) | Yes | Unique conversation ID | MongoDB ObjectId as string [MVP] |
-| `userId` | `UserId` (string) | Yes | User who initiated conversation | Reference to User [MVP] |
-| `messages` | `AgentMessage[]` | Yes | Chronological message history | Embedded sub-documents [MVP] |
-| `actions` | `AgentAction[]` | Yes | List of agent actions/tool calls | Embedded sub-documents [MVP] |
-| `isActive` | `boolean` | Yes | Conversation active/completed flag | [MVP] |
-| `summary` | `string` | No | Conversation summary | [Future] Generated by agent at end |
-| `createdAt` | `Date` | Yes | Conversation start timestamp | Auto-generated [MVP] |
-| `updatedAt` | `Date` | Yes | Last message/action timestamp | Auto-updated [MVP] |
+| Field       | Type                           | Required | Description                        | Notes                              |
+| ----------- | ------------------------------ | -------- | ---------------------------------- | ---------------------------------- |
+| `id`        | `AgentConversationId` (string) | Yes      | Unique conversation ID             | MongoDB ObjectId as string [MVP]   |
+| `userId`    | `UserId` (string)              | Yes      | User who initiated conversation    | Reference to User [MVP]            |
+| `messages`  | `AgentMessage[]`               | Yes      | Chronological message history      | Embedded sub-documents [MVP]       |
+| `actions`   | `AgentAction[]`                | Yes      | List of agent actions/tool calls   | Embedded sub-documents [MVP]       |
+| `isActive`  | `boolean`                      | Yes      | Conversation active/completed flag | [MVP]                              |
+| `summary`   | `string`                       | No       | Conversation summary               | [Future] Generated by agent at end |
+| `createdAt` | `Date`                         | Yes      | Conversation start timestamp       | Auto-generated [MVP]               |
+| `updatedAt` | `Date`                         | Yes      | Last message/action timestamp      | Auto-updated [MVP]                 |
 
 **Business Rules**:
+
 - **BR-3.5**: Agent logs conversation and actions for debugging
 - Messages and actions are appended chronologically
 - `isActive` set to false when user ends conversation or achieves goal
 
 **Relationships**:
+
 - AgentConversation → User (N:1, each conversation belongs to one user)
 - AgentConversation → AgentMessage (1:N, embedded messages)
 - AgentConversation → AgentAction (1:N, embedded actions)
@@ -256,13 +272,14 @@ The AgentConversation entity represents a conversational session between a user 
 
 AgentMessage is an embedded sub-document within AgentConversation, representing a single message in the conversation.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `role` | `AgentMessageRole` enum | Yes | Message role | 'user', 'assistant', 'system' [MVP] |
-| `content` | `string` | Yes | Message content (text) | [MVP] |
-| `timestamp` | `Date` | Yes | Message creation timestamp | [MVP] |
+| Field       | Type                    | Required | Description                | Notes                               |
+| ----------- | ----------------------- | -------- | -------------------------- | ----------------------------------- |
+| `role`      | `AgentMessageRole` enum | Yes      | Message role               | 'user', 'assistant', 'system' [MVP] |
+| `content`   | `string`                | Yes      | Message content (text)     | [MVP]                               |
+| `timestamp` | `Date`                  | Yes      | Message creation timestamp | [MVP]                               |
 
 **Business Rules**:
+
 - `role`: 'user' for user input, 'assistant' for agent responses, 'system' for system messages (e.g., error notifications)
 - Messages are immutable once added
 - Chronological order is preserved
@@ -273,20 +290,22 @@ AgentMessage is an embedded sub-document within AgentConversation, representing 
 
 AgentAction is an embedded sub-document within AgentConversation, representing a tool/function call made by the agent.
 
-| Field | Type | Required | Description | Notes |
-|-------|------|----------|-------------|-------|
-| `actionType` | `AgentActionType` enum | Yes | Type of action | search_catalog, register_item, add_to_cart, etc. [MVP] |
-| `parameters` | `Record<string, unknown>` | Yes | Input parameters | JSON object [MVP] |
-| `result` | `Record<string, unknown>` | No | Action result | JSON object [MVP] |
-| `error` | `string` | No | Error message if failed | [MVP] |
-| `timestamp` | `Date` | Yes | Action execution timestamp | [MVP] |
+| Field        | Type                      | Required | Description                | Notes                                                  |
+| ------------ | ------------------------- | -------- | -------------------------- | ------------------------------------------------------ |
+| `actionType` | `AgentActionType` enum    | Yes      | Type of action             | search_catalog, register_item, add_to_cart, etc. [MVP] |
+| `parameters` | `Record<string, unknown>` | Yes      | Input parameters           | JSON object [MVP]                                      |
+| `result`     | `Record<string, unknown>` | No       | Action result              | JSON object [MVP]                                      |
+| `error`      | `string`                  | No       | Error message if failed    | [MVP]                                                  |
+| `timestamp`  | `Date`                    | Yes      | Action execution timestamp | [MVP]                                                  |
 
 **Business Rules**:
+
 - **BR-3.2**: Agent should explain actions when helpful (reflected in subsequent messages)
 - **BR-3.1**: Agent confirms before critical actions (checkout)
 - Actions are logged for debugging and understanding agent behavior
 
 **Supported Action Types (MVP)**:
+
 - `search_catalog`: Search for items
 - `register_item`: Create new catalog item
 - `add_to_cart`: Add item to user's cart
@@ -324,18 +343,18 @@ User (1) ──────< (N) Cart
 
 ### Relationship Details
 
-| Relationship | Type | Description | Implementation |
-|--------------|------|-------------|----------------|
-| User → Cart | 1:1 (MVP) / 1:N (Future) | Each user has one active cart; future: multiple saved drafts | Foreign key: `Cart.userId` → `User.id` |
-| User → PurchaseRequest | 1:N | Users can create multiple purchase requests | Foreign key: `PurchaseRequest.userId` → `User.id` |
-| User → AgentConversation | 1:N | Users can have multiple conversations | Foreign key: `AgentConversation.userId` → `User.id` |
-| User → Item | 1:N | Users can register multiple catalog items | Foreign key: `Item.registeredBy` → `User.id` |
-| Cart → CartItem | 1:N | Cart contains multiple line items | Embedded sub-documents in `Cart.items` |
-| CartItem → Item | N:1 | Line item references catalog item | Foreign key: `CartItem.itemId` → `Item.id` |
-| PurchaseRequest → PurchaseRequestItem | 1:N | Request contains multiple line items | Embedded sub-documents in `PurchaseRequest.items` |
-| PurchaseRequestItem → Item | N:1 (snapshot) | Line item references original item (snapshot) | Foreign key: `PurchaseRequestItem.itemId` → `Item.id` |
-| AgentConversation → AgentMessage | 1:N | Conversation contains multiple messages | Embedded sub-documents in `AgentConversation.messages` |
-| AgentConversation → AgentAction | 1:N | Conversation logs multiple actions | Embedded sub-documents in `AgentConversation.actions` |
+| Relationship                          | Type                     | Description                                                  | Implementation                                         |
+| ------------------------------------- | ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------ |
+| User → Cart                           | 1:1 (MVP) / 1:N (Future) | Each user has one active cart; future: multiple saved drafts | Foreign key: `Cart.userId` → `User.id`                 |
+| User → PurchaseRequest                | 1:N                      | Users can create multiple purchase requests                  | Foreign key: `PurchaseRequest.userId` → `User.id`      |
+| User → AgentConversation              | 1:N                      | Users can have multiple conversations                        | Foreign key: `AgentConversation.userId` → `User.id`    |
+| User → Item                           | 1:N                      | Users can register multiple catalog items                    | Foreign key: `Item.registeredBy` → `User.id`           |
+| Cart → CartItem                       | 1:N                      | Cart contains multiple line items                            | Embedded sub-documents in `Cart.items`                 |
+| CartItem → Item                       | N:1                      | Line item references catalog item                            | Foreign key: `CartItem.itemId` → `Item.id`             |
+| PurchaseRequest → PurchaseRequestItem | 1:N                      | Request contains multiple line items                         | Embedded sub-documents in `PurchaseRequest.items`      |
+| PurchaseRequestItem → Item            | N:1 (snapshot)           | Line item references original item (snapshot)                | Foreign key: `PurchaseRequestItem.itemId` → `Item.id`  |
+| AgentConversation → AgentMessage      | 1:N                      | Conversation contains multiple messages                      | Embedded sub-documents in `AgentConversation.messages` |
+| AgentConversation → AgentAction       | 1:N                      | Conversation logs multiple actions                           | Embedded sub-documents in `AgentConversation.actions`  |
 
 ---
 
@@ -346,28 +365,33 @@ User (1) ──────< (N) Cart
 The following fields and features are **in scope** for the tech case:
 
 #### User (MVP)
+
 - ✅ Basic authentication with email/password (Credentials provider)
 - ✅ User ownership of carts, requests, conversations
 
 #### Item (MVP)
+
 - ✅ Core catalog fields: name, category, description, price
 - ✅ User registration capability
 - ✅ Status field (defaults to `Active`, prepared for future workflows)
 - ✅ Search via keyword (name, description, category)
 
 #### Cart (MVP)
+
 - ✅ Add/update/remove items with quantity
 - ✅ Cart total calculation
 - ✅ Clear cart after checkout
 - ✅ Snapshot pattern for price/name consistency
 
 #### PurchaseRequest (MVP)
+
 - ✅ Simulated ERP submission (logged to MongoDB)
 - ✅ Immutable snapshots of items at checkout
 - ✅ Status field (defaults to `Submitted`)
 - ✅ Optional notes field
 
 #### AgentConversation (MVP)
+
 - ✅ Text-based conversational interface
 - ✅ Message history logging
 - ✅ Action/tool call logging for debugging
@@ -380,11 +404,13 @@ The following fields and features are **in scope** for the tech case:
 The following fields and features are **out of scope** for the tech case but designed into the model for future iterations:
 
 #### User (Future)
+
 - 🔮 OAuth providers (Google, SSO)
 - 🔮 Role-based access control (requester, buyer, admin)
 - 🔮 Multi-role support
 
 #### Item (Future)
+
 - 🔮 `PendingReview` status with buyer approval workflow
 - 🔮 Unit of measure (`unit` field)
 - 🔮 Preferred supplier tracking
@@ -392,23 +418,27 @@ The following fields and features are **out of scope** for the tech case but des
 - 🔮 Advanced filtering (price range, availability)
 
 #### Cart (Future)
+
 - 🔮 Persist cart across sessions (session storage or DB flag)
 - 🔮 Save cart drafts (`isDraft` field)
 - 🔮 Multiple saved carts per user
 
 #### PurchaseRequest (Future)
+
 - 🔮 Approval workflows (`PendingApproval`, `Approved`, `Rejected` statuses)
 - 🔮 Delivery location and requested delivery date
 - 🔮 Real ERP integration (replace simulated submission)
 - 🔮 Budget validation and enforcement
 
 #### AgentConversation (Future)
+
 - 🔮 Voice input/output (multimodal interface)
 - 🔮 Conversation summary generation (AI-powered)
 - 🔮 Detailed agent action logs (separate AgentActionLog entity)
 - 🔮 Conversation analytics and insights
 
 #### New Entities (Future)
+
 - 🔮 **Category**: Structured category taxonomy with hierarchy
 - 🔮 **AgentActionLog**: Separate collection for detailed action analytics
 
@@ -458,20 +488,20 @@ All entities include `createdAt` and `updatedAt`:
 
 ## 7. Validation Rules Summary
 
-| Entity | Field | Validation Rule |
-|--------|-------|-----------------|
-| User | email | Unique, valid email format |
-| User | passwordHash | Required for Credentials provider |
-| Item | name | Non-empty string, max 200 chars |
-| Item | category | Non-empty string |
-| Item | price | Positive number (> 0) |
-| Item | status | Valid ItemStatus enum |
-| CartItem | quantity | Integer, min: 1, max: 999 |
-| Cart | items | Non-empty array for checkout |
-| PurchaseRequest | items | Non-empty array, min 1 item |
-| PurchaseRequest | totalCost | Positive number (> 0) |
-| AgentMessage | role | Valid AgentMessageRole enum |
-| AgentAction | actionType | Valid AgentActionType enum |
+| Entity          | Field        | Validation Rule                   |
+| --------------- | ------------ | --------------------------------- |
+| User            | email        | Unique, valid email format        |
+| User            | passwordHash | Required for Credentials provider |
+| Item            | name         | Non-empty string, max 200 chars   |
+| Item            | category     | Non-empty string                  |
+| Item            | price        | Positive number (> 0)             |
+| Item            | status       | Valid ItemStatus enum             |
+| CartItem        | quantity     | Integer, min: 1, max: 999         |
+| Cart            | items        | Non-empty array for checkout      |
+| PurchaseRequest | items        | Non-empty array, min 1 item       |
+| PurchaseRequest | totalCost    | Positive number (> 0)             |
+| AgentMessage    | role         | Valid AgentMessageRole enum       |
+| AgentAction     | actionType   | Valid AgentActionType enum        |
 
 ---
 
@@ -487,7 +517,7 @@ All entities include `createdAt` and `updatedAt`:
 
 ### Secondary Indexes (Performance)
 
-- **Item**: 
+- **Item**:
   - Text index on `name` and `description` for search
   - Index on `category` for filtering
   - Index on `status` for active item queries

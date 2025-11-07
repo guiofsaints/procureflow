@@ -40,28 +40,65 @@
 ```
 procureflow/
 ├── apps/
-│   └── web/                    # Next.js application
-│       ├── app/               # App Router pages & API routes
-│       │   ├── api/health/    # Health check endpoint
-│       │   ├── api/auth/      # NextAuth.js routes
-│       │   ├── layout.tsx     # Root layout
-│       │   └── page.tsx       # Landing page
+│   └── web/                          # Next.js application
+│       ├── app/
+│       │   ├── layout.tsx           # Root layout with global styles
+│       │   ├── (public)/            # Public routes (no auth required)
+│       │   │   ├── layout.tsx       # Public routes layout
+│       │   │   ├── page.tsx         # Landing page
+│       │   │   └── docs/api/        # API documentation (Swagger UI)
+│       │   └── (app)/               # Authenticated app routes
+│       │       ├── layout.tsx       # App routes layout
+│       │       └── api/             # API routes
+│       │           ├── health/      # Health check endpoint
+│       │           ├── auth/        # NextAuth.js authentication
+│       │           ├── items/       # Catalog items API
+│       │           ├── cart/        # Cart management API
+│       │           ├── checkout/    # Checkout API
+│       │           ├── agent/       # AI agent chat API
+│       │           └── openapi/     # OpenAPI spec generation
 │       └── src/
-│           ├── lib/
-│           │   ├── auth/      # Authentication configuration
-│           │   ├── db/        # Database connection helpers
-│           │   ├── ai/        # LangChain & OpenAI integration
-│           │   ├── utils/     # Utility functions
-│           │   └── constants/ # Application constants
-│           ├── components/    # React components
-│           │   └── ui/        # UI component library
-│           ├── styles/        # Global CSS and Tailwind
-│           └── types/         # TypeScript type definitions
+│           ├── features/            # Feature-based organization
+│           │   ├── catalog/         # Catalog feature
+│           │   │   ├── components/  # UI components
+│           │   │   ├── lib/         # catalog.service.ts
+│           │   │   └── index.ts     # Feature exports
+│           │   ├── cart/            # Cart feature
+│           │   │   ├── components/
+│           │   │   ├── lib/         # cart.service.ts
+│           │   │   └── index.ts
+│           │   ├── checkout/        # Checkout feature
+│           │   │   ├── components/
+│           │   │   ├── lib/         # checkout.service.ts
+│           │   │   └── index.ts
+│           │   └── agent/           # AI Agent feature
+│           │       ├── components/
+│           │       ├── lib/         # agent.service.ts
+│           │       └── index.ts
+│           ├── domain/              # Domain entities and types
+│           │   ├── entities.ts      # Core domain entities
+│           │   ├── mongo-schemas.d.ts
+│           │   └── index.ts
+│           ├── lib/                 # Shared libraries
+│           │   ├── auth/            # Authentication configuration
+│           │   ├── db/              # Database connection and schemas
+│           │   │   ├── mongoose.ts  # Connection management
+│           │   │   ├── models.ts    # Model exports
+│           │   │   └── schemas/     # Mongoose schemas
+│           │   ├── ai/              # LangChain & OpenAI integration
+│           │   ├── utils/           # Utility functions
+│           │   ├── constants/       # Application constants
+│           │   └── openapi.ts       # OpenAPI spec generation
+│           ├── components/          # Shared React components
+│           │   └── ui/              # UI component library
+│           ├── styles/              # Global CSS and Tailwind
+│           └── types/               # TypeScript type definitions
 ├── infra/
-│   └── pulumi/gcp/           # Infrastructure as Code
-├── docker/                   # Docker configurations
-└── .guided/                  # Guided Engineering documentation
-    └── assessment/           # Codebase reviews and fixes
+│   └── pulumi/gcp/                 # Infrastructure as Code
+├── docker/                         # Docker configurations
+└── .guided/                        # Guided Engineering documentation
+    ├── product/                    # Product documentation
+    └── assessment/                 # Codebase reviews and fixes
 ```
 
 ## Coding Standards
@@ -85,12 +122,19 @@ procureflow/
 
 - Components in `src/components/` with proper exports from `index.ts`
 - UI components in `src/components/ui/`
+- Feature-specific code in `src/features/{feature}/`:
+  - `lib/` - Service layer and business logic
+  - `components/` - Feature-specific UI components
+  - `index.ts` - Feature exports
+- Domain entities in `src/domain/entities.ts`
 - Library code in `src/lib/` organized by domain:
   - `auth/` - Authentication logic
-  - `db/` - Database connections and models
+  - `db/` - Database connections, models, and schemas
   - `ai/` - LangChain and OpenAI integration
   - `utils/` - General utilities
   - `constants/` - Application constants
+- API routes in `app/(app)/api/`
+- Public pages in `app/(public)/`
 
 ### Import Organization
 

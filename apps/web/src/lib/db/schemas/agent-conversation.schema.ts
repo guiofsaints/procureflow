@@ -218,10 +218,7 @@ export const AgentConversationSchema = new Schema(
     summary: {
       type: String,
       trim: true,
-      maxlength: [
-        1000,
-        'Summary must not exceed 1000 characters',
-      ],
+      maxlength: [1000, 'Summary must not exceed 1000 characters'],
       // Not used in MVP - reserved for future AI-generated summaries
     },
 

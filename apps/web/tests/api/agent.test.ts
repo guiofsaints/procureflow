@@ -7,8 +7,8 @@
 import { Types } from 'mongoose';
 import { describe, it, expect, beforeEach } from 'vitest';
 
+import * as agentService from '@/features/agent';
 import { AgentConversationModel } from '@/lib/db/models';
-import * as agentService from '@/server/agent.service';
 
 describe('Agent Service', () => {
   const testUserId = new Types.ObjectId().toString();
@@ -47,9 +47,7 @@ describe('Agent Service', () => {
         conversationId: firstResponse.conversationId,
       });
 
-      expect(secondResponse.conversationId).toBe(
-        firstResponse.conversationId
-      );
+      expect(secondResponse.conversationId).toBe(firstResponse.conversationId);
       expect(secondResponse.messages.length).toBeGreaterThan(2);
     });
 
@@ -103,9 +101,9 @@ describe('Agent Service', () => {
       // Agent should acknowledge the request in some way
       expect(
         agentReply.toLowerCase().includes('help') ||
-        agentReply.toLowerCase().includes('assist') ||
-        agentReply.toLowerCase().includes('usb') ||
-        agentReply.toLowerCase().includes('cable')
+          agentReply.toLowerCase().includes('assist') ||
+          agentReply.toLowerCase().includes('usb') ||
+          agentReply.toLowerCase().includes('cable')
       ).toBe(true);
     });
   });

@@ -1,0 +1,6 @@
+/**
+ * Cart Feature
+ * Manages shopping cart operations for procurement
+ */
+
+export * from './lib/cart.service';

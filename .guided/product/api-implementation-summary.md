@@ -13,9 +13,10 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 
 ### 1. Service Layer (Business Logic)
 
-**Location**: `apps/web/src/server/`
+**Location**: `apps/web/src/features/`
 
-#### `catalog.service.ts` (349 lines)
+#### `catalog/lib/catalog.service.ts` (349 lines)
+
 - **Purpose**: Item search and registration business logic
 - **Functions**:
   - `searchItems(query?, limit?)` - Text search with MongoDB $text operator
@@ -28,7 +29,8 @@ This document summarizes the complete implementation of the ProcureFlow REST API
   - `category` length: 2-100 characters
 - **Error Types**: `ValidationError`, `DuplicateItemError`
 
-#### `cart.service.ts` (337 lines)
+#### `cart/lib/cart.service.ts` (337 lines)
+
 - **Purpose**: Shopping cart management
 - **Functions**:
   - `getCartForUser(userId)` - Fetch or create cart
@@ -43,7 +45,8 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 - **Error Types**: `ValidationError`, `ItemNotFoundError`, `CartLimitError`
 - **Key Pattern**: Item snapshot (captures name/price at add-to-cart time)
 
-#### `checkout.service.ts` (169 lines)
+#### `checkout/lib/checkout.service.ts` (169 lines)
+
 - **Purpose**: Purchase request creation (simulated ERP submission)
 - **Functions**:
   - `checkoutCart(userId, notes?)` - Create purchase request
@@ -54,7 +57,8 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 - **Error Types**: `EmptyCartError`, `ValidationError`
 - **Post-checkout**: Automatically clears cart
 
-#### `agent.service.ts` (270 lines)
+#### `agent/lib/agent.service.ts` (270 lines)
+
 - **Purpose**: AI agent conversational interface
 - **Functions**:
   - `handleAgentMessage(message, userId?, conversationId?)` - Main entry point
@@ -72,15 +76,17 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 
 ### 2. API Routes (HTTP Layer)
 
-**Location**: `apps/web/app/api/`
+**Location**: `apps/web/app/(app)/api/`
 
 #### Health Check
+
 - **Route**: `GET /api/health`
 - **Auth**: None
 - **Response**: `{ status: "ok" | "unhealthy", timestamp, uptime, database }`
 - **Status Codes**: 200 (healthy), 503 (DB unhealthy)
 
 #### Catalog Endpoints
+
 - **Route**: `GET /api/items?q={query}&limit={limit}`
   - **Auth**: None
   - **Response**: `{ items: Item[] }`
@@ -93,6 +99,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
   - **Status Codes**: 201, 400 (validation), 401 (unauthorized), 409 (duplicate), 500
 
 #### Cart Endpoints
+
 - **Route**: `GET /api/cart`
   - **Auth**: Required
   - **Response**: `{ cart: Cart }`
@@ -116,6 +123,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
   - **Status Codes**: 200, 401, 500
 
 #### Checkout Endpoint
+
 - **Route**: `POST /api/checkout`
   - **Auth**: Required
   - **Body**: `{ notes? }`
@@ -123,6 +131,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
   - **Status Codes**: 201, 400 (empty cart/validation), 401, 500
 
 #### Agent Endpoint
+
 - **Route**: `POST /api/agent/chat`
   - **Auth**: Optional (demo-friendly)
   - **Body**: `{ message, conversationId? }`
@@ -133,9 +142,10 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 
 ### 3. OpenAPI Documentation
 
-**Location**: `apps/web/src/server/openapi.ts` + `apps/web/app/api/openapi/route.ts`
+**Location**: `apps/web/src/lib/openapi.ts` + `apps/web/app/(app)/api/openapi/route.ts`
 
 #### Specification Details
+
 - **OpenAPI Version**: 3.0.0
 - **Total Endpoints**: 8
 - **Schema Components**: 12
@@ -148,6 +158,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
   - Request/response DTOs
 
 #### Swagger UI
+
 - **Location**: `/docs/api`
 - **Implementation**: CDN-based Swagger UI (no npm dependency)
 - **Features**: Interactive API testing, request/response examples
@@ -159,6 +170,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 **Location**: `apps/web/tests/`
 
 #### Configuration
+
 - **File**: `vitest.config.mts`
 - **Environment**: Node.js (for API testing)
 - **Path Aliases**: `@/`, `@/server`, `@/lib`, `@/domain`
@@ -166,6 +178,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 - **Setup File**: `apps/web/tests/setup.ts`
 
 #### Global Setup (`setup.ts`)
+
 - **beforeAll**: Connect to `procureflow_test` database
 - **afterAll**: Disconnect from database
 - **Environment**: Uses `MONGODB_TEST_URI` env var
@@ -173,6 +186,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 #### Test Suites
 
 ##### `items.test.ts` (125 lines, 8 tests)
+
 - ✅ Create valid item
 - ✅ Reject invalid item data
 - ✅ Detect duplicate item names
@@ -183,6 +197,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 - ✅ Handle search errors
 
 ##### `cart-and-checkout.test.ts` (173 lines, 11 tests)
+
 - ✅ Get empty cart for new user
 - ✅ Add item to cart
 - ✅ Prevent adding non-existent item
@@ -196,6 +211,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 - ✅ Complete journey (add → update → checkout)
 
 ##### `agent.test.ts` (103 lines, 6 tests)
+
 - ✅ Create new conversation
 - ✅ Continue existing conversation
 - ✅ Reject empty messages
@@ -212,6 +228,7 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 **Location**: `.guided/product/api-and-db-runbook.md` (643 lines)
 
 #### Sections Covered
+
 1. **Prerequisites** (13 items)
    - Node.js 18+, pnpm, Docker, MongoDB, environment variables
 2. **Initial Setup**
@@ -255,12 +272,15 @@ This document summarizes the complete implementation of the ProcureFlow REST API
 ## Architecture Decisions
 
 ### 1. Service Layer Isolation
+
 **Decision**: Thin route handlers, business logic in services  
 **Rationale**: Testability, reusability (e.g., agent service can call catalog/cart services directly)
 
 ### 2. Error Handling Strategy
+
 **Decision**: Custom error classes mapped to HTTP status codes  
 **Approach**:
+
 ```typescript
 // Service layer
 throw new ValidationError('Price must be positive');
@@ -274,22 +294,27 @@ catch (error) {
 ```
 
 ### 3. Authentication Pattern
+
 **Decision**: NextAuth.js with `getServerSession` in route handlers  
 **Trade-off**: Optional auth for agent endpoint (demo-friendly), required for cart/checkout
 
 ### 4. Cart Item Snapshot
+
 **Decision**: Capture item name and price at add-to-cart time  
 **Rationale**: Price changes shouldn't affect existing carts, historical accuracy
 
 ### 5. Swagger UI Implementation
+
 **Decision**: CDN-based instead of npm package  
 **Rationale**: Avoids heavy dependency, faster setup, simpler maintenance
 
 ### 6. Test Database Isolation
+
 **Decision**: Separate `procureflow_test` database  
 **Rationale**: Prevent production data contamination, enable parallel test runs
 
 ### 7. Agent Tool Calling
+
 **Decision**: Placeholder executeTool, not full LangChain structured tools  
 **Rationale**: Tech case scope - demonstrates pattern without full implementation
 
@@ -298,6 +323,7 @@ catch (error) {
 ## Known Limitations & Future Work
 
 ### Current Limitations
+
 1. **Agent Tool Execution**: Stub implementation only - not functional
 2. **Authentication**: Simplified credentials provider, no password hashing
 3. **ERP Integration**: Simulated - returns success without actual submission
@@ -306,6 +332,7 @@ catch (error) {
 6. **Request Validation**: Basic - could use Zod or similar for stronger typing
 
 ### Recommended Enhancements
+
 1. **LangChain Structured Tools**: Full agent-service integration
 2. **Input Validation Library**: Zod for runtime type safety
 3. **API Rate Limiting**: Express rate-limit or similar
@@ -322,33 +349,40 @@ catch (error) {
 ## Validation Results
 
 ### TypeScript Compilation
+
 ✅ **PASS** - All files compile without errors
 
 ### ESLint
-⚠️ **WARNINGS** - Intentional `any` type assertions for Mongoose typing workarounds  
+
+⚠️ **WARNINGS** - Intentional `any` type assertions for Mongoose typing workarounds
+
 - Locations: Service files where Mongoose models used
 - Reason: Union types from hot-reload pattern require type assertions
 - Impact: Functional but not strict-mode clean
 
 ### File Organization
+
 ✅ **PASS** - Follows ProcureFlow conventions:
-- Services in `apps/web/src/server/`
-- Routes in `apps/web/app/api/`
+
+- Services in `apps/web/src/features/{feature}/lib/`
+- Routes in `apps/web/app/(app)/api/`
 - Tests in `apps/web/tests/`
 - Documentation in `.guided/product/`
 
 ### Code Quality Checks
+
 ✅ Error handling consistent across all routes  
 ✅ Authentication properly integrated  
 ✅ Domain types used correctly  
 ✅ Import organization follows standards  
-✅ Conventional commit format used throughout  
+✅ Conventional commit format used throughout
 
 ---
 
 ## Testing Instructions
 
 ### Prerequisites
+
 ```powershell
 # Install dependencies (if not already done)
 pnpm install
@@ -362,6 +396,7 @@ cp .env.example .env.local
 ```
 
 ### Running Tests
+
 ```powershell
 # Run all tests once
 pnpm test
@@ -374,6 +409,7 @@ pnpm test:api
 ```
 
 ### Manual API Testing
+
 ```powershell
 # 1. Start MongoDB
 pnpm docker:db
@@ -396,12 +432,15 @@ curl "http://localhost:3000/api/items?q=laptop&limit=10"
 ## Dependencies Added
 
 ### Production Dependencies
+
 - (None - all existing dependencies used)
 
 ### Development Dependencies
+
 - **vitest** - Test runner (needs installation via `pnpm add -D vitest`)
 
 ### External Resources (CDN)
+
 - **swagger-ui-dist** - Loaded from unpkg.com in `/docs/api` page
 
 ---
@@ -409,6 +448,7 @@ curl "http://localhost:3000/api/items?q=laptop&limit=10"
 ## Integration Points
 
 ### Existing ProcureFlow Components
+
 - **MongoDB Models**: `ItemModel`, `CartModel`, `PurchaseRequestModel`, `AgentConversationModel`
 - **Domain Types**: `Item`, `Cart`, `PurchaseRequest`, `AgentConversation` from `apps/web/src/domain/entities.ts`
 - **Auth Configuration**: `authOptions` from `apps/web/src/lib/auth/config.ts`
@@ -420,26 +460,30 @@ curl "http://localhost:3000/api/items?q=laptop&limit=10"
 ## File Inventory
 
 ### Service Layer (4 files)
-- `apps/web/src/server/catalog.service.ts` (349 lines)
-- `apps/web/src/server/cart.service.ts` (337 lines)
-- `apps/web/src/server/checkout.service.ts` (169 lines)
-- `apps/web/src/server/agent.service.ts` (270 lines)
+
+- `apps/web/src/features/catalog/lib/catalog.service.ts` (349 lines)
+- `apps/web/src/features/cart/lib/cart.service.ts` (337 lines)
+- `apps/web/src/features/checkout/lib/checkout.service.ts` (169 lines)
+- `apps/web/src/features/agent/lib/agent.service.ts` (270 lines)
 
 ### API Routes (7 files)
-- `apps/web/app/api/health/route.ts` (updated)
-- `apps/web/app/api/items/route.ts` (145 lines)
-- `apps/web/app/api/cart/route.ts` (45 lines)
-- `apps/web/app/api/cart/items/route.ts` (98 lines)
-- `apps/web/app/api/cart/items/[itemId]/route.ts` (135 lines)
-- `apps/web/app/api/checkout/route.ts` (72 lines)
-- `apps/web/app/api/agent/chat/route.ts` (71 lines)
+
+- `apps/web/app/(app)/api/health/route.ts` (updated)
+- `apps/web/app/(app)/api/items/route.ts` (145 lines)
+- `apps/web/app/(app)/api/cart/route.ts` (45 lines)
+- `apps/web/app/(app)/api/cart/items/route.ts` (98 lines)
+- `apps/web/app/(app)/api/cart/items/[itemId]/route.ts` (135 lines)
+- `apps/web/app/(app)/api/checkout/route.ts` (72 lines)
+- `apps/web/app/(app)/api/agent/chat/route.ts` (71 lines)
 
 ### Documentation (3 files)
-- `apps/web/src/server/openapi.ts` (719 lines)
-- `apps/web/app/api/openapi/route.ts` (17 lines)
-- `apps/web/app/docs/api/page.tsx` (54 lines)
+
+- `apps/web/src/lib/openapi.ts` (719 lines)
+- `apps/web/app/(app)/api/openapi/route.ts` (17 lines)
+- `apps/web/app/(public)/docs/api/page.tsx` (54 lines)
 
 ### Testing (4 files)
+
 - `vitest.config.mts` (19 lines)
 - `apps/web/tests/setup.ts` (31 lines)
 - `apps/web/tests/api/items.test.ts` (125 lines)
@@ -447,9 +491,11 @@ curl "http://localhost:3000/api/items?q=laptop&limit=10"
 - `apps/web/tests/api/agent.test.ts` (103 lines)
 
 ### Runbook (1 file)
+
 - `.guided/product/api-and-db-runbook.md` (643 lines)
 
 ### Configuration Updates (1 file)
+
 - `package.json` (added test scripts and docker:db)
 
 **Total**: 20 files created/modified
@@ -467,19 +513,21 @@ curl "http://localhost:3000/api/items?q=laptop&limit=10"
 ✅ **Error Handling**: Custom error classes with proper HTTP status mapping  
 ✅ **Authentication**: NextAuth.js integration with session management  
 ✅ **Code Quality**: ESLint validated, follows ProcureFlow conventions  
-✅ **Production Ready**: Docker-ready, environment-driven configuration  
+✅ **Production Ready**: Docker-ready, environment-driven configuration
 
 ---
 
 ## Next Steps
 
 ### Immediate (Before Deployment)
+
 1. **Install Vitest**: `pnpm add -D vitest`
 2. **Run Test Suite**: `pnpm test` to verify all tests pass
 3. **Manual Testing**: Use Swagger UI to test each endpoint
 4. **Environment Variables**: Set production values for MongoDB URI, OpenAI key, NextAuth secret
 
 ### Short-term Enhancements
+
 1. Implement full LangChain structured tool calling in agent service
 2. Add request validation with Zod
 3. Implement rate limiting
@@ -487,6 +535,7 @@ curl "http://localhost:3000/api/items?q=laptop&limit=10"
 5. Set up error tracking (Sentry)
 
 ### Long-term Roadmap
+
 1. Real ERP integration (replace simulated submission)
 2. Advanced AI features (intent detection, multi-turn flows)
 3. User roles and permissions
@@ -498,6 +547,7 @@ curl "http://localhost:3000/api/items?q=laptop&limit=10"
 ## Contact & Support
 
 For questions about this implementation:
+
 - **Documentation**: `.guided/product/api-and-db-runbook.md`
 - **API Reference**: http://localhost:3000/docs/api (when running)
 - **Health Check**: http://localhost:3000/api/health

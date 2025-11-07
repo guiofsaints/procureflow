@@ -54,22 +54,68 @@ This is a **bootstrap codebase** designed for a tech case study focused on AI-na
 ```
 procureflow/
 ├── apps/
-│   └── web/                    # Next.js application
-│       ├── app/               # App Router pages & API routes
-│       │   ├── api/health/    # Health check endpoint
-│       │   ├── api/auth/      # NextAuth.js routes
-│       │   ├── layout.tsx     # Root layout
-│       │   └── page.tsx       # Landing page
+│   └── web/                          # Next.js application
+│       ├── app/
+│       │   ├── layout.tsx           # Root layout with global styles
+│       │   ├── (public)/            # Public routes (no auth required)
+│       │   │   ├── layout.tsx       # Public routes layout
+│       │   │   ├── page.tsx         # Landing page
+│       │   │   └── docs/api/        # API documentation (Swagger UI)
+│       │   └── (app)/               # Authenticated app routes
+│       │       ├── layout.tsx       # App routes layout
+│       │       └── api/             # API routes
+│       │           ├── health/      # Health check endpoint
+│       │           ├── auth/        # NextAuth.js authentication
+│       │           ├── items/       # Catalog items API
+│       │           ├── cart/        # Cart management API
+│       │           ├── checkout/    # Checkout API
+│       │           ├── agent/       # AI agent chat API
+│       │           └── openapi/     # OpenAPI spec generation
 │       └── src/
-│           ├── lib/
-│           │   ├── auth/      # Authentication configuration
-│           │   ├── db/        # Database connection helpers
-│           │   └── ai/        # LangChain & OpenAI integration
-│           └── styles/        # Global CSS and Tailwind
+│           ├── features/            # Feature-based organization
+│           │   ├── catalog/         # Catalog feature
+│           │   │   ├── components/  # UI components
+│           │   │   ├── lib/         # catalog.service.ts
+│           │   │   └── index.ts     # Feature exports
+│           │   ├── cart/            # Cart feature
+│           │   │   ├── components/
+│           │   │   ├── lib/         # cart.service.ts
+│           │   │   └── index.ts
+│           │   ├── checkout/        # Checkout feature
+│           │   │   ├── components/
+│           │   │   ├── lib/         # checkout.service.ts
+│           │   │   └── index.ts
+│           │   └── agent/           # AI Agent feature
+│           │       ├── components/
+│           │       ├── lib/         # agent.service.ts
+│           │       └── index.ts
+│           ├── domain/              # Domain entities and types
+│           │   ├── entities.ts      # Core domain entities
+│           │   ├── mongo-schemas.d.ts
+│           │   └── index.ts
+│           ├── lib/                 # Shared libraries
+│           │   ├── auth/            # Authentication configuration
+│           │   ├── db/              # Database connection and schemas
+│           │   │   ├── mongoose.ts  # Connection management
+│           │   │   ├── models.ts    # Model exports
+│           │   │   └── schemas/     # Mongoose schemas
+│           │   ├── ai/              # LangChain & OpenAI integration
+│           │   ├── utils/           # Utility functions
+│           │   ├── constants/       # Application constants
+│           │   └── openapi.ts       # OpenAPI spec generation
+│           ├── components/          # Shared React components
+│           │   └── ui/              # UI component library
+│           ├── styles/              # Global CSS and Tailwind
+│           └── types/               # TypeScript type definitions
+│       └── tests/                   # Test suites
+│           ├── setup.ts             # Test configuration
+│           └── api/                 # API integration tests
 ├── infra/
-│   └── pulumi/gcp/           # Infrastructure as Code
-├── docker/                   # Docker configurations
-└── docs/                     # Documentation (future)
+│   └── pulumi/gcp/                  # Infrastructure as Code
+├── docker/                          # Docker configurations
+└── .guided/                         # Guided Engineering documentation
+    ├── product/                     # Product documentation
+    └── assessment/                  # Codebase reviews and fixes
 ```
 
 ## 🚀 Quick Start

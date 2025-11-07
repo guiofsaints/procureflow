@@ -6,8 +6,8 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 
+import * as catalogService from '@/features/catalog';
 import { ItemModel } from '@/lib/db/models';
-import * as catalogService from '@/server/catalog.service';
 
 describe('Catalog Service', () => {
   describe('createItem', () => {

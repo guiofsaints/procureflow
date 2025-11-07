@@ -381,33 +381,34 @@ PurchaseRequestSchema.index({ status: 1 });
  * Generate next request number
  * Format: PR-YYYY-#### (e.g., PR-2025-0001)
  */
-PurchaseRequestSchema.statics.generateRequestNumber = async function (): Promise<string> {
-  const year = new Date().getFullYear();
-  const prefix = `PR-${year}-`;
+PurchaseRequestSchema.statics.generateRequestNumber =
+  async function (): Promise<string> {
+    const year = new Date().getFullYear();
+    const prefix = `PR-${year}-`;
 
-  // Find the last request number for this year
-  const lastRequest = await this.findOne({
-    requestNumber: new RegExp(`^${prefix}`),
-  })
-    .sort({ requestNumber: -1 })
-    .limit(1);
+    // Find the last request number for this year
+    const lastRequest = await this.findOne({
+      requestNumber: new RegExp(`^${prefix}`),
+    })
+      .sort({ requestNumber: -1 })
+      .limit(1);
 
-  let nextNumber = 1;
+    let nextNumber = 1;
 
-  if (lastRequest) {
-    // Extract the numeric part and increment
-    const lastNumber = parseInt(
-      lastRequest.requestNumber.replace(prefix, ''),
-      10
-    );
-    nextNumber = lastNumber + 1;
-  }
+    if (lastRequest) {
+      // Extract the numeric part and increment
+      const lastNumber = parseInt(
+        lastRequest.requestNumber.replace(prefix, ''),
+        10
+      );
+      nextNumber = lastNumber + 1;
+    }
 
-  // Pad with zeros to 4 digits
-  const paddedNumber = nextNumber.toString().padStart(4, '0');
+    // Pad with zeros to 4 digits
+    const paddedNumber = nextNumber.toString().padStart(4, '0');
 
-  return `${prefix}${paddedNumber}`;
-};
+    return `${prefix}${paddedNumber}`;
+  };
 
 /**
  * Find purchase requests by user ID
@@ -449,10 +450,9 @@ PurchaseRequestSchema.pre('save', function (next) {
   }
 
   // Recompute total from items
-  const computedTotal = (this.items as unknown as IPurchaseRequestItem[]).reduce(
-    (sum: number, item: IPurchaseRequestItem) => sum + item.subtotal,
-    0
-  );
+  const computedTotal = (
+    this.items as unknown as IPurchaseRequestItem[]
+  ).reduce((sum: number, item: IPurchaseRequestItem) => sum + item.subtotal, 0);
 
   // Update total if different (allow small floating point variance)
   const totalDiff = Math.abs((this.total as number) - computedTotal);

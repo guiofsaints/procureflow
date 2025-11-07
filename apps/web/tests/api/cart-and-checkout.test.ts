@@ -7,10 +7,10 @@
 import { Types } from 'mongoose';
 import { describe, it, expect, beforeEach } from 'vitest';
 
+import * as cartService from '@/features/cart';
+import * as catalogService from '@/features/catalog';
+import * as checkoutService from '@/features/checkout';
 import { ItemModel, CartModel, PurchaseRequestModel } from '@/lib/db/models';
-import * as cartService from '@/server/cart.service';
-import * as catalogService from '@/server/catalog.service';
-import * as checkoutService from '@/server/checkout.service';
 
 describe('Cart and Checkout Flow', () => {
   const testUserId = new Types.ObjectId().toString();
@@ -141,9 +141,9 @@ describe('Cart and Checkout Flow', () => {
       // Clear cart first
       await cartService.clearCart(testUserId);
 
-      await expect(
-        checkoutService.checkoutCart(testUserId)
-      ).rejects.toThrow('empty');
+      await expect(checkoutService.checkoutCart(testUserId)).rejects.toThrow(
+        'empty'
+      );
     });
 
     it('should generate unique purchase request numbers', async () => {

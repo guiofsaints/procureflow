@@ -78,6 +78,7 @@ pnpm docker:up
 ```
 
 MongoDB will be available at:
+
 - **Connection String**: `mongodb://localhost:27017/procureflow`
 - **Admin UI** (optional): `http://localhost:8081` (with `--profile debug`)
 
@@ -120,6 +121,7 @@ pnpm dev
 ```
 
 The API will be available at:
+
 - **Base URL**: `http://localhost:3000/api`
 - **Health Check**: `http://localhost:3000/api/health`
 - **API Docs**: `http://localhost:3000/docs/api`
@@ -141,6 +143,7 @@ pnpm start
 Mongoose schemas automatically create indexes on first connection. The application handles this via schema definitions.
 
 **No manual migration needed** for the tech case. Indexes are defined in:
+
 - `apps/web/src/lib/db/schemas/*.schema.ts`
 
 ### Verify Indexes
@@ -158,6 +161,7 @@ db.agent_conversations.getIndexes()
 ```
 
 Expected indexes:
+
 - **users**: `email` (unique)
 - **items**: `name + category` (compound), text index on `name + description`
 - **carts**: `userId` (unique)
@@ -212,6 +216,7 @@ Tests use a separate database: `procureflow_test`
 ### Test Coverage
 
 Current test suites:
+
 - `apps/web/tests/api/items.test.ts` - Catalog operations
 - `apps/web/tests/api/cart-and-checkout.test.ts` - Cart and checkout flow
 - `apps/web/tests/api/agent.test.ts` - AI agent smoke tests
@@ -237,6 +242,7 @@ GET /api/health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -341,6 +347,7 @@ POST /api/agent/chat
 Visit: `http://localhost:3000/docs/api`
 
 Features:
+
 - Browse all endpoints
 - Try requests directly in browser
 - View request/response schemas
@@ -351,6 +358,7 @@ Features:
 Raw JSON spec: `http://localhost:3000/api/openapi`
 
 Use with tools like:
+
 - Postman (import OpenAPI spec)
 - Insomnia
 - Swagger Editor
@@ -362,6 +370,7 @@ Use with tools like:
 ### Create Demo User (For Authentication)
 
 Currently using hardcoded demo credentials:
+
 - **Email**: `demo@procureflow.com`
 - **Password**: `demo123`
 
@@ -396,6 +405,7 @@ db.purchase_requests.find().pretty()
 ```
 
 Or use **MongoDB Compass** GUI:
+
 1. Connect to `mongodb://localhost:27017`
 2. Select `procureflow` database
 3. Browse collections visually
@@ -409,12 +419,15 @@ Or use **MongoDB Compass** GUI:
 **Symptom**: `Failed to connect to MongoDB` error
 
 **Solutions**:
+
 1. Verify MongoDB is running:
+
    ```powershell
    docker ps  # Should show mongo container
    ```
 
 2. Check connection string in `.env.local`:
+
    ```env
    MONGODB_URI=mongodb://localhost:27017/procureflow
    ```
@@ -430,6 +443,7 @@ Or use **MongoDB Compass** GUI:
 **Symptom**: `Port 3000 is already in use`
 
 **Solution**:
+
 ```powershell
 # Find process using port 3000
 netstat -ano | findstr :3000
@@ -446,8 +460,10 @@ taskkill /PID <PID> /F
 **Symptom**: Vitest tests fail with connection errors
 
 **Solutions**:
+
 1. Ensure MongoDB is running
 2. Check test database URI in `.env.local`:
+
    ```env
    MONGODB_TEST_URI=mongodb://localhost:27017/procureflow_test
    ```
@@ -463,6 +479,7 @@ taskkill /PID <PID> /F
 **Symptom**: Agent chat fails with API errors
 
 **Solutions**:
+
 1. Verify `OPENAI_API_KEY` in `.env.local`
 2. Check API key has credits
 3. Review rate limits
