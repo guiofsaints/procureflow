@@ -52,21 +52,21 @@ content: [
   './components/**/*.{js,ts,jsx,tsx,mdx}',
   './app/**/*.{js,ts,jsx,tsx,mdx}',
   './src/**/*.{js,ts,jsx,tsx,mdx}',
-]
+];
 ```
 
 **Theme Extensions**:
 
-| Extension Type    | Details                                                    |
-| ----------------- | ---------------------------------------------------------- |
-| **colors.brand**  | Full 50-950 palette (blue shades) for future branding      |
-| **colors.success** | 50, 500, 600 shades (green)                                |
-| **colors.warning** | 50, 500, 600 shades (amber)                                |
-| **colors.error**   | 50, 500, 600 shades (red)                                  |
-| **fontFamily.sans** | `['Inter', 'system-ui', 'sans-serif']`                     |
-| **spacing**        | Custom `18` (4.5rem), `88` (22rem)                         |
-| **animation**      | `fade-in`, `slide-up`                                      |
-| **keyframes**      | `fadeIn`, `slideUp`                                        |
+| Extension Type      | Details                                               |
+| ------------------- | ----------------------------------------------------- |
+| **colors.brand**    | Full 50-950 palette (blue shades) for future branding |
+| **colors.success**  | 50, 500, 600 shades (green)                           |
+| **colors.warning**  | 50, 500, 600 shades (amber)                           |
+| **colors.error**    | 50, 500, 600 shades (red)                             |
+| **fontFamily.sans** | `['Inter', 'system-ui', 'sans-serif']`                |
+| **spacing**         | Custom `18` (4.5rem), `88` (22rem)                    |
+| **animation**       | `fade-in`, `slide-up`                                 |
+| **keyframes**       | `fadeIn`, `slideUp`                                   |
 
 **Plugins**:
 
@@ -135,14 +135,14 @@ content: [
 
 ### High-Usage Files (50+ className instances)
 
-| File Path                                     | Usage Pattern                             | Notes                                    |
-| --------------------------------------------- | ----------------------------------------- | ---------------------------------------- |
-| `src/features/catalog/components/ProductDetailPageContent.tsx` | Heavy utility usage, responsive design    | Complex layout with dark mode variants   |
-| `src/features/catalog/components/CatalogPageContent.tsx` | Grid layouts, cards, filters              | Search UI with multiple breakpoints      |
-| `src/features/cart/components/CartPageContent.tsx` | Table layouts, quantity controls          | Interactive components with state styles |
-| `src/features/agent/components/AgentChatPageContent.tsx` | Chat bubbles, scrollable areas            | Real-time UI with animations             |
-| `src/components/layout/Sidebar.tsx`           | Navigation, icons, active states          | Collapsible sidebar with transitions     |
-| `src/components/layout/AppShell.tsx`          | Layout structure, overflow handling       | Main app wrapper                         |
+| File Path                                                      | Usage Pattern                          | Notes                                    |
+| -------------------------------------------------------------- | -------------------------------------- | ---------------------------------------- |
+| `src/features/catalog/components/ProductDetailPageContent.tsx` | Heavy utility usage, responsive design | Complex layout with dark mode variants   |
+| `src/features/catalog/components/CatalogPageContent.tsx`       | Grid layouts, cards, filters           | Search UI with multiple breakpoints      |
+| `src/features/cart/components/CartPageContent.tsx`             | Table layouts, quantity controls       | Interactive components with state styles |
+| `src/features/agent/components/AgentChatPageContent.tsx`       | Chat bubbles, scrollable areas         | Real-time UI with animations             |
+| `src/components/layout/Sidebar.tsx`                            | Navigation, icons, active states       | Collapsible sidebar with transitions     |
+| `src/components/layout/AppShell.tsx`                           | Layout structure, overflow handling    | Main app wrapper                         |
 
 ### Common Patterns Observed
 
@@ -170,8 +170,7 @@ content: [
 ```typescript
 const variantClasses = {
   primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
-  secondary:
-    'bg-gray-200 hover:bg-gray-300 text-gray-900 focus:ring-gray-500',
+  secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900 focus:ring-gray-500',
 };
 ```
 
@@ -183,12 +182,12 @@ const variantClasses = {
 
 ### Findings
 
-| Layer Type | Usage | Files        |
-| ---------- | ----- | ------------ |
-| `@layer base` | ❌ None | N/A          |
-| `@layer components` | ❌ None | N/A          |
-| `@layer utilities` | ❌ None | N/A          |
-| `@apply` directives | ❌ None | N/A          |
+| Layer Type          | Usage   | Files |
+| ------------------- | ------- | ----- |
+| `@layer base`       | ❌ None | N/A   |
+| `@layer components` | ❌ None | N/A   |
+| `@layer utilities`  | ❌ None | N/A   |
+| `@apply` directives | ❌ None | N/A   |
 
 **Analysis**: Project uses pure utility classes in JSX without custom layers or `@apply`. This is **ideal for Tailwind v4 migration** as there's minimal CSS restructuring needed.
 
@@ -223,11 +222,11 @@ const variantClasses = {
 
 ### Build Scripts
 
-| Script | Command | Tailwind Impact |
-| ------ | ------- | --------------- |
-| `dev` | `next dev` | Uses Tailwind JIT via Next.js |
+| Script  | Command      | Tailwind Impact                |
+| ------- | ------------ | ------------------------------ |
+| `dev`   | `next dev`   | Uses Tailwind JIT via Next.js  |
 | `build` | `next build` | Compiles Tailwind during build |
-| `lint` | `eslint .` | No Tailwind linting |
+| `lint`  | `eslint .`   | No Tailwind linting            |
 
 **Notes**:
 
@@ -245,12 +244,12 @@ const variantClasses = {
 
 ### Files Requiring Changes
 
-| Category | File Count | Estimated Effort |
-| -------- | ---------- | ---------------- |
-| **Config files** | 3 | Low (1-2 hours) |
-| **CSS files** | 1 | High (3-4 hours) |
-| **Component files** | 15+ | High (6-8 hours) |
-| **Test files** | 0 | None (no visual regression tests) |
+| Category            | File Count | Estimated Effort                  |
+| ------------------- | ---------- | --------------------------------- |
+| **Config files**    | 3          | Low (1-2 hours)                   |
+| **CSS files**       | 1          | High (3-4 hours)                  |
+| **Component files** | 15+        | High (6-8 hours)                  |
+| **Test files**      | 0          | None (no visual regression tests) |
 
 ### Breaking Changes Expected
 

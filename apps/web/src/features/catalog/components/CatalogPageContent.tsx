@@ -5,7 +5,17 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button, Input, Label, Textarea } from '@/components';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  Textarea,
+} from '@/components';
 import { useCart } from '@/contexts/CartContext';
 import type { Item } from '@/domain/entities';
 
@@ -80,9 +90,7 @@ export function CatalogPageContent() {
     <div className='space-y-6'>
       {/* Header */}
       <div>
-        <h1 className='text-3xl font-bold text-foreground'>
-          Catalog
-        </h1>
+        <h1 className='text-3xl font-bold text-foreground'>Catalog</h1>
         <p className='mt-2 text-muted-foreground'>
           Browse and search items from the procurement catalog
         </p>
@@ -116,97 +124,107 @@ export function CatalogPageContent() {
 
       {/* Register Form */}
       {showRegisterForm && (
-        <div className='bg-card rounded-lg border border-border p-6'>
-          <h3 className='text-lg font-semibold text-foreground mb-4'>
-            Register New Item
-          </h3>
-          <form onSubmit={handleRegisterItem} className='space-y-4'>
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+        <Card>
+          <CardHeader>
+            <CardTitle>Register New Item</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              id='register-item-form'
+              onSubmit={handleRegisterItem}
+              className='space-y-4'
+            >
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                <div>
+                  <Label htmlFor='item-name' className='mb-1'>
+                    Item Name *
+                  </Label>
+                  <Input
+                    id='item-name'
+                    type='text'
+                    required
+                    value={newItem.name}
+                    onChange={(e) =>
+                      setNewItem({ ...newItem, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor='item-category' className='mb-1'>
+                    Category *
+                  </Label>
+                  <Input
+                    id='item-category'
+                    type='text'
+                    required
+                    value={newItem.category}
+                    onChange={(e) =>
+                      setNewItem({ ...newItem, category: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
               <div>
-                <Label htmlFor='item-name' className='mb-1'>
-                  Item Name *
+                <Label htmlFor='item-description' className='mb-1'>
+                  Description *
                 </Label>
-                <Input
-                  id='item-name'
-                  type='text'
+                <Textarea
+                  id='item-description'
                   required
-                  value={newItem.name}
+                  rows={3}
+                  value={newItem.description}
                   onChange={(e) =>
-                    setNewItem({ ...newItem, name: e.target.value })
+                    setNewItem({ ...newItem, description: e.target.value })
                   }
                 />
               </div>
               <div>
-                <Label htmlFor='item-category' className='mb-1'>
-                  Category *
+                <Label htmlFor='item-price' className='mb-1'>
+                  Price (USD) *
                 </Label>
                 <Input
-                  id='item-category'
-                  type='text'
+                  id='item-price'
+                  type='number'
                   required
-                  value={newItem.category}
+                  min='0'
+                  step='0.01'
+                  value={newItem.price}
                   onChange={(e) =>
-                    setNewItem({ ...newItem, category: e.target.value })
+                    setNewItem({ ...newItem, price: e.target.value })
                   }
                 />
               </div>
-            </div>
-            <div>
-              <Label htmlFor='item-description' className='mb-1'>
-                Description *
-              </Label>
-              <Textarea
-                id='item-description'
-                required
-                rows={3}
-                value={newItem.description}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, description: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor='item-price' className='mb-1'>
-                Price (USD) *
-              </Label>
-              <Input
-                id='item-price'
-                type='number'
-                required
-                min='0'
-                step='0.01'
-                value={newItem.price}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, price: e.target.value })
-                }
-              />
-            </div>
-            <div className='flex gap-2'>
-              <Button type='submit' disabled={isRegistering}>
-                {isRegistering ? (
-                  <span className='flex items-center gap-2'>
-                    <Loader2 className='h-4 w-4 animate-spin' />
-                    Registering...
-                  </span>
-                ) : (
-                  'Register Item'
-                )}
-              </Button>
-              <Button
-                type='button'
-                variant='secondary'
-                onClick={() => setShowRegisterForm(false)}
-                disabled={isRegistering}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </div>
+            </form>
+          </CardContent>
+          <CardFooter className='gap-2'>
+            <Button
+              type='submit'
+              form='register-item-form'
+              disabled={isRegistering}
+            >
+              {isRegistering ? (
+                <span className='flex items-center gap-2'>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  Registering...
+                </span>
+              ) : (
+                'Register Item'
+              )}
+            </Button>
+            <Button
+              type='button'
+              variant='secondary'
+              onClick={() => setShowRegisterForm(false)}
+              disabled={isRegistering}
+            >
+              Cancel
+            </Button>
+          </CardFooter>
+        </Card>
       )}
 
       {/* Items Table */}
-      <div className='bg-card rounded-lg border border-border overflow-hidden'>
+      <Card className='overflow-hidden'>
         <div className='overflow-x-auto'>
           <table className='min-w-full divide-y divide-border'>
             <thead className='bg-muted'>
@@ -240,10 +258,7 @@ export function CatalogPageContent() {
                 </tr>
               ) : (
                 filteredItems.map((item) => (
-                  <tr
-                    key={item.id}
-                    className='hover:bg-accent/50'
-                  >
+                  <tr key={item.id} className='hover:bg-accent/50'>
                     <td className='px-6 py-4 whitespace-nowrap'>
                       <div className='text-sm font-medium text-foreground'>
                         {item.name}
@@ -301,7 +316,7 @@ export function CatalogPageContent() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       {/* Results Summary */}
       <div className='text-sm text-muted-foreground'>

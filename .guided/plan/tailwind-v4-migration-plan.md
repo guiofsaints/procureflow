@@ -33,14 +33,14 @@
 
 ### Package Versions: From → To
 
-| Package                   | Current (v3)  | Target (v4) | Notes                                    |
-| ------------------------- | ------------- | ----------- | ---------------------------------------- |
-| **tailwindcss**           | ^3.3.6        | ^4.0.0      | Core framework upgrade                   |
-| **@tailwindcss/typography** | ^0.5.10       | ❌ Remove   | Not yet compatible with v4 (optional)    |
-| **postcss**               | ^8.5.1        | ^8.5.1      | No change needed                         |
-| **autoprefixer**          | ^10.4.20      | ^10.4.20    | No change needed                         |
-| **tailwind-merge**        | ^3.3.1        | ^3.3.1      | No change needed (utility)               |
-| **class-variance-authority** | ^0.7.1        | ^0.7.1      | No change needed (utility)               |
+| Package                      | Current (v3) | Target (v4) | Notes                                 |
+| ---------------------------- | ------------ | ----------- | ------------------------------------- |
+| **tailwindcss**              | ^3.3.6       | ^4.0.0      | Core framework upgrade                |
+| **@tailwindcss/typography**  | ^0.5.10      | ❌ Remove   | Not yet compatible with v4 (optional) |
+| **postcss**                  | ^8.5.1       | ^8.5.1      | No change needed                      |
+| **autoprefixer**             | ^10.4.20     | ^10.4.20    | No change needed                      |
+| **tailwind-merge**           | ^3.3.1       | ^3.3.1      | No change needed (utility)            |
+| **class-variance-authority** | ^0.7.1       | ^0.7.1      | No change needed (utility)            |
 
 ### Installation Command
 
@@ -71,8 +71,12 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: { /* custom colors */ },
-      fontFamily: { /* custom fonts */ },
+      colors: {
+        /* custom colors */
+      },
+      fontFamily: {
+        /* custom fonts */
+      },
       // ...
     },
   },
@@ -86,10 +90,7 @@ const config: Config = {
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: [
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  content: ['./app/**/*.{js,ts,jsx,tsx,mdx}', './src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
       colors: {
@@ -152,13 +153,13 @@ export default config;
 
 #### Key Changes
 
-| Change | Impact | Reason |
-| ------ | ------ | ------ |
-| **Remove `./pages/**` from content** | Low | Next.js 15 uses App Router only |
-| **Add CSS variable-based colors** | High | shadcn theming integration |
-| **Remove custom `brand`/`success`/`warning`/`error` colors** | Medium | Replaced by semantic tokens |
-| **Add `darkMode: 'class'`** | High | Enable class-based theme switching |
-| **Add `borderRadius` variants** | Low | shadcn convention for consistent radii |
+| Change                                                       | Impact | Reason                                 |
+| ------------------------------------------------------------ | ------ | -------------------------------------- |
+| **Remove `./pages/**` from content\*\*                       | Low    | Next.js 15 uses App Router only        |
+| **Add CSS variable-based colors**                            | High   | shadcn theming integration             |
+| **Remove custom `brand`/`success`/`warning`/`error` colors** | Medium | Replaced by semantic tokens            |
+| **Add `darkMode: 'class'`**                                  | High   | Enable class-based theme switching     |
+| **Add `borderRadius` variants**                              | Low    | shadcn convention for consistent radii |
 
 ---
 
@@ -280,13 +281,13 @@ body {
 
 #### Key Changes
 
-| Change | Impact | Reason |
-| ------ | ------ | ------ |
-| **Replace RGB with HSL values** | High | shadcn standard format |
-| **Add semantic tokens** | High | Enable theme-aware components |
-| **Use `.dark` class instead of media query** | High | Class-based theme switching |
-| **Add `@layer base`** | Medium | Proper CSS layer organization |
-| **Add global border/body styles** | Low | Consistent theme application |
+| Change                                       | Impact | Reason                        |
+| -------------------------------------------- | ------ | ----------------------------- |
+| **Replace RGB with HSL values**              | High   | shadcn standard format        |
+| **Add semantic tokens**                      | High   | Enable theme-aware components |
+| **Use `.dark` class instead of media query** | High   | Class-based theme switching   |
+| **Add `@layer base`**                        | Medium | Proper CSS layer organization |
+| **Add global border/body styles**            | Low    | Consistent theme application  |
 
 ---
 
@@ -294,20 +295,20 @@ body {
 
 ### Hardcoded Color → Semantic Token Mapping
 
-| Current Class (v3)                   | Target Class (v4)            | Usage Context        |
-| ------------------------------------ | ---------------------------- | -------------------- |
-| `bg-white` / `dark:bg-gray-800`      | `bg-card`                    | Card backgrounds     |
-| `bg-gray-50` / `dark:bg-gray-950`    | `bg-background`              | Page backgrounds     |
-| `bg-gray-100` / `dark:bg-gray-900`   | `bg-muted`                   | Muted sections       |
-| `text-gray-900` / `dark:text-white`  | `text-foreground`            | Primary text         |
-| `text-gray-600` / `dark:text-gray-400` | `text-muted-foreground`      | Secondary text       |
-| `text-gray-500` / `dark:text-gray-400` | `text-muted-foreground`      | Tertiary text        |
-| `bg-blue-600` / `hover:bg-blue-700`  | `bg-primary` / `hover:bg-primary/90` | Primary buttons      |
-| `text-blue-600` / `dark:text-blue-400` | `text-primary`               | Links, accents       |
-| `bg-blue-50` / `dark:bg-blue-900/20` | `bg-accent`                  | Highlighted sections |
-| `border-gray-200` / `dark:border-gray-700` | `border-border`              | All borders          |
-| `bg-red-500`                         | `bg-destructive`             | Error states         |
-| `text-red-600`                       | `text-destructive`           | Error text           |
+| Current Class (v3)                         | Target Class (v4)                    | Usage Context        |
+| ------------------------------------------ | ------------------------------------ | -------------------- |
+| `bg-white` / `dark:bg-gray-800`            | `bg-card`                            | Card backgrounds     |
+| `bg-gray-50` / `dark:bg-gray-950`          | `bg-background`                      | Page backgrounds     |
+| `bg-gray-100` / `dark:bg-gray-900`         | `bg-muted`                           | Muted sections       |
+| `text-gray-900` / `dark:text-white`        | `text-foreground`                    | Primary text         |
+| `text-gray-600` / `dark:text-gray-400`     | `text-muted-foreground`              | Secondary text       |
+| `text-gray-500` / `dark:text-gray-400`     | `text-muted-foreground`              | Tertiary text        |
+| `bg-blue-600` / `hover:bg-blue-700`        | `bg-primary` / `hover:bg-primary/90` | Primary buttons      |
+| `text-blue-600` / `dark:text-blue-400`     | `text-primary`                       | Links, accents       |
+| `bg-blue-50` / `dark:bg-blue-900/20`       | `bg-accent`                          | Highlighted sections |
+| `border-gray-200` / `dark:border-gray-700` | `border-border`                      | All borders          |
+| `bg-red-500`                               | `bg-destructive`                     | Error states         |
+| `text-red-600`                             | `text-destructive`                   | Error text           |
 
 ### Example Refactor: Button Component
 
@@ -324,8 +325,10 @@ const variantClasses = {
 
 ```typescript
 const variantClasses = {
-  primary: 'bg-primary hover:bg-primary/90 text-primary-foreground focus:ring-ring',
-  secondary: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground focus:ring-ring',
+  primary:
+    'bg-primary hover:bg-primary/90 text-primary-foreground focus:ring-ring',
+  secondary:
+    'bg-secondary hover:bg-secondary/90 text-secondary-foreground focus:ring-ring',
 };
 ```
 
@@ -457,15 +460,15 @@ If migration fails or introduces critical bugs:
 
 ## Timeline Estimate
 
-| Phase | Duration | Dependencies |
-| ----- | -------- | ------------ |
-| **Phase 1**: Preparation | 1 hour | None |
-| **Phase 2**: Dependencies & Config | 1 hour | Phase 1 |
-| **Phase 3**: CSS Tokens | 2 hours | Phase 2 |
-| **Phase 4**: Component Migration | 6 hours | Phase 3 |
-| **Phase 5**: Validation | 2 hours | Phase 4 |
-| **Phase 6**: Documentation | 1 hour | Phase 5 |
-| **Buffer**: Fixes & Iterations | 2 hours | All phases |
+| Phase                              | Duration | Dependencies |
+| ---------------------------------- | -------- | ------------ |
+| **Phase 1**: Preparation           | 1 hour   | None         |
+| **Phase 2**: Dependencies & Config | 1 hour   | Phase 1      |
+| **Phase 3**: CSS Tokens            | 2 hours  | Phase 2      |
+| **Phase 4**: Component Migration   | 6 hours  | Phase 3      |
+| **Phase 5**: Validation            | 2 hours  | Phase 4      |
+| **Phase 6**: Documentation         | 1 hour   | Phase 5      |
+| **Buffer**: Fixes & Iterations     | 2 hours  | All phases   |
 
 **Total Estimated Time**: 12-15 hours
 
@@ -475,12 +478,12 @@ If migration fails or introduces critical bugs:
 
 ### High-Risk Areas
 
-| Risk | Mitigation | Contingency |
-| ---- | ---------- | ----------- |
-| **Breaking visual changes** | Side-by-side screenshot comparison | Keep v3 branch for reference |
-| **Dark mode inconsistencies** | Test every component in both modes | Add manual QA checklist |
-| **Missing semantic tokens** | Map all hardcoded colors before migration | Keep color mapping table handy |
-| **Build failures** | Test build after each phase | Commit after each successful phase |
+| Risk                          | Mitigation                                | Contingency                        |
+| ----------------------------- | ----------------------------------------- | ---------------------------------- |
+| **Breaking visual changes**   | Side-by-side screenshot comparison        | Keep v3 branch for reference       |
+| **Dark mode inconsistencies** | Test every component in both modes        | Add manual QA checklist            |
+| **Missing semantic tokens**   | Map all hardcoded colors before migration | Keep color mapping table handy     |
+| **Build failures**            | Test build after each phase               | Commit after each successful phase |
 
 ### Communication Plan
 

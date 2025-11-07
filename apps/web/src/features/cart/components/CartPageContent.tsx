@@ -4,7 +4,14 @@ import { Loader2, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components';
 import { useCart } from '@/contexts/CartContext';
 import type { CartItem } from '@/domain/entities';
 import { cn } from '@/lib/utils';
@@ -92,7 +99,7 @@ export function CartPageContent() {
 
       {cartItems.length === 0 ? (
         /* Empty Cart State */
-        <div className='bg-card rounded-lg border border-border p-12 text-center'>
+        <Card className='p-12 text-center'>
           <ShoppingCart className='h-16 w-16 mx-auto text-muted-foreground mb-4' />
           <h3 className='text-lg font-medium text-foreground mb-2'>
             Your cart is empty
@@ -100,21 +107,16 @@ export function CartPageContent() {
           <p className='text-muted-foreground mb-6'>
             Add items from the catalog to get started
           </p>
-          <Button
-            onClick={() => (window.location.href = '/catalog')}
-          >
+          <Button onClick={() => (window.location.href = '/catalog')}>
             Browse Catalog
           </Button>
-        </div>
+        </Card>
       ) : (
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           {/* Cart Items */}
           <div className='lg:col-span-2 space-y-4'>
             {cartItems.map((item) => (
-              <div
-                key={item.itemId}
-                className='bg-card rounded-lg border border-border p-4 sm:p-6'
-              >
+              <Card key={item.itemId} className='p-4 sm:p-6'>
                 <div className='flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4'>
                   {/* Item Info */}
                   <div className='flex-1 min-w-0'>
@@ -181,39 +183,33 @@ export function CartPageContent() {
 
                   {/* Subtotal */}
                   <div className='flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-0'>
-                    <p className='text-sm text-muted-foreground'>
-                      Subtotal
-                    </p>
+                    <p className='text-sm text-muted-foreground'>Subtotal</p>
                     <p className='text-lg font-semibold text-foreground whitespace-nowrap'>
                       ${item.subtotal.toFixed(2)}
                     </p>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
 
           {/* Order Summary */}
           <div className='lg:col-span-1'>
-            <div className='bg-card rounded-lg border border-border p-6 sticky top-6'>
-              <h3 className='text-lg font-semibold text-foreground mb-4'>
-                Order Summary
-              </h3>
+            <Card className='p-6 sticky top-6'>
+              <CardHeader className='p-0 mb-4'>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
 
               {/* Summary Details */}
-              <div className='space-y-3 mb-6'>
+              <CardContent className='p-0 space-y-3 mb-6'>
                 <div className='flex justify-between text-sm'>
-                  <span className='text-muted-foreground'>
-                    Items
-                  </span>
+                  <span className='text-muted-foreground'>Items</span>
                   <span className='text-foreground'>
                     {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
                   </span>
                 </div>
                 <div className='flex justify-between text-sm'>
-                  <span className='text-muted-foreground'>
-                    Subtotal
-                  </span>
+                  <span className='text-muted-foreground'>Subtotal</span>
                   <span className='text-foreground'>
                     ${totalCost.toFixed(2)}
                   </span>
@@ -228,29 +224,31 @@ export function CartPageContent() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </CardContent>
 
-              {/* Checkout Button */}
-              <Button
-                onClick={handleCheckout}
-                disabled={isCheckingOut || cartItems.length === 0}
-                className='w-full'
-              >
-                {isCheckingOut ? (
-                  <span className='flex items-center justify-center gap-2'>
-                    <Loader2 className='h-4 w-4 animate-spin' />
-                    Processing...
-                  </span>
-                ) : (
-                  'Proceed to Checkout'
-                )}
-              </Button>
+              <CardFooter className='p-0 flex-col gap-4'>
+                {/* Checkout Button */}
+                <Button
+                  onClick={handleCheckout}
+                  disabled={isCheckingOut || cartItems.length === 0}
+                  className='w-full'
+                >
+                  {isCheckingOut ? (
+                    <span className='flex items-center justify-center gap-2'>
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                      Processing...
+                    </span>
+                  ) : (
+                    'Proceed to Checkout'
+                  )}
+                </Button>
 
-              {/* Additional Info */}
-              <p className='text-xs text-muted-foreground text-center mt-4'>
-                Checkout will create a purchase request (mock)
-              </p>
-            </div>
+                {/* Additional Info */}
+                <p className='text-xs text-muted-foreground text-center'>
+                  Checkout will create a purchase request (mock)
+                </p>
+              </CardFooter>
+            </Card>
           </div>
         </div>
       )}

@@ -6,7 +6,16 @@ import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button, Input, Label } from '@/components';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+} from '@/components';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -68,67 +77,66 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8'>
-          <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
-            Sign in to your account
-          </h2>
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-xl'>Sign in to your account</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className='space-y-5'>
+              {/* Email Field */}
+              <div>
+                <Label htmlFor='email' className='mb-2'>
+                  Email
+                </Label>
+                <Input
+                  id='email'
+                  type='email'
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder='your@email.com'
+                  disabled={isLoading}
+                />
+              </div>
 
-          <form onSubmit={handleLogin} className='space-y-5'>
-            {/* Email Field */}
-            <div>
-              <Label htmlFor='email' className='mb-2'>
-                Email
-              </Label>
-              <Input
-                id='email'
-                type='email'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder='your@email.com'
+              {/* Password Field */}
+              <div>
+                <Label htmlFor='password' className='mb-2'>
+                  Password
+                </Label>
+                <Input
+                  id='password'
+                  type='password'
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder='••••••••'
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type='submit'
+                className='w-full flex items-center justify-center gap-2'
                 disabled={isLoading}
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <Label htmlFor='password' className='mb-2'>
-                Password
-              </Label>
-              <Input
-                id='password'
-                type='password'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder='••••••••'
-                disabled={isLoading}
-              />
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type='submit'
-              className='w-full flex items-center justify-center gap-2'
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className='h-5 w-5 animate-spin' />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <LogIn className='h-5 w-5' />
-                  Sign In
-                </>
-              )}
-            </Button>
-          </form>
-
-          {/* Demo Credentials */}
-          <div className='mt-6 pt-6 border-t border-gray-200 dark:border-gray-700'>
-            <p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className='h-5 w-5 animate-spin' />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className='h-5 w-5' />
+                    Sign In
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className='flex-col gap-3 border-t pt-6'>
+            <p className='text-sm text-muted-foreground self-start'>
               Demo credentials:
             </p>
             <Button
@@ -140,11 +148,11 @@ export default function LoginPage() {
             >
               Fill demo credentials
             </Button>
-            <p className='text-xs text-gray-500 dark:text-gray-500 mt-2 text-center'>
+            <p className='text-xs text-muted-foreground text-center'>
               demo@procureflow.com / demo123
             </p>
-          </div>
-        </div>
+          </CardFooter>
+        </Card>
 
         {/* Footer */}
         <p className='mt-8 text-center text-sm text-gray-500 dark:text-gray-400'>

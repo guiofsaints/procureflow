@@ -121,9 +121,7 @@ export function UserMenu({ collapsed }: UserMenuProps) {
               className={cn(
                 'flex items-center gap-3 px-4 py-2 w-full text-left text-sm',
                 'hover:bg-accent transition-colors',
-                item.danger
-                  ? 'text-destructive'
-                  : 'text-foreground'
+                item.danger ? 'text-destructive' : 'text-foreground'
               )}
             >
               <item.icon className='h-4 w-4' />

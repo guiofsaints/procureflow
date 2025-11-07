@@ -1,11 +1,19 @@
 'use client';
 
-import { ArrowLeft, Loader2, Minus, Package, Plus, ShoppingCart, Tag } from 'lucide-react';
+import {
+  ArrowLeft,
+  Loader2,
+  Minus,
+  Package,
+  Plus,
+  ShoppingCart,
+  Tag,
+} from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button, Input } from '@/components';
+import { Button, Card, CardContent, CardHeader, Input } from '@/components';
 import { useCart } from '@/contexts/CartContext';
 import { ItemStatus } from '@/domain/entities';
 import { cn } from '@/lib/utils';
@@ -92,9 +100,9 @@ export function ProductDetailPageContent() {
         </button>
 
         {/* Product Card */}
-        <div className='bg-card rounded-xl shadow-sm border border-border'>
+        <Card>
           {/* Product Header */}
-          <div className='p-6 lg:p-8 border-b border-border'>
+          <CardHeader className='border-b'>
             <div className='flex items-start justify-between gap-4'>
               <div className='flex-1'>
                 <div className='flex items-center gap-2 mb-2'>
@@ -120,18 +128,16 @@ export function ProductDetailPageContent() {
                 </h1>
               </div>
               <div className='text-right'>
-                <div className='text-sm text-muted-foreground mb-1'>
-                  Price
-                </div>
+                <div className='text-sm text-muted-foreground mb-1'>Price</div>
                 <div className='text-3xl font-bold text-primary'>
                   ${item.price.toFixed(2)}
                 </div>
               </div>
             </div>
-          </div>
+          </CardHeader>
 
           {/* Product Details */}
-          <div className='p-6 lg:p-8 space-y-6'>
+          <CardContent className='space-y-6'>
             {/* Description */}
             <div>
               <h2 className='text-lg font-semibold text-foreground mb-3'>
@@ -238,8 +244,8 @@ export function ProductDetailPageContent() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

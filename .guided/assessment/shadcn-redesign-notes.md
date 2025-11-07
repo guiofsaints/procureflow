@@ -17,24 +17,28 @@ This document provides implementation tips, risk assessments, and key insights f
 **Risk Level:** Medium-High
 
 **Current Implementation:**
+
 - Custom collapsible logic with `useState` for collapsed state
 - Manual width transitions: `w-64` → `w-16`
 - Custom nav item rendering based on collapsed state
 - Manual icon positioning for badges
 
 **Migration Challenge:**
+
 - shadcn Sidebar component has its own collapsible patterns
 - Need to migrate state management to SidebarProvider
 - Ensure cart badge still displays correctly in collapsed state
 - Active route highlighting must work with SidebarMenuButton
 
 **Mitigation:**
+
 - Study shadcn Sidebar docs thoroughly before migration
 - Test collapsed/expanded states extensively
 - Verify mobile responsiveness (may need Sheet for mobile drawer)
 - Keep custom Sidebar in a branch until shadcn version is fully tested
 
 **Testing Checklist:**
+
 - [ ] Sidebar collapses/expands on button click
 - [ ] Collapsed state shows icons only (no text)
 - [ ] Expanded state shows icons + labels
@@ -50,22 +54,26 @@ This document provides implementation tips, risk assessments, and key insights f
 **Risk Level:** Low-Medium
 
 **Current Implementation:**
+
 - Multiple custom input patterns with focus rings and borders
 - Inline validation with HTML5 (required, type checking)
 - Custom styling for dark mode
 
 **Migration Challenge:**
+
 - Ensuring focus states work correctly
 - Maintaining visual consistency across all inputs
 - Preserving placeholder text and validation
 
 **Mitigation:**
+
 - Use shadcn Input/Textarea as drop-in replacements
 - Add Label for accessibility (improves UX)
 - Test all inputs in light and dark modes
 - Verify keyboard navigation (Tab order)
 
 **Testing Checklist:**
+
 - [ ] All inputs accept text correctly
 - [ ] Focus rings appear on focus
 - [ ] Placeholders display correctly
@@ -81,23 +89,27 @@ This document provides implementation tips, risk assessments, and key insights f
 **Risk Level:** Medium
 
 **Current Implementation:**
+
 - 9+ custom card implementations with slight variations
 - Different padding, borders, shadows
 - Some cards have headers/footers, some don't
 
 **Migration Challenge:**
+
 - Visual changes will be noticeable
 - Need to decide which cards get CardHeader/CardFooter
 - Ensuring consistent spacing across all cards
 - Risk of breaking layouts if padding changes significantly
 
 **Mitigation:**
+
 - Migrate one card at a time, visually compare before/after
 - Use CardHeader, CardContent, CardFooter consistently
 - Adjust Tailwind utilities if shadcn padding is too much/too little
 - Screenshot before/after for comparison
 
 **Testing Checklist:**
+
 - [ ] All cards render with correct content
 - [ ] Card headers display titles correctly
 - [ ] Card footers display buttons/actions correctly
@@ -113,22 +125,26 @@ This document provides implementation tips, risk assessments, and key insights f
 **Risk Level:** Low-Medium
 
 **Current Implementation:**
+
 - Custom HTML table with overflow-x-auto wrapper
 - Hover states on table rows
 - Custom cell padding and styling
 
 **Migration Challenge:**
+
 - Ensuring shadcn Table retains responsive behavior
 - Maintaining hover states
 - Preserving cell alignment and padding
 
 **Mitigation:**
+
 - Keep overflow-x-auto wrapper around shadcn Table
 - Test on small screens (mobile, tablet)
 - Ensure TableCell padding matches design
 - Add hover:bg-accent to TableRow if needed
 
 **Testing Checklist:**
+
 - [ ] Table displays all columns correctly
 - [ ] Table scrolls horizontally on small screens
 - [ ] Hover states work on rows
@@ -144,22 +160,26 @@ This document provides implementation tips, risk assessments, and key insights f
 **Risk Level:** Medium
 
 **Current Implementation:**
+
 - Custom dropdown with manual click-outside detection
 - Manual positioning (absolute, bottom-full or left-full based on collapsed state)
 - Custom animation for ChevronUp rotation
 
 **Migration Challenge:**
+
 - shadcn DropdownMenu handles positioning automatically (may differ from custom)
 - Removing click-outside logic without breaking UX
 - Ensuring dropdown opens in correct direction (especially in collapsed sidebar)
 
 **Mitigation:**
+
 - Use DropdownMenuContent `align` and `side` props for positioning
 - Test in both sidebar states (collapsed and expanded)
 - Verify dropdown doesn't overflow viewport
 - Use DropdownMenuItem `variant="destructive"` for logout
 
 **Testing Checklist:**
+
 - [ ] Dropdown opens on click
 - [ ] Dropdown closes on outside click
 - [ ] Dropdown closes on Escape key
@@ -177,19 +197,23 @@ This document provides implementation tips, risk assessments, and key insights f
 **Risk Level:** Low
 
 **Current Implementation:**
+
 - Absolute positioned badge on nav icon
 - Custom styling for destructive background
 
 **Migration Challenge:**
+
 - Ensuring Badge component positions correctly with absolute positioning
 - Maintaining visual consistency (size, color)
 
 **Mitigation:**
+
 - Wrap icon + badge in relative positioned div
 - Use `<Badge variant="destructive">` for cart count
 - Adjust positioning with Tailwind utilities if needed
 
 **Testing Checklist:**
+
 - [ ] Badge displays on cart nav icon
 - [ ] Badge shows correct count
 - [ ] Badge updates when cart changes
@@ -204,16 +228,15 @@ This document provides implementation tips, risk assessments, and key insights f
 ### 1. Sidebar Component
 
 **Composition Pattern:**
+
 ```tsx
 <SidebarProvider>
   <Sidebar>
-    <SidebarHeader>
-      {/* Logo, title, collapse button */}
-    </SidebarHeader>
+    <SidebarHeader>{/* Logo, title, collapse button */}</SidebarHeader>
     <SidebarContent>
       <SidebarGroup>
         <SidebarMenu>
-          {navItems.map(item => (
+          {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton asChild isActive={isActive}>
                 <Link href={item.href}>
@@ -227,14 +250,13 @@ This document provides implementation tips, risk assessments, and key insights f
         </SidebarMenu>
       </SidebarGroup>
     </SidebarContent>
-    <SidebarFooter>
-      {/* ThemeToggle, UserMenu */}
-    </SidebarFooter>
+    <SidebarFooter>{/* ThemeToggle, UserMenu */}</SidebarFooter>
   </Sidebar>
 </SidebarProvider>
 ```
 
 **Key Points:**
+
 - SidebarProvider manages collapsible state
 - SidebarMenuButton handles active states and styling
 - Badge can be composed inside SidebarMenuButton
@@ -245,18 +267,16 @@ This document provides implementation tips, risk assessments, and key insights f
 ### 2. Search Input with Icon
 
 **Composition Pattern:**
+
 ```tsx
-<div className="relative">
-  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-  <Input
-    type="search"
-    placeholder="Search..."
-    className="pl-10"
-  />
+<div className='relative'>
+  <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground' />
+  <Input type='search' placeholder='Search...' className='pl-10' />
 </div>
 ```
 
 **Key Points:**
+
 - Icon is absolutely positioned inside relative wrapper
 - Input gets left padding (pl-10) to accommodate icon
 - This is a common shadcn pattern for inputs with icons
@@ -266,36 +286,38 @@ This document provides implementation tips, risk assessments, and key insights f
 ### 3. Quantity Input with +/- Buttons
 
 **Composition Pattern:**
+
 ```tsx
-<div className="flex items-center gap-2">
+<div className='flex items-center gap-2'>
   <Button
-    size="icon-sm"
-    variant="ghost"
+    size='icon-sm'
+    variant='ghost'
     onClick={() => handleQuantityChange(-1)}
     disabled={quantity <= 1}
   >
-    <Minus className="h-4 w-4" />
+    <Minus className='h-4 w-4' />
   </Button>
   <Input
-    type="number"
+    type='number'
     value={quantity}
     onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-    className="w-16 text-center"
-    min="1"
-    max="999"
+    className='w-16 text-center'
+    min='1'
+    max='999'
   />
   <Button
-    size="icon-sm"
-    variant="ghost"
+    size='icon-sm'
+    variant='ghost'
     onClick={() => handleQuantityChange(1)}
     disabled={quantity >= 999}
   >
-    <Plus className="h-4 w-4" />
+    <Plus className='h-4 w-4' />
   </Button>
 </div>
 ```
 
 **Key Points:**
+
 - Use shadcn Input + Button components
 - Custom layout with flex and gap utilities
 - Keep validation logic (min, max, disabled states)
@@ -305,42 +327,44 @@ This document provides implementation tips, risk assessments, and key insights f
 ### 4. Form with Validation (Phase 5)
 
 **Composition Pattern:**
+
 ```tsx
 const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 const form = useForm<z.infer<typeof formSchema>>({
   resolver: zodResolver(formSchema),
   defaultValues: {
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   },
 });
 
 <Form {...form}>
-  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+  <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
     <FormField
       control={form.control}
-      name="email"
+      name='email'
       render={({ field }) => (
         <FormItem>
           <FormLabel>Email</FormLabel>
           <FormControl>
-            <Input type="email" placeholder="your@email.com" {...field} />
+            <Input type='email' placeholder='your@email.com' {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
       )}
     />
     {/* More fields */}
-    <Button type="submit">Submit</Button>
+    <Button type='submit'>Submit</Button>
   </form>
-</Form>
+</Form>;
 ```
 
 **Key Points:**
+
 - Form component wraps form with react-hook-form context
 - FormField handles individual field validation
 - FormMessage displays validation errors
@@ -355,10 +379,12 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Current State:** 9+ custom card implementations with slight variations
 
 **Simplification:**
+
 - All cards use shadcn Card component
 - Standard structure: Card + CardHeader + CardContent + CardFooter
 - Variants controlled via className, not separate components
 - Example:
+
   ```tsx
   // Standard card
   <Card>
@@ -379,6 +405,7 @@ const form = useForm<z.infer<typeof formSchema>>({
   ```
 
 **Benefits:**
+
 - Reduces code duplication
 - Easier to maintain
 - Consistent visual design
@@ -390,12 +417,14 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Current State:** 3+ custom badge implementations (category, cart count, status)
 
 **Simplification:**
+
 - All badges use shadcn Badge component
 - Variants:
   - `variant="default"` - Primary badges
   - `variant="secondary"` - Category tags
   - `variant="destructive"` - Error states, cart count (red)
 - Example:
+
   ```tsx
   // Category badge
   <Badge variant="secondary">{item.category}</Badge>
@@ -410,6 +439,7 @@ const form = useForm<z.infer<typeof formSchema>>({
   ```
 
 **Benefits:**
+
 - Consistent badge sizing and styling
 - Easy to change variants
 - Accessible by default
@@ -421,11 +451,13 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Current State:** 3 custom empty state implementations (empty cart, no results, product not found)
 
 **Simplification:**
+
 - Replace all custom empty states with shadcn Alert
 - Variants:
   - `variant="default"` - Informational empty states (empty cart, no results)
   - `variant="destructive"` - Error states (product not found)
 - Example:
+
   ```tsx
   // Empty cart
   <Alert>
@@ -453,6 +485,7 @@ const form = useForm<z.infer<typeof formSchema>>({
   ```
 
 **Benefits:**
+
 - Better semantics (Alert conveys meaning)
 - Consistent styling
 - Easier to extend (add actions, links, etc.)
@@ -464,6 +497,7 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Current State:** Several buttons use `title` attribute for hover hints
 
 **Simplification:**
+
 - Replace all `title` attributes with shadcn Tooltip
 - Wrap app in TooltipProvider (in root layout)
 - Example:
@@ -471,8 +505,8 @@ const form = useForm<z.infer<typeof formSchema>>({
   <TooltipProvider>
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button size="icon" variant="ghost">
-          <ChevronLeft className="h-5 w-5" />
+        <Button size='icon' variant='ghost'>
+          <ChevronLeft className='h-5 w-5' />
         </Button>
       </TooltipTrigger>
       <TooltipContent>
@@ -483,6 +517,7 @@ const form = useForm<z.infer<typeof formSchema>>({
   ```
 
 **Benefits:**
+
 - Better UX (styled tooltips vs browser default)
 - Accessible (ARIA attributes)
 - Consistent timing and positioning
@@ -597,6 +632,7 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Symptom:** Tooltip, DropdownMenu, or other components don't work
 
 **Solution:**
+
 - Ensure TooltipProvider wraps the app for Tooltips
 - Ensure DropdownMenu doesn't need a provider (it doesn't)
 - Check shadcn docs for provider requirements
@@ -608,6 +644,7 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Symptom:** Focus rings don't appear on inputs/buttons
 
 **Solution:**
+
 - shadcn components have focus states by default
 - If missing, check for `outline-none` or `focus:outline-none` overriding styles
 - Ensure `focus-visible:ring-*` classes are present
@@ -619,6 +656,7 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Symptom:** Card content feels cramped or too spacious
 
 **Solution:**
+
 - shadcn Card uses default padding (p-6 for CardContent)
 - Override with className: `<CardContent className="p-4">`
 - Or update shadcn component file directly (not recommended, breaks updates)
@@ -630,10 +668,11 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Symptom:** Table overflows viewport on small screens
 
 **Solution:**
+
 - Keep `overflow-x-auto` wrapper around Table
 - Example:
   ```tsx
-  <div className="overflow-x-auto">
+  <div className='overflow-x-auto'>
     <Table>...</Table>
   </div>
   ```
@@ -645,6 +684,7 @@ const form = useForm<z.infer<typeof formSchema>>({
 **Symptom:** Dropdown opens in wrong direction or overflows viewport
 
 **Solution:**
+
 - Use `align` and `side` props on DropdownMenuContent
 - Example: `<DropdownMenuContent align="end" side="top">`
 - Radix UI (shadcn's foundation) handles collision detection automatically
@@ -656,6 +696,7 @@ const form = useForm<z.infer<typeof formSchema>>({
 ### Key Component Groups
 
 **Forms & Inputs:**
+
 - Input: https://ui.shadcn.com/docs/components/input
 - Textarea: https://ui.shadcn.com/docs/components/textarea
 - Label: https://ui.shadcn.com/docs/components/label
@@ -666,18 +707,21 @@ const form = useForm<z.infer<typeof formSchema>>({
 - Switch: https://ui.shadcn.com/docs/components/switch
 
 **Data Display:**
+
 - Card: https://ui.shadcn.com/docs/components/card
 - Table: https://ui.shadcn.com/docs/components/table
 - Badge: https://ui.shadcn.com/docs/components/badge
 - Alert: https://ui.shadcn.com/docs/components/alert
 
 **Layout:**
+
 - Sidebar: https://ui.shadcn.com/docs/components/sidebar
 - Separator: https://ui.shadcn.com/docs/components/separator
 - Tabs: https://ui.shadcn.com/docs/components/tabs
 - Accordion: https://ui.shadcn.com/docs/components/accordion
 
 **Overlays:**
+
 - DropdownMenu: https://ui.shadcn.com/docs/components/dropdown-menu
 - Tooltip: https://ui.shadcn.com/docs/components/tooltip
 - Dialog: https://ui.shadcn.com/docs/components/dialog
@@ -686,11 +730,13 @@ const form = useForm<z.infer<typeof formSchema>>({
 - Popover: https://ui.shadcn.com/docs/components/popover
 
 **Feedback:**
+
 - Sonner (Toast): https://ui.shadcn.com/docs/components/sonner
 - Skeleton: https://ui.shadcn.com/docs/components/skeleton
 - Progress: https://ui.shadcn.com/docs/components/progress
 
 **Navigation:**
+
 - Button: https://ui.shadcn.com/docs/components/button
 - Breadcrumb: https://ui.shadcn.com/docs/components/breadcrumb
 - Pagination: https://ui.shadcn.com/docs/components/pagination
@@ -750,6 +796,7 @@ After completing all 5 phases, ProcureFlow will have a modern, accessible, and m
 **Good luck with the migration! 🚀**
 
 For questions or issues, refer to:
+
 - shadcn/ui docs: https://ui.shadcn.com/docs
 - Radix UI docs: https://www.radix-ui.com/primitives/docs
 - Tailwind docs: https://tailwindcss.com/docs

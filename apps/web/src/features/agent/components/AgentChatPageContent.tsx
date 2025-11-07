@@ -3,7 +3,7 @@
 import { MessageSquare, Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { Button, Textarea } from '@/components';
+import { Button, Card, CardContent, CardFooter, Textarea } from '@/components';
 import type { AgentMessage } from '@/domain/entities';
 import { AgentMessageRole } from '@/domain/entities';
 
@@ -83,9 +83,9 @@ export function AgentChatPageContent() {
       </div>
 
       {/* Chat Container */}
-      <div className='flex-1 bg-card rounded-lg border border-border flex flex-col overflow-hidden'>
+      <Card className='flex-1 flex flex-col overflow-hidden'>
         {/* Messages Area */}
-        <div className='flex-1 overflow-y-auto p-6 space-y-4'>
+        <CardContent className='flex-1 overflow-y-auto p-6 space-y-4'>
           {messages.map((msg, index) => (
             <MessageBubble
               key={index}
@@ -123,10 +123,10 @@ export function AgentChatPageContent() {
           )}
 
           <div ref={messagesEndRef} />
-        </div>
+        </CardContent>
 
         {/* Input Area */}
-        <div className='border-t border-border p-4'>
+        <CardFooter className='border-t flex-col gap-2 items-stretch'>
           <form onSubmit={handleSendMessage} className='flex gap-2'>
             <Textarea
               ref={textareaRef}
@@ -147,11 +147,11 @@ export function AgentChatPageContent() {
               Send
             </Button>
           </form>
-          <p className='text-xs text-muted-foreground mt-2'>
+          <p className='text-xs text-muted-foreground'>
             Mock AI responses • No real AI integration yet
           </p>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

@@ -34,6 +34,7 @@ This document outlines a phased, incremental migration plan to adopt shadcn/ui c
 #### Scope
 
 **Components from Mapping Table:**
+
 1. Search input (catalog)
 2. Login email/password inputs
 3. Register form inputs (name, category, price)
@@ -44,6 +45,7 @@ This document outlines a phased, incremental migration plan to adopt shadcn/ui c
 8. Custom table action buttons
 
 **shadcn Components to Install:**
+
 - `input`
 - `textarea`
 - `label`
@@ -51,6 +53,7 @@ This document outlines a phased, incremental migration plan to adopt shadcn/ui c
 #### Tasks
 
 1. **Install shadcn Components**
+
    ```bash
    npx shadcn@latest add input textarea label
    ```
@@ -95,6 +98,7 @@ This document outlines a phased, incremental migration plan to adopt shadcn/ui c
 #### Quality Checks
 
 Run after completing all tasks:
+
 ```bash
 cd apps/web
 pnpm lint          # Must pass with 0 errors
@@ -104,6 +108,7 @@ pnpm build         # Must build successfully
 ```
 
 **Manual Testing:**
+
 - [ ] Login form works (demo credentials, validation)
 - [ ] Catalog search filters items
 - [ ] Register form accepts input and validates
@@ -123,6 +128,7 @@ pnpm build         # Must build successfully
 #### Scope
 
 **Components from Mapping Table:**
+
 1. Login card
 2. Catalog register form card
 3. Catalog table card
@@ -135,6 +141,7 @@ pnpm build         # Must build successfully
 10. Collapsible Sidebar (complete replacement)
 
 **shadcn Components to Install:**
+
 - `card`
 - `sidebar`
 - `separator`
@@ -142,6 +149,7 @@ pnpm build         # Must build successfully
 #### Tasks
 
 1. **Install shadcn Components**
+
    ```bash
    npx shadcn@latest add card sidebar separator
    ```
@@ -200,15 +208,13 @@ pnpm build         # Must build successfully
       ```tsx
       <SidebarProvider>
         <Sidebar>
-          <SidebarHeader>
-            {/* Logo and title */}
-          </SidebarHeader>
+          <SidebarHeader>{/* Logo and title */}</SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <Link href="/catalog">
+                    <Link href='/catalog'>
                       <Package /> Catalog
                     </Link>
                   </SidebarMenuButton>
@@ -217,9 +223,7 @@ pnpm build         # Must build successfully
               </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter>
-            {/* Theme toggle and UserMenu */}
-          </SidebarFooter>
+          <SidebarFooter>{/* Theme toggle and UserMenu */}</SidebarFooter>
         </Sidebar>
       </SidebarProvider>
       ```
@@ -237,6 +241,7 @@ pnpm build         # Must build successfully
 #### Quality Checks
 
 Run after completing all tasks:
+
 ```bash
 cd apps/web
 pnpm lint          # Must pass
@@ -246,6 +251,7 @@ pnpm build         # Must build successfully
 ```
 
 **Manual Testing:**
+
 - [ ] All cards render correctly (login, catalog, cart, agent, product detail)
 - [ ] Sidebar collapses and expands
 - [ ] Navigation items highlight active route
@@ -265,6 +271,7 @@ pnpm build         # Must build successfully
 #### Scope
 
 **Components from Mapping Table:**
+
 1. Catalog items table
 2. Category badge
 3. Cart count badge
@@ -274,6 +281,7 @@ pnpm build         # Must build successfully
 7. Product not found state (if not done in Phase 2 with Alert)
 
 **shadcn Components to Install:**
+
 - `table`
 - `badge`
 - `alert`
@@ -281,6 +289,7 @@ pnpm build         # Must build successfully
 #### Tasks
 
 1. **Install shadcn Components**
+
    ```bash
    npx shadcn@latest add table badge alert
    ```
@@ -297,7 +306,7 @@ pnpm build         # Must build successfully
          </TableRow>
        </TableHeader>
        <TableBody>
-         {items.map(item => (
+         {items.map((item) => (
            <TableRow key={item.id}>
              <TableCell>{item.name}</TableCell>
              {/* More cells */}
@@ -323,8 +332,10 @@ pnpm build         # Must build successfully
    - Replace custom status badges with shadcn Badge
    - Use conditional variant based on status:
      ```tsx
-     <Badge variant={item.status === ItemStatus.Active ? "default" : "secondary"}>
-       {item.status === ItemStatus.Active ? "Available" : "Inactive"}
+     <Badge
+       variant={item.status === ItemStatus.Active ? 'default' : 'secondary'}
+     >
+       {item.status === ItemStatus.Active ? 'Available' : 'Inactive'}
      </Badge>
      ```
 
@@ -332,12 +343,12 @@ pnpm build         # Must build successfully
    - **Empty Cart** (`src/features/cart/components/CartPageContent.tsx`):
      ```tsx
      <Alert>
-       <ShoppingCart className="h-4 w-4" />
+       <ShoppingCart className='h-4 w-4' />
        <AlertTitle>Your cart is empty</AlertTitle>
        <AlertDescription>
          Add items from the catalog to get started.
-         <Button asChild className="mt-2">
-           <Link href="/catalog">Browse Catalog</Link>
+         <Button asChild className='mt-2'>
+           <Link href='/catalog'>Browse Catalog</Link>
          </Button>
        </AlertDescription>
      </Alert>
@@ -356,6 +367,7 @@ pnpm build         # Must build successfully
 #### Quality Checks
 
 Run after completing all tasks:
+
 ```bash
 cd apps/web
 pnpm lint
@@ -365,6 +377,7 @@ pnpm build
 ```
 
 **Manual Testing:**
+
 - [ ] Catalog table displays items correctly
 - [ ] Table is responsive (scrolls horizontally on small screens)
 - [ ] Category badges render correctly
@@ -385,12 +398,14 @@ pnpm build
 #### Scope
 
 **Components from Mapping Table:**
+
 1. UserMenu (replace custom dropdown with DropdownMenu)
 2. Theme toggle (use Button, optionally DropdownMenu for light/dark/system)
 3. Tooltips (replace title attributes)
 4. Future: Dialog, AlertDialog, Sheet (add but don't implement yet)
 
 **shadcn Components to Install:**
+
 - `tooltip`
 - `avatar`
 - `dialog`
@@ -400,6 +415,7 @@ pnpm build
 #### Tasks
 
 1. **Install shadcn Components**
+
    ```bash
    npx shadcn@latest add tooltip avatar dialog alert-dialog sheet
    ```
@@ -448,19 +464,19 @@ pnpm build
      ```tsx
      <DropdownMenu>
        <DropdownMenuTrigger asChild>
-         <Button variant="ghost" size="icon">
-           <Sun className="dark:hidden" />
-           <Moon className="hidden dark:block" />
+         <Button variant='ghost' size='icon'>
+           <Sun className='dark:hidden' />
+           <Moon className='hidden dark:block' />
          </Button>
        </DropdownMenuTrigger>
-       <DropdownMenuContent align="end">
-         <DropdownMenuItem onClick={() => setTheme("light")}>
+       <DropdownMenuContent align='end'>
+         <DropdownMenuItem onClick={() => setTheme('light')}>
            <Sun /> Light
          </DropdownMenuItem>
-         <DropdownMenuItem onClick={() => setTheme("dark")}>
+         <DropdownMenuItem onClick={() => setTheme('dark')}>
            <Moon /> Dark
          </DropdownMenuItem>
-         <DropdownMenuItem onClick={() => setTheme("system")}>
+         <DropdownMenuItem onClick={() => setTheme('system')}>
            <Monitor /> System
          </DropdownMenuItem>
        </DropdownMenuContent>
@@ -477,7 +493,7 @@ pnpm build
      ```tsx
      <Tooltip>
        <TooltipTrigger asChild>
-         <Button size="icon" variant="ghost">
+         <Button size='icon' variant='ghost'>
            <Icon />
          </Button>
        </TooltipTrigger>
@@ -504,6 +520,7 @@ pnpm build
 #### Quality Checks
 
 Run after completing all tasks:
+
 ```bash
 cd apps/web
 pnpm lint
@@ -513,6 +530,7 @@ pnpm build
 ```
 
 **Manual Testing:**
+
 - [ ] UserMenu dropdown opens on click
 - [ ] UserMenu closes on outside click or Escape key
 - [ ] UserMenu items trigger correct actions
@@ -533,6 +551,7 @@ pnpm build
 #### Scope
 
 **Enhancements:**
+
 1. Add Skeleton for loading states
 2. Add Progress for future features
 3. Add form validation with react-hook-form + shadcn Form component
@@ -540,6 +559,7 @@ pnpm build
 5. Review and standardize spacing, padding, and visual hierarchy
 
 **Optional (if time permits):**
+
 - Add Select, Checkbox, RadioGroup, Switch for future forms
 - Add Pagination for catalog (if implementing paginated lists)
 - Add Tabs for potential tabbed interfaces
@@ -547,6 +567,7 @@ pnpm build
 #### Tasks
 
 1. **Install Remaining Components**
+
    ```bash
    npx shadcn@latest add skeleton progress form select checkbox radio-group switch pagination separator
    ```
@@ -555,19 +576,25 @@ pnpm build
    - Replace Loader2 spinners in lists/tables with Skeleton placeholders
    - Example: Catalog table loading state
      ```tsx
-     {isLoading ? (
-       <TableBody>
-         {[...Array(5)].map((_, i) => (
-           <TableRow key={i}>
-             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-             <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-             {/* More skeleton cells */}
-           </TableRow>
-         ))}
-       </TableBody>
-     ) : (
-       <TableBody>{/* Actual rows */}</TableBody>
-     )}
+     {
+       isLoading ? (
+         <TableBody>
+           {[...Array(5)].map((_, i) => (
+             <TableRow key={i}>
+               <TableCell>
+                 <Skeleton className='h-4 w-32' />
+               </TableCell>
+               <TableCell>
+                 <Skeleton className='h-4 w-20' />
+               </TableCell>
+               {/* More skeleton cells */}
+             </TableRow>
+           ))}
+         </TableBody>
+       ) : (
+         <TableBody>{/* Actual rows */}</TableBody>
+       );
+     }
      ```
 
 3. **Add Form Validation (Login, Register)**
@@ -579,19 +606,19 @@ pnpm build
        <form onSubmit={form.handleSubmit(onSubmit)}>
          <FormField
            control={form.control}
-           name="email"
+           name='email'
            render={({ field }) => (
              <FormItem>
                <FormLabel>Email</FormLabel>
                <FormControl>
-                 <Input type="email" placeholder="your@email.com" {...field} />
+                 <Input type='email' placeholder='your@email.com' {...field} />
                </FormControl>
                <FormMessage />
              </FormItem>
            )}
          />
          {/* More fields */}
-         <Button type="submit">Sign In</Button>
+         <Button type='submit'>Sign In</Button>
        </form>
      </Form>
      ```
@@ -628,6 +655,7 @@ pnpm build
 #### Quality Checks
 
 Run after completing all tasks:
+
 ```bash
 cd apps/web
 pnpm lint
@@ -637,6 +665,7 @@ pnpm build
 ```
 
 **Manual Testing:**
+
 - [ ] All loading states show skeletons
 - [ ] Form validation works (shows errors, prevents invalid submission)
 - [ ] Separators appear where custom borders were
@@ -653,6 +682,7 @@ pnpm build
 After completing all 5 phases, verify the following:
 
 ### Functional Completeness
+
 - [ ] All mapped components have been migrated or explicitly marked as intentionally custom
 - [ ] No duplicate custom primitives where shadcn provides equivalents
 - [ ] Theme and spacing remain consistent across all pages
@@ -660,6 +690,7 @@ After completing all 5 phases, verify the following:
 - [ ] All interactive elements are keyboard-accessible
 
 ### Code Quality
+
 - [ ] Zero linting errors (`pnpm lint`)
 - [ ] Zero TypeScript errors (`pnpm type-check`)
 - [ ] All tests pass (`pnpm test`)
@@ -667,12 +698,14 @@ After completing all 5 phases, verify the following:
 - [ ] No unused imports or components
 
 ### Documentation
+
 - [ ] Updated README with new component patterns
 - [ ] Updated component documentation (JSDoc)
 - [ ] Created usage examples for key components
 - [ ] Documented any intentionally custom components
 
 ### Visual Quality
+
 - [ ] Consistent spacing and padding across all pages
 - [ ] Consistent typography hierarchy
 - [ ] Proper focus states on all interactive elements
@@ -680,6 +713,7 @@ After completing all 5 phases, verify the following:
 - [ ] Responsive design works on mobile, tablet, desktop
 
 ### Accessibility
+
 - [ ] All form fields have labels
 - [ ] All buttons have accessible names
 - [ ] All interactive elements are keyboard-navigable
@@ -687,6 +721,7 @@ After completing all 5 phases, verify the following:
 - [ ] Color contrast meets WCAG AA standards
 
 ### Performance
+
 - [ ] Bundle size increase is acceptable (shadcn is tree-shakeable)
 - [ ] No runtime performance regressions
 - [ ] Images and assets optimized
@@ -752,14 +787,14 @@ npx shadcn@latest add [component-name]
 
 ## Timeline Estimate
 
-| Phase | Effort (hours) | Components Changed | Risk Level |
-|-------|---------------|-------------------|------------|
-| **Phase 1** | 8-12 | 7 input/textarea, 1 button cleanup | Low |
-| **Phase 2** | 12-16 | 9 cards, 1 sidebar (major) | Medium-High |
-| **Phase 3** | 6-10 | 1 table, 3 badges, 3 alerts | Low-Medium |
-| **Phase 4** | 8-12 | 1 dropdown, tooltips, 1 avatar | Medium |
-| **Phase 5** | 6-10 | Skeleton, validation, polish | Low |
-| **TOTAL** | **40-60** | **~35 components** | **Medium** |
+| Phase       | Effort (hours) | Components Changed                 | Risk Level  |
+| ----------- | -------------- | ---------------------------------- | ----------- |
+| **Phase 1** | 8-12           | 7 input/textarea, 1 button cleanup | Low         |
+| **Phase 2** | 12-16          | 9 cards, 1 sidebar (major)         | Medium-High |
+| **Phase 3** | 6-10           | 1 table, 3 badges, 3 alerts        | Low-Medium  |
+| **Phase 4** | 8-12           | 1 dropdown, tooltips, 1 avatar     | Medium      |
+| **Phase 5** | 6-10           | Skeleton, validation, polish       | Low         |
+| **TOTAL**   | **40-60**      | **~35 components**                 | **Medium**  |
 
 **Recommended Timeline:** 2-3 sprints (depending on team capacity)
 
@@ -768,6 +803,7 @@ npx shadcn@latest add [component-name]
 ## Success Criteria
 
 ### Quantitative
+
 - ✅ 85% → 15% custom UI (from 85% custom to 15% custom)
 - ✅ 3 → 20+ shadcn components in active use
 - ✅ 0 linting errors
@@ -776,6 +812,7 @@ npx shadcn@latest add [component-name]
 - ✅ Successful production build
 
 ### Qualitative
+
 - ✅ Consistent visual design across all pages
 - ✅ Improved accessibility (ARIA, keyboard navigation)
 - ✅ Maintainable codebase (less duplication, clear patterns)

@@ -9,21 +9,25 @@ import { toast } from 'sonner';
 ## Basic Usage
 
 ### Success Toast
+
 ```typescript
 toast.success('Operation successful!');
 ```
 
 ### Error Toast
+
 ```typescript
 toast.error('Something went wrong!');
 ```
 
 ### Info Toast
+
 ```typescript
 toast.info('Information message');
 ```
 
 ### Warning Toast
+
 ```typescript
 toast.warning('Warning message');
 ```
@@ -81,6 +85,7 @@ The Toaster component can be configured in `app/layout.tsx`:
 ```
 
 Available positions:
+
 - `top-left`
 - `top-center`
 - `top-right`
@@ -102,6 +107,7 @@ toast.dismiss(toastId);
 ## Current Implementation Examples
 
 ### Login Success
+
 ```typescript
 toast.success('Login successful!', {
   description: 'Redirecting to catalog...',
@@ -109,6 +115,7 @@ toast.success('Login successful!', {
 ```
 
 ### Login Error
+
 ```typescript
 toast.error('Invalid credentials', {
   description: 'Please check your email and password and try again.',
@@ -116,6 +123,7 @@ toast.error('Invalid credentials', {
 ```
 
 ### Add to Cart
+
 ```typescript
 toast.success('Added to cart!', {
   description: `${item.name} has been added to your cart.`,
@@ -123,6 +131,7 @@ toast.success('Added to cart!', {
 ```
 
 ### Remove from Cart
+
 ```typescript
 toast.info('Item removed', {
   description: `${item.name} has been removed from your cart.`,
@@ -130,6 +139,7 @@ toast.info('Item removed', {
 ```
 
 ### Checkout Success
+
 ```typescript
 toast.success('Checkout successful!', {
   description: `Your order of ${count} items has been submitted.`,
@@ -140,7 +150,7 @@ toast.success('Checkout successful!', {
 
 1. **Keep messages concise**: Use short, clear messages in the title
 2. **Add context with description**: Use the description for additional details
-3. **Choose appropriate toast types**: 
+3. **Choose appropriate toast types**:
    - Success: Completed actions
    - Error: Failed operations
    - Info: Neutral information

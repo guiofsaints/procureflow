@@ -19,23 +19,26 @@ ProcureFlow has been successfully migrated from Tailwind CSS v3 to v4 with **sha
 
 ### Dependencies
 
-| Package                    | Before  | After   | Change        |
-| -------------------------- | ------- | ------- | ------------- |
-| **tailwindcss**            | ^3.3.6  | ^4.1.17 | Major upgrade |
-| **@tailwindcss/postcss**   | ❌ N/A  | ^4.1.17 | ✅ Added      |
-| **@tailwindcss/typography** | ^0.5.10 | ❌ N/A  | ❌ Removed     |
+| Package                     | Before  | After   | Change        |
+| --------------------------- | ------- | ------- | ------------- |
+| **tailwindcss**             | ^3.3.6  | ^4.1.17 | Major upgrade |
+| **@tailwindcss/postcss**    | ❌ N/A  | ^4.1.17 | ✅ Added      |
+| **@tailwindcss/typography** | ^0.5.10 | ❌ N/A  | ❌ Removed    |
 
 **Reason for @tailwindcss/typography removal**: Not yet compatible with Tailwind v4. Can be re-added when v4 support is released.
 
 ### Configuration Files
 
 #### 1. `package.json`
+
 - ✅ Updated `tailwindcss` to `^4.1.17`
 - ✅ Added `@tailwindcss/postcss` as devDependency
 - ✅ Removed `@tailwindcss/typography`
 
 #### 2. `postcss.config.mjs`
+
 **Before**:
+
 ```javascript
 plugins: {
   tailwindcss: {},
@@ -44,6 +47,7 @@ plugins: {
 ```
 
 **After**:
+
 ```javascript
 plugins: {
   '@tailwindcss/postcss': {},
@@ -54,7 +58,9 @@ plugins: {
 **Reason**: Tailwind v4 requires `@tailwindcss/postcss` as separate plugin.
 
 #### 3. `tailwind.config.ts`
+
 **Key Changes**:
+
 - ✅ Removed `./pages/**` from `content` (App Router only)
 - ✅ Added `darkMode: 'class'` for theme toggling
 - ✅ Replaced hardcoded colors with CSS variable-based semantic tokens
@@ -67,7 +73,9 @@ plugins: {
 - ✅ Removed custom `brand`, `success`, `warning`, `error` colors (replaced by semantic tokens)
 
 #### 4. `src/styles/globals.css`
+
 **Before** (Tailwind v3):
+
 ```css
 @tailwind base;
 @tailwind components;
@@ -86,6 +94,7 @@ plugins: {
 ```
 
 **After** (Tailwind v4 + shadcn):
+
 ```css
 @import 'tailwindcss';
 
@@ -113,6 +122,7 @@ plugins: {
 ```
 
 **Key Differences**:
+
 - Changed from `@tailwind` directives to `@import 'tailwindcss'`
 - Switched from RGB to HSL color format
 - Changed from `@media (prefers-color-scheme)` to `.dark` class
@@ -124,25 +134,25 @@ plugins: {
 
 ### Files Modified
 
-| File | Change | Impact |
-| ---- | ------ | ------ |
-| `src/components/ui/Button.tsx` | Replaced hardcoded colors with `bg-primary`, `bg-secondary` | ✅ Theme-aware buttons |
-| `src/components/layout/AppShell.tsx` | `bg-gray-50 dark:bg-gray-950` → `bg-background` | ✅ Consistent background |
-| `src/components/layout/Sidebar.tsx` | All gray/blue shades → semantic tokens | ✅ Full theme support |
-| `src/components/layout/ThemeToggle.tsx` | `text-gray-*` → `text-muted-foreground` | ✅ Proper text contrast |
-| `src/components/layout/UserMenu.tsx` | Card/border colors → `bg-card`, `border-border` | ✅ Consistent UI elements |
-| `src/features/catalog/components/ProductDetailPageContent.tsx` | Comprehensive token replacement | ✅ Fully themed product pages |
+| File                                                           | Change                                                      | Impact                        |
+| -------------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------- |
+| `src/components/ui/Button.tsx`                                 | Replaced hardcoded colors with `bg-primary`, `bg-secondary` | ✅ Theme-aware buttons        |
+| `src/components/layout/AppShell.tsx`                           | `bg-gray-50 dark:bg-gray-950` → `bg-background`             | ✅ Consistent background      |
+| `src/components/layout/Sidebar.tsx`                            | All gray/blue shades → semantic tokens                      | ✅ Full theme support         |
+| `src/components/layout/ThemeToggle.tsx`                        | `text-gray-*` → `text-muted-foreground`                     | ✅ Proper text contrast       |
+| `src/components/layout/UserMenu.tsx`                           | Card/border colors → `bg-card`, `border-border`             | ✅ Consistent UI elements     |
+| `src/features/catalog/components/ProductDetailPageContent.tsx` | Comprehensive token replacement                             | ✅ Fully themed product pages |
 
 ### Color Mapping Applied
 
-| Old Pattern | New Pattern | Count |
-| ----------- | ----------- | ----- |
-| `bg-white dark:bg-gray-800` | `bg-card` | ~15 |
-| `bg-gray-50 dark:bg-gray-900` | `bg-background` | ~8 |
-| `text-gray-900 dark:text-white` | `text-foreground` | ~20 |
-| `text-gray-600 dark:text-gray-400` | `text-muted-foreground` | ~25 |
-| `bg-blue-600 hover:bg-blue-700` | `bg-primary hover:bg-primary/90` | ~5 |
-| `border-gray-200 dark:border-gray-700` | `border-border` | ~18 |
+| Old Pattern                            | New Pattern                      | Count |
+| -------------------------------------- | -------------------------------- | ----- |
+| `bg-white dark:bg-gray-800`            | `bg-card`                        | ~15   |
+| `bg-gray-50 dark:bg-gray-900`          | `bg-background`                  | ~8    |
+| `text-gray-900 dark:text-white`        | `text-foreground`                | ~20   |
+| `text-gray-600 dark:text-gray-400`     | `text-muted-foreground`          | ~25   |
+| `bg-blue-600 hover:bg-blue-700`        | `bg-primary hover:bg-primary/90` | ~5    |
+| `border-gray-200 dark:border-gray-700` | `border-border`                  | ~18   |
 
 ---
 
@@ -189,11 +199,11 @@ Warning: Duplicate schema index on {"email":1} found
 
 The following components still use some hardcoded colors but were de-prioritized due to low impact:
 
-| Component | File | Priority | Reason |
-| --------- | ---- | -------- | ------ |
-| CatalogPageContent | `src/features/catalog/components/CatalogPageContent.tsx` | Medium | Search UI, filters |
-| CartPageContent | `src/features/cart/components/CartPageContent.tsx` | Medium | Table, quantity controls |
-| AgentChatPageContent | `src/features/agent/components/AgentChatPageContent.tsx` | Low | Chat UI intentionally styled |
+| Component            | File                                                     | Priority | Reason                       |
+| -------------------- | -------------------------------------------------------- | -------- | ---------------------------- |
+| CatalogPageContent   | `src/features/catalog/components/CatalogPageContent.tsx` | Medium   | Search UI, filters           |
+| CartPageContent      | `src/features/cart/components/CartPageContent.tsx`       | Medium   | Table, quantity controls     |
+| AgentChatPageContent | `src/features/agent/components/AgentChatPageContent.tsx` | Low      | Chat UI intentionally styled |
 
 **Recommendation**: Migrate these in a follow-up PR for complete theming consistency.
 
@@ -241,6 +251,7 @@ pnpm type-check
 ### Manual Visual Testing
 
 **Tested Screens**:
+
 - ✅ Landing page (light + dark)
 - ✅ Catalog list (light + dark)
 - ✅ Product detail (light + dark)
@@ -256,6 +267,7 @@ pnpm type-check
 ### How to Add New Tokens
 
 1. **Define CSS variable** in `src/styles/globals.css`:
+
    ```css
    @layer base {
      :root {
@@ -268,6 +280,7 @@ pnpm type-check
    ```
 
 2. **Map to Tailwind config** in `tailwind.config.ts`:
+
    ```typescript
    colors: {
      'my-token': 'hsl(var(--my-token))',
@@ -276,7 +289,7 @@ pnpm type-check
 
 3. **Use in components**:
    ```tsx
-   <div className="bg-my-token text-foreground">Content</div>
+   <div className='bg-my-token text-foreground'>Content</div>
    ```
 
 ### How to Update Existing Tokens
@@ -291,23 +304,24 @@ pnpm type-check
 **Problem**: Colors not changing with theme toggle
 
 **Solution**:
+
 1. Verify component uses semantic tokens (`bg-primary`), not hardcoded (`bg-blue-600`)
 2. Check `ThemeProvider` is wrapping the app in `layout.tsx`
 3. Inspect CSS variables in browser DevTools:
    ```javascript
-   getComputedStyle(document.documentElement).getPropertyValue('--primary')
+   getComputedStyle(document.documentElement).getPropertyValue('--primary');
    ```
 
 ---
 
 ## Documentation Added
 
-| File | Purpose |
-| ---- | ------- |
-| `.guided/assessment/tailwind-usage-audit.md` | Pre-migration audit of Tailwind v3 usage |
-| `.guided/plan/tailwind-v4-migration-plan.md` | Detailed migration strategy with de-para mapping |
-| `src/styles/theme-tokens.md` | **New:** Comprehensive theming guide |
-| `.guided/assessment/tailwind-v4-migration-notes.md` | **This file:** Post-migration summary |
+| File                                                | Purpose                                          |
+| --------------------------------------------------- | ------------------------------------------------ |
+| `.guided/assessment/tailwind-usage-audit.md`        | Pre-migration audit of Tailwind v3 usage         |
+| `.guided/plan/tailwind-v4-migration-plan.md`        | Detailed migration strategy with de-para mapping |
+| `src/styles/theme-tokens.md`                        | **New:** Comprehensive theming guide             |
+| `.guided/assessment/tailwind-v4-migration-notes.md` | **This file:** Post-migration summary            |
 
 ---
 
@@ -321,9 +335,11 @@ pnpm type-check
    - [ ] Migrate `AgentChatPageContent.tsx` (evaluate if intentional styling should remain)
 
 2. **Add Tailwind ESLint plugin**:
+
    ```bash
    pnpm add -D eslint-plugin-tailwindcss
    ```
+
    - Configure class ordering rules
    - Enforce consistent class patterns
 
@@ -347,6 +363,7 @@ pnpm type-check
 ### Issue: `Cannot apply unknown utility class`
 
 **Error**:
+
 ```
 Cannot apply unknown utility class `bg-background`
 ```
@@ -354,6 +371,7 @@ Cannot apply unknown utility class `bg-background`
 **Cause**: Tailwind config not loaded properly or CSS variables not defined.
 
 **Fix**:
+
 1. Verify `@import 'tailwindcss'` is first line in `globals.css`
 2. Confirm `@layer base` wraps all token definitions
 3. Rebuild: `rm -rf .next && pnpm build`
@@ -361,6 +379,7 @@ Cannot apply unknown utility class `bg-background`
 ### Issue: `tailwindcss directly as a PostCSS plugin`
 
 **Error**:
+
 ```
 It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin.
 ```
@@ -374,6 +393,7 @@ It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin.
 **Symptoms**: Theme toggle doesn't change colors.
 
 **Checklist**:
+
 - [ ] `darkMode: 'class'` set in `tailwind.config.ts`
 - [ ] `ThemeProvider` with `attribute="class"` in `layout.tsx`
 - [ ] Components use semantic tokens, not hardcoded colors
@@ -426,6 +446,7 @@ The Tailwind CSS v4 migration is **complete and production-ready**. All critical
 **Migration completed successfully** 🎉
 
 **Questions?** See:
+
 - `src/styles/theme-tokens.md` - Theming guide
 - `.guided/plan/tailwind-v4-migration-plan.md` - Migration strategy
 - `AGENTS.md` - Coding standards
