@@ -1,0 +1,32 @@
+name: procureflow-gcp
+runtime: nodejs
+description: ProcureFlow infrastructure on Google Cloud Platform
+
+config:
+  gcp:project:
+    description: GCP Project ID
+  gcp:region:
+    description: GCP Region (e.g., us-central1)
+    default: us-central1
+  gcp:zone:
+    description: GCP Zone (e.g., us-central1-a)
+    default: us-central1-a
+
+  # Application configuration
+  app:domain:
+    description: Custom domain for the application (optional)
+  app:environment:
+    description: Environment name (dev, staging, production)
+    default: dev
+  app:mongodb-tier:
+    description: MongoDB Atlas cluster tier
+    default: M0
+
+template:
+  description: A minimal Pulumi template for deploying ProcureFlow on GCP
+  config:
+    gcp:project:
+      description: The GCP project to deploy to
+    gcp:region:
+      description: The GCP region to deploy to
+      default: us-central1
