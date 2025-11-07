@@ -28,7 +28,6 @@ const eslintConfig = [
         },
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/prefer-const': 'error',
 
       // General code quality
       'prefer-const': 'error',
@@ -67,6 +66,7 @@ const eslintConfig = [
       'node_modules/**',
       '*.config.js',
       '*.config.mjs',
+      'next-env.d.ts',
     ],
   },
 ];

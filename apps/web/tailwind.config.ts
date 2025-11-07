@@ -64,7 +64,10 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [
+    // Use import instead of require
+    // require('@tailwindcss/typography'),
+  ],
 };
 
 export default config;

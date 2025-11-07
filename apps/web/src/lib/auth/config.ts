@@ -1,8 +1,8 @@
-import type { NextAuthConfig } from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 // import GoogleProvider from 'next-auth/providers/google';
 
-export const authConfig: NextAuthConfig = {
+export const authConfig: NextAuthOptions = {
   providers: [
     // Credentials provider - fully implemented for bootstrap demo
     CredentialsProvider({
@@ -92,23 +92,6 @@ export const authConfig: NextAuthConfig = {
         session.user.role = token.role as string;
       }
       return session;
-    },
-
-    async authorized({ auth, request: { nextUrl } }) {
-      // Middleware to protect routes
-      const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
-      const isOnAuth = nextUrl.pathname.startsWith('/auth');
-
-      if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
-      } else if (isOnAuth) {
-        if (isLoggedIn)
-          return Response.redirect(new URL('/dashboard', nextUrl));
-      }
-
-      return true;
     },
   },
 

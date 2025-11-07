@@ -375,9 +375,65 @@ pnpm test:e2e       # Run end-to-end tests
 pnpm test:coverage  # Generate coverage report
 ```
 
+## 🤖 Using AI and IDE Assistants
+
+ProcureFlow is optimized for modern AI-powered development workflows. We provide dedicated instruction files for popular AI assistants and IDEs to ensure consistent, high-quality code suggestions:
+
+### GitHub Copilot
+
+- **File**: [`.github/copilot-instructions.md`](./.github/copilot-instructions.md)
+- **Purpose**: Project-specific guidelines for GitHub Copilot
+- **Covers**: Tech stack patterns, coding standards, architecture guidelines, and forbidden practices
+
+### Anthropic Claude
+
+- **File**: [`claude-project.md`](./claude-project.md)
+- **Purpose**: Comprehensive project context for Claude
+- **Covers**: Guided Engineering framework, architecture principles, and behavior guidelines
+
+### Windsurf IDE
+
+- **File**: [`.windsurf/windsurf.yaml`](./.windsurf/windsurf.yaml)
+- **Purpose**: Project-aware configuration for Windsurf
+- **Covers**: Stack definition, key directories, coding standards, and quality conventions
+
+### Continue Extension
+
+- **File**: [`.continue/continue.yaml`](./.continue/continue.yaml)
+- **Purpose**: VS Code Continue extension configuration
+- **Covers**: System instructions, prompt snippets, and reusable tasks
+
+### Contributing Guidelines
+
+- **File**: [`.github/CONTRIBUTING.md`](./.github/CONTRIBUTING.md)
+- **Purpose**: Complete contribution workflow documentation
+- **Covers**: Setup, quality gates, Git workflow, and architecture guidelines
+
+### Best Practices for AI-Assisted Development
+
+When working with AI assistants on ProcureFlow:
+
+1. **Read the Instructions First**: Each AI assistant has specific guidelines tailored to this project
+2. **Follow Established Patterns**: All instruction files reference the same architectural conventions
+3. **Respect the Bootstrap Nature**: This is a foundation codebase - avoid implementing business logic
+4. **Use Quality Gates**: Always run `pnpm lint`, `pnpm type-check`, and `pnpm build` before committing
+5. **Reference `.guided/` Documentation**: The Guided Engineering assets provide authoritative project standards
+
+### Quick Reference
+
+| Task                            | Recommended Tool | Instruction File                  |
+| ------------------------------- | ---------------- | --------------------------------- |
+| Code suggestions during typing  | GitHub Copilot   | `.github/copilot-instructions.md` |
+| Complex refactoring or analysis | Claude           | `claude-project.md`               |
+| Project-wide development        | Windsurf         | `.windsurf/windsurf.yaml`         |
+| Custom prompts and snippets     | Continue         | `.continue/continue.yaml`         |
+| Contributing to the project     | Human developers | `.github/CONTRIBUTING.md`         |
+
+These instruction files ensure that AI assistants understand ProcureFlow's unique architecture, conventions, and quality standards, leading to more accurate and contextually appropriate suggestions.
+
 ## 📝 Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development workflow, coding standards, and contribution guidelines.
+See [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for development workflow, coding standards, and contribution guidelines.
 
 ## 📜 License
 

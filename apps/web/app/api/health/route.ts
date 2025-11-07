@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { APP_CONFIG } from '@/lib/constants';
+
 export async function GET() {
   // Basic health check endpoint
   // Future: Add database connectivity check, external service checks, etc.
@@ -7,8 +9,8 @@ export async function GET() {
   const healthData = {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    service: 'procureflow-api',
-    version: '0.1.0',
+    service: APP_CONFIG.name.toLowerCase().replace(' ', '-') + '-api',
+    version: APP_CONFIG.version,
     environment: process.env.NODE_ENV || 'development',
     checks: {
       api: 'healthy',

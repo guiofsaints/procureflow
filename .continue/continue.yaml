@@ -1,0 +1,196 @@
+system:
+  name: ProcureFlow Bootstrap
+  description: |
+    AI-native procurement platform built as a production-ready bootstrap codebase.
+    This repository provides a modern full-stack foundation with AI integration,
+    ready for business logic development in tech case implementations.
+
+  context: |
+    ProcureFlow is a tech case study foundation featuring:
+    - Next.js 15 with App Router and TypeScript
+    - AI integration via LangChain and OpenAI
+    - Production-ready infrastructure with Docker and Pulumi
+    - Guided Engineering documentation in .guided/ folder
+    - Zero business logic implemented - ready for feature development
+
+  architecture:
+    type: monorepo
+    package_manager: pnpm
+    primary_language: TypeScript
+    framework: Next.js 15 (App Router)
+    database: MongoDB with Mongoose
+    ai_framework: LangChain
+    infrastructure: Pulumi (GCP)
+
+guidelines:
+  code_style:
+    typescript:
+      - Use strict TypeScript with noEmit: true
+      - Prefer const over let for immutable variables
+      - Use proper type definitions from src/types/
+      - Import types with 'import type { }' when appropriate
+
+    react:
+      - Default to React Server Components
+      - Use 'use client' directive only when necessary
+      - Follow Next.js 15 App Router patterns
+      - Implement proper error handling and loading states
+
+    imports:
+      - External libraries first
+      - Internal imports second with proper spacing
+      - Use absolute imports with @/ prefix
+      - Organize by domain (components, lib, types)
+
+    styling:
+      - Use Tailwind CSS utility classes
+      - Leverage cn() utility for conditional classes
+      - Follow responsive design patterns
+      - Keep global styles minimal in src/styles/globals.css
+
+  architecture:
+    file_organization:
+      - Components in src/components/ with index.ts exports
+      - Domain utilities in src/lib/ (auth, db, ai, utils, constants)
+      - TypeScript types in src/types/
+      - Infrastructure code separate in infra/pulumi/gcp/
+
+    patterns:
+      - Keep authentication logic in src/lib/auth/
+      - Database helpers in src/lib/db/ with connection caching
+      - AI integration in src/lib/ai/ using LangChain patterns
+      - Use established utility functions instead of duplicates
+
+    guided_engineering:
+      - Reference .guided/ folder for project standards
+      - Follow documented conventions in assessment files
+      - Maintain codebase quality as established
+      - Respect bootstrap foundation without adding business logic
+
+  quality:
+    before_suggesting:
+      - Ensure TypeScript compilation succeeds
+      - Verify ESLint passes without warnings
+      - Check consistency with existing patterns
+      - Implement proper error handling
+      - Follow conventional commit format
+
+    avoid:
+      - Introducing new major dependencies without justification
+      - Mixing application logic with infrastructure code
+      - Using console.log for error logging (use console.error)
+      - Creating duplicate utility functions
+      - Bypassing established authentication patterns
+      - Ignoring TypeScript or ESLint warnings
+
+prompt_snippets:
+  analyze_file:
+    name: Analyze File Structure
+    description: Analyze a specific file for patterns and conventions
+    template: |
+      Analyze this file and identify:
+      1. Current patterns and conventions used
+      2. Code quality and TypeScript usage
+      3. How it fits into the overall architecture
+      4. Potential improvements aligned with project standards
+      5. Any violations of established patterns
+
+  implement_route:
+    name: Implement Next.js API Route
+    description: Create a new API route following project patterns
+    template: |
+      Implement a Next.js API route that:
+      1. Follows App Router patterns in app/api/
+      2. Uses proper TypeScript typing
+      3. Implements authentication checks if needed
+      4. Handles errors gracefully with appropriate status codes
+      5. Follows existing database and AI integration patterns
+      6. Uses established utilities from src/lib/
+
+  create_component:
+    name: Create React Component
+    description: Build a new React component following project standards
+    template: |
+      Create a React component that:
+      1. Uses TypeScript with proper prop interfaces
+      2. Follows the established component structure
+      3. Uses Tailwind CSS for styling with cn() utility
+      4. Implements as Server Component unless client interactivity needed
+      5. Handles loading and error states appropriately
+      6. Exports properly from components/index.ts
+
+  refactor_safely:
+    name: Safe Refactoring
+    description: Refactor code while maintaining project patterns
+    template: |
+      Refactor this code ensuring:
+      1. Maintain existing functionality and behavior
+      2. Follow current TypeScript and React patterns
+      3. Keep authentication and database patterns intact
+      4. Preserve AI integration approaches
+      5. Update imports and exports appropriately
+      6. Maintain consistency with .guided/ standards
+
+  add_ai_feature:
+    name: Implement AI Feature
+    description: Add AI functionality using established patterns
+    template: |
+      Implement AI functionality that:
+      1. Uses the existing LangChain client from src/lib/ai/
+      2. Leverages or extends current prompt templates
+      3. Handles AI service failures gracefully
+      4. Checks for OpenAI API key availability
+      5. Follows established error handling patterns
+      6. Integrates with existing authentication flows
+
+  update_infrastructure:
+    name: Update Infrastructure
+    description: Modify Pulumi infrastructure safely
+    template: |
+      Update infrastructure ensuring:
+      1. Changes are made only in infra/pulumi/gcp/
+      2. TypeScript compilation succeeds
+      3. Follows existing GCP resource patterns
+      4. Maintains security and networking configurations
+      5. Documents any new environment variables needed
+      6. Tests with pulumi preview before deployment
+
+workspace_context:
+  key_files:
+    - path: apps/web/src/lib/auth/config.ts
+      purpose: NextAuth.js configuration
+      importance: Core authentication setup
+
+    - path: apps/web/src/lib/db/mongoose.ts
+      purpose: MongoDB connection with caching
+      importance: Database connectivity
+
+    - path: apps/web/src/lib/ai/langchainClient.ts
+      purpose: LangChain and OpenAI integration
+      importance: AI functionality foundation
+
+    - path: .guided/assessment/
+      purpose: Codebase quality documentation
+      importance: Standards and conventions reference
+
+  scripts:
+    development:
+      - pnpm dev # Start development server
+      - pnpm build # Build for production
+      - pnpm lint # Run ESLint
+      - pnpm format # Format with Prettier
+      - pnpm type-check # TypeScript validation
+
+    infrastructure:
+      - cd infra/pulumi/gcp && pnpm pulumi:preview # Preview infrastructure changes
+      - cd infra/pulumi/gcp && pnpm pulumi:up # Deploy infrastructure
+
+  environment:
+    required:
+      - MONGODB_URI
+      - NEXTAUTH_SECRET
+      - NEXTAUTH_URL
+    optional:
+      - OPENAI_API_KEY
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET

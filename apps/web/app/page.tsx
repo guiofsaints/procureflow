@@ -1,3 +1,7 @@
+'use client';
+
+import { Button } from '@/components';
+
 export default function HomePage() {
   return (
     <div className='max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8'>
@@ -78,6 +82,16 @@ export default function HomePage() {
       </div>
 
       <div className='mt-16 text-center'>
+        <Button
+          variant='primary'
+          size='lg'
+          onClick={() =>
+            alert('ProcureFlow está funcionando com alias @ configurado!')
+          }
+          className='mb-4'
+        >
+          Testar Configuração
+        </Button>
         <p className='text-sm text-gray-500'>
           Ready for AI-native procurement feature implementation 🎯
         </p>

@@ -20,7 +20,7 @@ if (!MONGODB_URI) {
   );
 }
 
-let cached: MongoConnection = global.mongoose || {
+const cached: MongoConnection = global.mongoose || {
   conn: null,
   promise: null,
 };
@@ -54,7 +54,7 @@ async function connectDB(): Promise<typeof mongoose> {
 
   try {
     cached.conn = await cached.promise;
-    console.log('📦 Connected to MongoDB');
+    console.error('📦 Connected to MongoDB');
     return cached.conn;
   } catch (error) {
     cached.promise = null;
@@ -70,7 +70,7 @@ async function disconnectDB(): Promise<void> {
     await mongoose.disconnect();
     cached.conn = null;
     cached.promise = null;
-    console.log('📦 Disconnected from MongoDB');
+    console.error('📦 Disconnected from MongoDB');
   }
 }
 

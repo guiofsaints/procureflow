@@ -60,23 +60,23 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Create a simple healthcheck script
 USER root
 RUN echo 'const http = require("http"); \
-const options = { \
+  const options = { \
   hostname: "localhost", \
   port: 3000, \
   path: "/api/health", \
   method: "GET" \
-}; \
-const req = http.request(options, (res) => { \
+  }; \
+  const req = http.request(options, (res) => { \
   if (res.statusCode === 200) { \
-    process.exit(0); \
+  process.exit(0); \
   } else { \
-    process.exit(1); \
-  } \
-}); \
-req.on("error", () => { \
   process.exit(1); \
-}); \
-req.end();' > healthcheck.js
+  } \
+  }); \
+  req.on("error", () => { \
+  process.exit(1); \
+  }); \
+  req.end();' > healthcheck.js
 
 USER nextjs
 
