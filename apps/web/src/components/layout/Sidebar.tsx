@@ -46,28 +46,28 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'flex flex-col h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300',
+        'flex flex-col h-screen bg-card border-r border-border transition-all duration-300',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
       {/* Header with Logo and Collapse Button */}
-      <div className='flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800'>
+      <div className='flex items-center justify-between p-4 border-b border-border'>
         {!collapsed && (
           <div className='flex items-center gap-2'>
-            <div className='w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center'>
-              <span className='text-white font-bold text-sm'>PF</span>
+            <div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
+              <span className='text-primary-foreground font-bold text-sm'>
+                PF
+              </span>
             </div>
-            <span className='font-semibold text-gray-900 dark:text-white'>
-              ProcureFlow
-            </span>
+            <span className='font-semibold text-foreground'>ProcureFlow</span>
           </div>
         )}
 
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            'p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
-            'text-gray-500 dark:text-gray-400',
+            'p-1.5 rounded-lg hover:bg-accent transition-colors',
+            'text-muted-foreground',
             collapsed && 'mx-auto'
           )}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -93,10 +93,10 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors relative',
-                'hover:bg-gray-100 dark:hover:bg-gray-800',
+                'hover:bg-accent',
                 isActive
-                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-700 dark:text-gray-300',
+                  ? 'bg-accent text-accent-foreground'
+                  : 'text-muted-foreground',
                 collapsed && 'justify-center'
               )}
               title={collapsed ? item.label : undefined}
@@ -105,7 +105,7 @@ export function Sidebar() {
               <div className='relative'>
                 <Icon className='h-5 w-5 flex-shrink-0' />
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className='absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center'>
+                  <span className='absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center'>
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
@@ -119,7 +119,7 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Section: Theme Toggle and User Menu */}
-      <div className='p-2 border-t border-gray-200 dark:border-gray-800 space-y-2'>
+      <div className='p-2 border-t border-border space-y-2'>
         <ThemeToggle collapsed={collapsed} />
         <UserMenu collapsed={collapsed} />
       </div>

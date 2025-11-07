@@ -6,7 +6,7 @@ import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components';
+import { Button, Input, Label } from '@/components';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -76,19 +76,15 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className='space-y-5'>
             {/* Email Field */}
             <div>
-              <label
-                htmlFor='email'
-                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
-              >
+              <Label htmlFor='email' className='mb-2'>
                 Email
-              </label>
-              <input
+              </Label>
+              <Input
                 id='email'
                 type='email'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className='w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors'
                 placeholder='your@email.com'
                 disabled={isLoading}
               />
@@ -96,19 +92,15 @@ export default function LoginPage() {
 
             {/* Password Field */}
             <div>
-              <label
-                htmlFor='password'
-                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
-              >
+              <Label htmlFor='password' className='mb-2'>
                 Password
-              </label>
-              <input
+              </Label>
+              <Input
                 id='password'
                 type='password'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className='w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors'
                 placeholder='••••••••'
                 disabled={isLoading}
               />
@@ -117,7 +109,6 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type='submit'
-              variant='primary'
               className='w-full flex items-center justify-center gap-2'
               disabled={isLoading}
             >
@@ -140,14 +131,15 @@ export default function LoginPage() {
             <p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>
               Demo credentials:
             </p>
-            <button
+            <Button
               type='button'
               onClick={fillDemoCredentials}
-              className='w-full px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors'
+              variant='outline'
+              className='w-full'
               disabled={isLoading}
             >
               Fill demo credentials
-            </button>
+            </Button>
             <p className='text-xs text-gray-500 dark:text-gray-500 mt-2 text-center'>
               demo@procureflow.com / demo123
             </p>

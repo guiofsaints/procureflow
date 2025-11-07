@@ -2,44 +2,75 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       colors: {
-        // Brand colors for future use
-        brand: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
+        border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+        primary: {
+          DEFAULT: 'var(--primary)',
+          foreground: 'var(--primary-foreground)',
         },
-        // Semantic colors
-        success: {
-          50: '#f0fdf4',
-          500: '#22c55e',
-          600: '#16a34a',
+        secondary: {
+          DEFAULT: 'var(--secondary)',
+          foreground: 'var(--secondary-foreground)',
         },
-        warning: {
-          50: '#fffbeb',
-          500: '#f59e0b',
-          600: '#d97706',
+        destructive: {
+          DEFAULT: 'var(--destructive)',
+          foreground: 'var(--destructive-foreground)',
         },
-        error: {
-          50: '#fef2f2',
-          500: '#ef4444',
-          600: '#dc2626',
+        muted: {
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--muted-foreground)',
         },
+        accent: {
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--accent-foreground)',
+        },
+        popover: {
+          DEFAULT: 'var(--popover)',
+          foreground: 'var(--popover-foreground)',
+        },
+        card: {
+          DEFAULT: 'var(--card)',
+          foreground: 'var(--card-foreground)',
+        },
+        sidebar: {
+          DEFAULT: 'var(--sidebar)',
+          foreground: 'var(--sidebar-foreground)',
+          primary: 'var(--sidebar-primary)',
+          'primary-foreground': 'var(--sidebar-primary-foreground)',
+          accent: 'var(--sidebar-accent)',
+          'accent-foreground': 'var(--sidebar-accent-foreground)',
+          border: 'var(--sidebar-border)',
+          ring: 'var(--sidebar-ring)',
+        },
+        chart: {
+          '1': 'var(--chart-1)',
+          '2': 'var(--chart-2)',
+          '3': 'var(--chart-3)',
+          '4': 'var(--chart-4)',
+          '5': 'var(--chart-5)',
+        },
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -64,10 +95,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [
-    // Use import instead of require
-    // require('@tailwindcss/typography'),
-  ],
+  plugins: [],
 };
 
 export default config;

@@ -3,10 +3,9 @@
 import { MessageSquare, Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { Button } from '@/components';
+import { Button, Textarea } from '@/components';
 import type { AgentMessage } from '@/domain/entities';
 import { AgentMessageRole } from '@/domain/entities';
-import { cn } from '@/lib/utils';
 
 import { mockMessages } from '../mock';
 
@@ -73,18 +72,18 @@ export function AgentChatPageContent() {
     <div className='h-[calc(100vh-8rem)] flex flex-col'>
       {/* Header */}
       <div className='mb-4'>
-        <h1 className='text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3'>
+        <h1 className='text-3xl font-bold text-foreground flex items-center gap-3'>
           <MessageSquare className='h-8 w-8' />
           AI Procurement Assistant
         </h1>
-        <p className='mt-2 text-gray-600 dark:text-gray-400'>
+        <p className='mt-2 text-muted-foreground'>
           Ask questions, search the catalog, or get help with your procurement
           needs
         </p>
       </div>
 
       {/* Chat Container */}
-      <div className='flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden'>
+      <div className='flex-1 bg-card rounded-lg border border-border flex flex-col overflow-hidden'>
         {/* Messages Area */}
         <div className='flex-1 overflow-y-auto p-6 space-y-4'>
           {messages.map((msg, index) => (
@@ -99,22 +98,22 @@ export function AgentChatPageContent() {
           {/* Typing Indicator */}
           {isTyping && (
             <div className='flex gap-3 mb-4'>
-              <div className='flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
-                <MessageSquare className='h-5 w-5 text-gray-600 dark:text-gray-400' />
+              <div className='shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center'>
+                <MessageSquare className='h-5 w-5 text-muted-foreground' />
               </div>
               <div className='flex-1 max-w-2xl'>
-                <div className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2'>
+                <div className='bg-card border border-border rounded-lg px-4 py-2'>
                   <div className='flex gap-1'>
                     <span
-                      className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
+                      className='w-2 h-2 bg-muted-foreground rounded-full animate-bounce'
                       style={{ animationDelay: '0ms' }}
                     />
                     <span
-                      className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
+                      className='w-2 h-2 bg-muted-foreground rounded-full animate-bounce'
                       style={{ animationDelay: '150ms' }}
                     />
                     <span
-                      className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
+                      className='w-2 h-2 bg-muted-foreground rounded-full animate-bounce'
                       style={{ animationDelay: '300ms' }}
                     />
                   </div>
@@ -127,27 +126,20 @@ export function AgentChatPageContent() {
         </div>
 
         {/* Input Area */}
-        <div className='border-t border-gray-200 dark:border-gray-700 p-4'>
+        <div className='border-t border-border p-4'>
           <form onSubmit={handleSendMessage} className='flex gap-2'>
-            <textarea
+            <Textarea
               ref={textareaRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder='Type your message... (Press Enter to send, Shift+Enter for new line)'
               rows={1}
-              className={cn(
-                'flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700',
-                'rounded-lg bg-white dark:bg-gray-900',
-                'text-gray-900 dark:text-white placeholder-gray-400',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-                'resize-none max-h-32'
-              )}
+              className='resize-none max-h-32'
               disabled={isTyping}
             />
             <Button
               type='submit'
-              variant='primary'
               disabled={!inputValue.trim() || isTyping}
               className='flex items-center gap-2 px-4'
             >
@@ -155,7 +147,7 @@ export function AgentChatPageContent() {
               Send
             </Button>
           </form>
-          <p className='text-xs text-gray-500 dark:text-gray-400 mt-2'>
+          <p className='text-xs text-muted-foreground mt-2'>
             Mock AI responses • No real AI integration yet
           </p>
         </div>

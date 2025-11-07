@@ -29,7 +29,7 @@ export function ThemeToggle({ className, collapsed }: ThemeToggleProps) {
     return (
       <button
         className={cn(
-          'flex items-center gap-2 p-2 rounded-lg text-gray-600 dark:text-gray-400',
+          'flex items-center gap-2 p-2 rounded-lg text-muted-foreground',
           className
         )}
         disabled
@@ -48,8 +48,8 @@ export function ThemeToggle({ className, collapsed }: ThemeToggleProps) {
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
         'flex items-center gap-2 p-2 rounded-lg transition-colors',
-        'hover:bg-gray-100 dark:hover:bg-gray-800',
-        'text-gray-600 dark:text-gray-400',
+        'hover:bg-accent',
+        'text-muted-foreground',
         className
       )}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}

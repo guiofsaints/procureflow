@@ -67,16 +67,16 @@ export function UserMenu({ collapsed }: UserMenuProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'flex items-center gap-3 p-2 w-full rounded-lg transition-colors',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
-          'text-gray-700 dark:text-gray-300',
-          isOpen && 'bg-gray-100 dark:bg-gray-800'
+          'hover:bg-accent',
+          'text-foreground',
+          isOpen && 'bg-accent'
         )}
         aria-expanded={isOpen}
         aria-haspopup='true'
         title={collapsed ? user.name : undefined}
       >
         {/* Avatar */}
-        <div className='flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium'>
+        <div className='flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium'>
           {user.initials}
         </div>
 
@@ -85,7 +85,7 @@ export function UserMenu({ collapsed }: UserMenuProps) {
             {/* User info */}
             <div className='flex-1 text-left min-w-0'>
               <p className='text-sm font-medium truncate'>{user.name}</p>
-              <p className='text-xs text-gray-500 dark:text-gray-400 truncate'>
+              <p className='text-xs text-muted-foreground truncate'>
                 {user.email}
               </p>
             </div>
@@ -93,7 +93,7 @@ export function UserMenu({ collapsed }: UserMenuProps) {
             {/* Dropdown icon */}
             <ChevronUp
               className={cn(
-                'h-4 w-4 text-gray-500 transition-transform',
+                'h-4 w-4 text-muted-foreground transition-transform',
                 isOpen && 'rotate-180'
               )}
             />
@@ -106,7 +106,7 @@ export function UserMenu({ collapsed }: UserMenuProps) {
         <div
           className={cn(
             'absolute bottom-full mb-2 w-full min-w-[200px]',
-            'bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700',
+            'bg-card rounded-lg shadow-lg border border-border',
             'py-1 z-50',
             collapsed && 'left-full ml-2 bottom-0'
           )}
@@ -120,10 +120,10 @@ export function UserMenu({ collapsed }: UserMenuProps) {
               }}
               className={cn(
                 'flex items-center gap-3 px-4 py-2 w-full text-left text-sm',
-                'hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
+                'hover:bg-accent transition-colors',
                 item.danger
-                  ? 'text-red-600 dark:text-red-400'
-                  : 'text-gray-700 dark:text-gray-300'
+                  ? 'text-destructive'
+                  : 'text-foreground'
               )}
             >
               <item.icon className='h-4 w-4' />

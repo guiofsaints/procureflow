@@ -1,6 +1,9 @@
 // Re-export all UI components from this file for easy importing
-export { Button } from './ui/Button';
-export { Toaster } from './ui/Toaster';
+export { Button } from './ui/button';
+export { Input } from './ui/input';
+export { Textarea } from './ui/textarea';
+export { Label } from './ui/label';
+export { Toaster } from './ui/sonner';
 
 // Layout components
 export { AppShell } from './layout/AppShell';
