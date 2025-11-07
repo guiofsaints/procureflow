@@ -11,11 +11,27 @@ export {
   CardDescription,
   CardContent,
 } from './ui/card';
+export { Separator } from './ui/separator';
+export {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from './ui/sidebar';
 export { Toaster } from './ui/sonner';
 
 // Layout components
 export { AppShell } from './layout/AppShell';
-export { Sidebar } from './layout/Sidebar';
+export { AppSidebar } from './layout/Sidebar';
 export { ThemeToggle } from './layout/ThemeToggle';
 export { UserMenu } from './layout/UserMenu';
 
