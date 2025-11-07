@@ -12,9 +12,9 @@ import * as cartService from '@/features/cart';
 import { authConfig } from '@/lib/auth/config';
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     itemId: string;
-  };
+  }>;
 }
 
 /**
@@ -39,7 +39,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     // Get itemId from path
-    const { itemId } = context.params;
+    const { itemId } = await context.params;
 
     // Parse request body
     const body = await request.json();
@@ -109,7 +109,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     }
 
     // Get itemId from path
-    const { itemId } = context.params;
+    const { itemId } = await context.params;
 
     // Remove item from cart
     const cart = await cartService.removeCartItem(session.user.id, itemId);

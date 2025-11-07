@@ -1,99 +1,162 @@
 'use client';
 
+import { Loader2, LogIn } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components';
 
-export default function HomePage() {
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error('Invalid credentials', {
+          description: 'Please check your email and password and try again.',
+        });
+        setIsLoading(false);
+      } else {
+        toast.success('Login successful!', {
+          description: 'Redirecting to catalog...',
+        });
+        setTimeout(() => {
+          router.push('/catalog');
+        }, 800);
+      }
+    } catch {
+      toast.error('An error occurred', {
+        description: 'Please try again later.',
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const fillDemoCredentials = () => {
+    setEmail('demo@procureflow.com');
+    setPassword('demo123');
+  };
+
   return (
-    <div className='max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8'>
-      <div className='text-center'>
-        <h1 className='text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl'>
-          ProcureFlow
-        </h1>
-        <p className='mt-6 text-lg leading-8 text-gray-600'>
-          AI-Native Procurement Platform - Bootstrap Codebase
-        </p>
-        <p className='mt-4 text-sm text-gray-500'>
-          Full-stack starter with Next.js, TypeScript, Tailwind CSS, Auth.js,
-          MongoDB, and LangChain
-        </p>
-      </div>
-
-      <div className='mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
-        <div className='bg-white p-6 rounded-lg shadow-sm border'>
-          <h3 className='text-lg font-semibold text-gray-900 mb-3'>
-            🚀 Tech Stack
-          </h3>
-          <ul className='text-sm text-gray-600 space-y-1'>
-            <li>• Next.js 15 with App Router</li>
-            <li>• TypeScript & Tailwind CSS</li>
-            <li>• Auth.js Authentication</li>
-            <li>• MongoDB with Mongoose</li>
-            <li>• LangChain + OpenAI</li>
-            <li>• Docker & Pulumi (GCP)</li>
-          </ul>
+    <div className='min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4'>
+      <div className='w-full max-w-md'>
+        {/* Logo and Title */}
+        <div className='text-center mb-8'>
+          <div className='inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4'>
+            <span className='text-white font-bold text-2xl'>PF</span>
+          </div>
+          <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>
+            ProcureFlow
+          </h1>
+          <p className='mt-2 text-gray-600 dark:text-gray-400'>
+            AI-Native Procurement Platform
+          </p>
         </div>
 
-        <div className='bg-white p-6 rounded-lg shadow-sm border'>
-          <h3 className='text-lg font-semibold text-gray-900 mb-3'>
-            📚 Documentation
-          </h3>
-          <div className='space-y-2'>
-            <a
-              href='/README.md'
-              className='block text-sm text-blue-600 hover:text-blue-800'
+        {/* Login Card */}
+        <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8'>
+          <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
+            Sign in to your account
+          </h2>
+
+          <form onSubmit={handleLogin} className='space-y-5'>
+            {/* Email Field */}
+            <div>
+              <label
+                htmlFor='email'
+                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+              >
+                Email
+              </label>
+              <input
+                id='email'
+                type='email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className='w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors'
+                placeholder='your@email.com'
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label
+                htmlFor='password'
+                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+              >
+                Password
+              </label>
+              <input
+                id='password'
+                type='password'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className='w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors'
+                placeholder='••••••••'
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              type='submit'
+              variant='primary'
+              className='w-full flex items-center justify-center gap-2'
+              disabled={isLoading}
             >
-              → README.md
-            </a>
-            <a
-              href='/CONTRIBUTING.md'
-              className='block text-sm text-blue-600 hover:text-blue-800'
+              {isLoading ? (
+                <>
+                  <Loader2 className='h-5 w-5 animate-spin' />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <LogIn className='h-5 w-5' />
+                  Sign In
+                </>
+              )}
+            </Button>
+          </form>
+
+          {/* Demo Credentials */}
+          <div className='mt-6 pt-6 border-t border-gray-200 dark:border-gray-700'>
+            <p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>
+              Demo credentials:
+            </p>
+            <button
+              type='button'
+              onClick={fillDemoCredentials}
+              className='w-full px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors'
+              disabled={isLoading}
             >
-              → CONTRIBUTING.md
-            </a>
-            <a
-              href='/api/health'
-              className='block text-sm text-blue-600 hover:text-blue-800'
-            >
-              → Health Check API
-            </a>
+              Fill demo credentials
+            </button>
+            <p className='text-xs text-gray-500 dark:text-gray-500 mt-2 text-center'>
+              demo@procureflow.com / demo123
+            </p>
           </div>
         </div>
 
-        <div className='bg-white p-6 rounded-lg shadow-sm border'>
-          <h3 className='text-lg font-semibold text-gray-900 mb-3'>
-            🛠️ Quick Start
-          </h3>
-          <div className='text-sm text-gray-600 space-y-1'>
-            <p>1. Copy .env.example to .env</p>
-            <p>
-              2. Install deps:{' '}
-              <code className='bg-gray-100 px-1 rounded'>pnpm install</code>
-            </p>
-            <p>
-              3. Run dev:{' '}
-              <code className='bg-gray-100 px-1 rounded'>pnpm dev</code>
-            </p>
-            <p>
-              4. Or Docker:{' '}
-              <code className='bg-gray-100 px-1 rounded'>pnpm docker:up</code>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className='mt-16 text-center'>
-        <Button
-          variant='primary'
-          size='lg'
-          onClick={() =>
-            alert('ProcureFlow está funcionando com alias @ configurado!')
-          }
-          className='mb-4'
-        >
-          Testar Configuração
-        </Button>
-        <p className='text-sm text-gray-500'>
-          Ready for AI-native procurement feature implementation 🎯
+        {/* Footer */}
+        <p className='mt-8 text-center text-sm text-gray-500 dark:text-gray-400'>
+          Secure authentication powered by NextAuth.js
         </p>
       </div>
     </div>
