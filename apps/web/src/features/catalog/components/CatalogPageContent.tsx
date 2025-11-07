@@ -2,7 +2,7 @@
 
 import { Eye, Loader2, Plus, Search, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -15,6 +15,7 @@ import {
   CardTitle,
   Input,
   Label,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -45,6 +46,7 @@ export function CatalogPageContent() {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [newItem, setNewItem] = useState({
     name: '',
     category: '',
@@ -52,6 +54,14 @@ export function CatalogPageContent() {
     price: '',
   });
   const { addItem } = useCart();
+
+  // Simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Filter items based on search query
   const filteredItems = mockItems.filter((item) => {
@@ -248,7 +258,31 @@ export function CatalogPageContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredItems.length === 0 ? (
+              {isLoading ? (
+                // Loading skeleton
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className='h-5 w-32' />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className='h-5 w-20' />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className='h-5 w-64' />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className='h-5 w-16' />
+                    </TableCell>
+                    <TableCell>
+                      <div className='flex items-center gap-2'>
+                        <Skeleton className='h-8 w-20' />
+                        <Skeleton className='h-8 w-16' />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={5}
