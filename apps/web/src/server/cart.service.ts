@@ -1,0 +1,342 @@
+/**
+ * Cart Service
+ *
+ * Business logic for cart operations:
+ * - Get or create cart for user
+ * - Add items to cart
+ * - Update item quantities
+ * - Remove items from cart
+ *
+ * Enforces business rules from PRD (BR-2.x).
+ */
+
+import type { Cart } from '@/domain/entities';
+import { CartModel, ItemModel, MAX_CART_ITEMS, MAX_ITEM_QUANTITY, MIN_ITEM_QUANTITY } from '@/lib/db/models';
+import connectDB from '@/lib/db/mongoose';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface AddItemToCartInput {
+  /** Item ID from catalog */
+  itemId: string;
+
+  /** Quantity to add (default: 1) */
+  quantity?: number;
+}
+
+// ============================================================================
+// Error Classes
+// ============================================================================
+
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+export class ItemNotFoundError extends Error {
+  constructor(itemId: string) {
+    super(`Item not found: ${itemId}`);
+    this.name = 'ItemNotFoundError';
+  }
+}
+
+export class CartLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CartLimitError';
+  }
+}
+
+// ============================================================================
+// Service Functions
+// ============================================================================
+
+/**
+ * Get cart for user (or create if doesn't exist)
+ *
+ * Business Rules:
+ * - BR-2.3: Cart associated with authenticated user
+ *
+ * @param userId - User ID
+ * @returns User's cart
+ */
+export async function getCartForUser(userId: string): Promise<Cart> {
+  await connectDB();
+
+  try {
+    // Try to find existing cart
+    let cart: any = await (CartModel as any)
+      .findOne({ userId })
+      .lean()
+      .exec();
+
+    if (!cart) {
+      // Create new cart if doesn't exist
+      const newCart = new (CartModel as any)({
+        userId,
+        items: [],
+      });
+      cart = await newCart.save();
+    }
+
+    return mapCartToDto(cart);
+  } catch (error) {
+    console.error('Error fetching cart:', error);
+    throw new Error('Failed to fetch cart');
+  }
+}
+
+/**
+ * Add item to cart
+ *
+ * Business Rules:
+ * - BR-2.2: Quantity per item: min 1, max 999
+ * - BR-2.3: Cart associated with authenticated user
+ * - Max 50 items per cart
+ *
+ * @param userId - User ID
+ * @param input - Item and quantity
+ * @returns Updated cart
+ */
+export async function addItemToCart(
+  userId: string,
+  input: AddItemToCartInput
+): Promise<Cart> {
+  await connectDB();
+
+  const quantity = input.quantity ?? 1;
+
+  // Validate quantity (BR-2.2)
+  if (quantity < MIN_ITEM_QUANTITY || quantity > MAX_ITEM_QUANTITY) {
+    throw new ValidationError(
+      `Quantity must be between ${MIN_ITEM_QUANTITY} and ${MAX_ITEM_QUANTITY}`
+    );
+  }
+
+  try {
+    // Verify item exists
+    const item: any = await (ItemModel as any)
+      .findById(input.itemId)
+      .lean()
+      .exec();
+
+    if (!item) {
+      throw new ItemNotFoundError(input.itemId);
+    }
+
+    // Find or create cart
+    let cart: any = await (CartModel as any).findOne({ userId }).exec();
+
+    if (!cart) {
+      cart = new (CartModel as any)({
+        userId,
+        items: [],
+      });
+    }
+
+    // Check if item already in cart
+    const existingItemIndex = cart.items.findIndex(
+      (cartItem: any) => cartItem.itemId?.toString() === input.itemId
+    );
+
+    if (existingItemIndex >= 0) {
+      // Update quantity of existing item
+      const newQuantity = cart.items[existingItemIndex].quantity + quantity;
+
+      if (newQuantity > MAX_ITEM_QUANTITY) {
+        throw new ValidationError(
+          `Total quantity for this item would exceed maximum of ${MAX_ITEM_QUANTITY}`
+        );
+      }
+
+      cart.items[existingItemIndex].quantity = newQuantity;
+    } else {
+      // Add as new item
+      if (cart.items.length >= MAX_CART_ITEMS) {
+        throw new CartLimitError(
+          `Cart cannot contain more than ${MAX_CART_ITEMS} different items`
+        );
+      }
+
+      cart.items.push({
+        itemId: input.itemId,
+        name: item.name,
+        unitPrice: item.estimatedPrice,
+        quantity,
+        addedAt: new Date(),
+      });
+    }
+
+    const updatedCart = await cart.save();
+    return mapCartToDto(updatedCart);
+  } catch (error) {
+    if (
+      error instanceof ItemNotFoundError ||
+      error instanceof ValidationError ||
+      error instanceof CartLimitError
+    ) {
+      throw error;
+    }
+    console.error('Error adding item to cart:', error);
+    throw new Error('Failed to add item to cart');
+  }
+}
+
+/**
+ * Update cart item quantity
+ *
+ * Business Rules:
+ * - BR-2.2: Quantity per item: min 1, max 999
+ *
+ * @param userId - User ID
+ * @param itemId - Item ID in cart
+ * @param quantity - New quantity
+ * @returns Updated cart
+ */
+export async function updateCartItemQuantity(
+  userId: string,
+  itemId: string,
+  quantity: number
+): Promise<Cart> {
+  await connectDB();
+
+  // Validate quantity (BR-2.2)
+  if (quantity < MIN_ITEM_QUANTITY || quantity > MAX_ITEM_QUANTITY) {
+    throw new ValidationError(
+      `Quantity must be between ${MIN_ITEM_QUANTITY} and ${MAX_ITEM_QUANTITY}`
+    );
+  }
+
+  try {
+    const cart: any = await (CartModel as any).findOne({ userId }).exec();
+
+    if (!cart) {
+      throw new ValidationError('Cart not found');
+    }
+
+    const itemIndex = cart.items.findIndex(
+      (cartItem: any) => cartItem.itemId?.toString() === itemId
+    );
+
+    if (itemIndex === -1) {
+      throw new ValidationError('Item not found in cart');
+    }
+
+    cart.items[itemIndex].quantity = quantity;
+    const updatedCart = await cart.save();
+
+    return mapCartToDto(updatedCart);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw error;
+    }
+    console.error('Error updating cart item quantity:', error);
+    throw new Error('Failed to update cart item quantity');
+  }
+}
+
+/**
+ * Remove item from cart
+ *
+ * @param userId - User ID
+ * @param itemId - Item ID to remove
+ * @returns Updated cart
+ */
+export async function removeCartItem(
+  userId: string,
+  itemId: string
+): Promise<Cart> {
+  await connectDB();
+
+  try {
+    const cart: any = await (CartModel as any).findOne({ userId }).exec();
+
+    if (!cart) {
+      throw new ValidationError('Cart not found');
+    }
+
+    const initialLength = cart.items.length;
+    cart.items = cart.items.filter(
+      (cartItem: any) => cartItem.itemId?.toString() !== itemId
+    );
+
+    if (cart.items.length === initialLength) {
+      throw new ValidationError('Item not found in cart');
+    }
+
+    const updatedCart = await cart.save();
+    return mapCartToDto(updatedCart);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw error;
+    }
+    console.error('Error removing cart item:', error);
+    throw new Error('Failed to remove cart item');
+  }
+}
+
+/**
+ * Clear all items from cart
+ *
+ * Used after successful checkout (BR-2.7)
+ *
+ * @param userId - User ID
+ * @returns Empty cart
+ */
+export async function clearCart(userId: string): Promise<Cart> {
+  await connectDB();
+
+  try {
+    const cart: any = await (CartModel as any).findOne({ userId }).exec();
+
+    if (!cart) {
+      // Create empty cart if doesn't exist
+      const newCart = new (CartModel as any)({
+        userId,
+        items: [],
+      });
+      const savedCart = await newCart.save();
+      return mapCartToDto(savedCart);
+    }
+
+    cart.items = [];
+    const updatedCart = await cart.save();
+    return mapCartToDto(updatedCart);
+  } catch (error) {
+    console.error('Error clearing cart:', error);
+    throw new Error('Failed to clear cart');
+  }
+}
+
+// ============================================================================
+// Mapping Helpers
+// ============================================================================
+
+function mapCartToDto(cart: any): Cart {
+  const items = cart.items.map((item: any) => ({
+    itemId: item.itemId?.toString() || '',
+    itemName: item.name,
+    itemPrice: item.unitPrice,
+    quantity: item.quantity,
+    subtotal: item.unitPrice * item.quantity,
+    addedAt: item.addedAt,
+  }));
+
+  const totalCost = items.reduce(
+    (sum: number, item: any) => sum + item.subtotal,
+    0
+  );
+
+  return {
+    id: cart._id.toString(),
+    userId: cart.userId.toString(),
+    items,
+    totalCost,
+    createdAt: cart.createdAt,
+    updatedAt: cart.updatedAt,
+  };
+}

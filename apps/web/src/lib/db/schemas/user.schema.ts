@@ -1,0 +1,203 @@
+/**
+ * User Schema for MongoDB/Mongoose
+ *
+ * Represents authenticated users who can create carts, submit purchase requests,
+ * and interact with the AI agent.
+ *
+ * Scope: [MVP]
+ * - Minimal user model to support Auth.js (Credentials provider)
+ * - Links to carts, purchase requests, and conversations
+ *
+ * Future enhancements:
+ * - OAuth providers (Google, SSO)
+ * - Rich role-based access control
+ */
+
+import { Schema } from 'mongoose';
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+export const USER_COLLECTION_NAME = 'users';
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+/**
+ * User roles
+ * [MVP]: requester - default role for employees creating purchase requests
+ * [Future]: buyer - procurement specialist role
+ * [Future]: admin - system administrator role
+ */
+export enum UserRole {
+  Requester = 'requester',
+  Buyer = 'buyer', // [Future]
+  Admin = 'admin', // [Future]
+}
+
+// ============================================================================
+// Schema Definition
+// ============================================================================
+
+/**
+ * User Schema
+ *
+ * Validations:
+ * - email: required, unique, valid format, lowercase, trimmed
+ * - name: required, trimmed
+ * - passwordHash: required (for Credentials auth)
+ * - role: enum validation, defaults to 'requester'
+ *
+ * Indexes:
+ * - email (unique)
+ */
+export const UserSchema = new Schema(
+  {
+    /**
+     * Email address (used for login)
+     * - Required
+     * - Unique index
+     * - Lowercase and trimmed
+     * - Simple email format validation
+     */
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      maxlength: [255, 'Email must not exceed 255 characters'],
+      validate: {
+        validator: function (value: string): boolean {
+          // Simple email regex validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return emailRegex.test(value);
+        },
+        message: 'Invalid email format',
+      },
+    },
+
+    /**
+     * User's display name
+     * - Required
+     * - Trimmed
+     */
+    name: {
+      type: String,
+      required: [true, 'Name is required'],
+      trim: true,
+      minlength: [1, 'Name must be at least 1 character'],
+      maxlength: [200, 'Name must not exceed 200 characters'],
+    },
+
+    /**
+     * Hashed password (only for Credentials provider)
+     * - Required for Credentials auth
+     * - Should never be exposed in API responses
+     */
+    passwordHash: {
+      type: String,
+      required: [true, 'Password hash is required'],
+      select: false, // Don't include in queries by default
+    },
+
+    /**
+     * OAuth provider (e.g., 'google')
+     * [Future]: For OAuth-based authentication
+     */
+    provider: {
+      type: String,
+      trim: true,
+      maxlength: [50, 'Provider name must not exceed 50 characters'],
+      // Not required in MVP - reserved for future OAuth integration
+    },
+
+    /**
+     * OAuth provider user ID
+     * [Future]: For OAuth-based authentication
+     */
+    providerId: {
+      type: String,
+      trim: true,
+      maxlength: [255, 'Provider ID must not exceed 255 characters'],
+      // Not required in MVP - reserved for future OAuth integration
+    },
+
+    /**
+     * User role
+     * [MVP]: Defaults to 'requester'
+     * [Future]: buyer, admin roles for RBAC
+     */
+    role: {
+      type: String,
+      enum: {
+        values: Object.values(UserRole),
+        message: 'Invalid user role: {VALUE}',
+      },
+      default: UserRole.Requester,
+      required: true,
+    },
+  },
+  {
+    // Automatic timestamps: createdAt, updatedAt
+    timestamps: true,
+
+    // Enable validation before save
+    validateBeforeSave: true,
+
+    // Collection name
+    collection: USER_COLLECTION_NAME,
+
+    // Optimize JSON output
+    toJSON: {
+      transform: function (_doc, ret) {
+        // Remove sensitive fields from JSON output
+        delete ret.passwordHash;
+        delete ret.__v;
+        return ret;
+      },
+    },
+
+    toObject: {
+      transform: function (_doc, ret) {
+        // Remove sensitive fields from plain object output
+        delete ret.passwordHash;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
+);
+
+// ============================================================================
+// Indexes
+// ============================================================================
+
+// Unique index on email (already defined in schema, but explicit for clarity)
+UserSchema.index({ email: 1 }, { unique: true });
+
+// Index on role for future RBAC queries
+UserSchema.index({ role: 1 });
+
+// ============================================================================
+// Pre-save Hooks
+// ============================================================================
+
+/**
+ * Pre-save hook to ensure email is lowercase
+ * (belt-and-suspenders approach, already handled by schema)
+ */
+UserSchema.pre('save', function (next) {
+  if (this.isModified('email')) {
+    this.email = this.email.toLowerCase();
+  }
+  next();
+});
+
+// ============================================================================
+// Export
+// ============================================================================
+
+export default UserSchema;

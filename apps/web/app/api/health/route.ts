@@ -1,42 +1,31 @@
 import { NextResponse } from 'next/server';
 
 import { APP_CONFIG } from '@/lib/constants';
+import { isDBHealthy } from '@/lib/db/mongoose';
 
 export async function GET() {
-  // Basic health check endpoint
-  // Future: Add database connectivity check, external service checks, etc.
+  // Check database connectivity
+  const dbHealthy = await isDBHealthy();
 
   const healthData = {
-    status: 'ok',
+    status: dbHealthy ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
     service: APP_CONFIG.name.toLowerCase().replace(' ', '-') + '-api',
     version: APP_CONFIG.version,
     environment: process.env.NODE_ENV || 'development',
     checks: {
       api: 'healthy',
-      // Future: database: 'healthy' | 'unhealthy',
-      // Future: ai_service: 'healthy' | 'unhealthy',
+      db: dbHealthy ? 'ok' : 'unhealthy',
     },
+    uptime: process.uptime(),
   };
 
   return NextResponse.json(healthData, {
-    status: 200,
+    status: dbHealthy ? 200 : 503,
     headers: {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       Pragma: 'no-cache',
       Expires: '0',
     },
   });
-}
-
-// Optional: Add POST method for more detailed health checks
-export async function POST() {
-  // Future: Implement detailed health checks with database connections
-  return NextResponse.json(
-    {
-      message: 'Detailed health checks not yet implemented',
-      status: 'partial',
-    },
-    { status: 501 }
-  );
 }
