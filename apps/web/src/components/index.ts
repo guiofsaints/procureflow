@@ -12,6 +12,11 @@ export {
   CardDescription,
   CardContent,
 } from './ui/card';
+export {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from './ui/collapsible';
 export { Separator } from './ui/separator';
 export {
   Sidebar,
@@ -73,10 +78,23 @@ export {
   useFormField,
 } from './ui/form';
 export { Skeleton } from './ui/skeleton';
+export {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from './ui/sheet';
 
 // Layout components
 export { AppShell } from './layout/AppShell';
+export { Header } from './layout/Header';
+export { Main } from './layout/Main';
 export { AppSidebar } from './layout/Sidebar';
+export { SkipToMain } from './layout/SkipToMain';
 export { ThemeToggle } from './layout/ThemeToggle';
 export { UserMenu } from './layout/UserMenu';
 

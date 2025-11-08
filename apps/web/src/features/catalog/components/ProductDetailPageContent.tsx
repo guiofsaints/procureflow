@@ -10,7 +10,7 @@ import {
   Tag,
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -43,6 +43,14 @@ export function ProductDetailPageContent() {
 
   const itemId = params?.itemId as string;
   const item = mockItems.find((i) => i.id === itemId);
+
+  // Update document title with item name for breadcrumb
+  useEffect(() => {
+    if (item) {
+      // Store item name in session storage for breadcrumb
+      sessionStorage.setItem(`item-${itemId}`, item.name);
+    }
+  }, [item, itemId]);
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
