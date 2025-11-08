@@ -1,157 +1,84 @@
+/**
+ * AgentChatPageContent Component
+ *
+ * Main chat page component that manages chat state and orchestrates
+ * message display and input handling.
+ */
+
 'use client';
 
-import { MessageSquare, Send } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
-import { Button, Card, CardContent, CardFooter, Textarea } from '@/components';
-import type { AgentMessage } from '@/domain/entities';
-import { AgentMessageRole } from '@/domain/entities';
+import { generateMockAgentResponse } from '../mocks/mockAgent';
+import type { AgentMessage } from '../types';
 
-import { mockMessages } from '../mock';
+import { AgentChatInput } from './AgentChatInput';
+import { AgentChatMessages } from './AgentChatMessages';
+import { AgentWelcome } from './AgentWelcome';
 
-import { MessageBubble } from './MessageBubble';
+interface AgentChatPageContentProps {
+  userName?: string;
+}
 
-/**
- * AgentChatPageContent - Client component for AI agent chat UI
- * Features:
- * - Display conversation history
- * - Send messages
- * - Mock agent responses
- * - Auto-scroll to latest message
- */
-export function AgentChatPageContent() {
-  const [messages, setMessages] = useState<AgentMessage[]>(mockMessages);
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+export function AgentChatPageContent({
+  userName = 'there',
+}: AgentChatPageContentProps) {
+  const [messages, setMessages] = useState<AgentMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!inputValue.trim()) {
-      return;
+  const handleSendMessage = async (content: string) => {
+    // Mark chat as started
+    if (!hasStarted) {
+      setHasStarted(true);
     }
 
+    // Create user message
     const userMessage: AgentMessage = {
-      role: AgentMessageRole.User,
-      content: inputValue.trim(),
-      timestamp: new Date(),
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content,
     };
 
+    // Add user message to chat
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
-    setIsTyping(true);
+    setIsLoading(true);
 
-    // Mock agent response after a delay
-    setTimeout(() => {
-      const agentResponse: AgentMessage = {
-        role: AgentMessageRole.Assistant,
-        content: `I understand you said: "${userMessage.content}". This is a mock response. In a production environment, this would be powered by AI to help with procurement tasks like searching the catalog, adding items to cart, or providing recommendations.`,
-        timestamp: new Date(),
-      };
+    try {
+      // Generate mock agent response
+      const agentResponse = await generateMockAgentResponse(content);
 
+      // Add agent response to chat
       setMessages((prev) => [...prev, agentResponse]);
-      setIsTyping(false);
-    }, 1500);
-  };
+    } catch (error) {
+      console.error('Error generating agent response:', error);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage(e as unknown as React.FormEvent);
+      // Add error message
+      const errorMessage: AgentMessage = {
+        id: `error-${Date.now()}`,
+        role: 'assistant',
+        content:
+          'I apologize, but I encountered an error processing your request. Please try again.',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className='h-[calc(100vh-8rem)] flex flex-col'>
-      {/* Header */}
-      <div className='mb-4'>
-        <h1 className='text-3xl font-bold text-foreground flex items-center gap-3'>
-          <MessageSquare className='h-8 w-8' />
-          AI Procurement Assistant
-        </h1>
-        <p className='mt-2 text-muted-foreground'>
-          Ask questions, search the catalog, or get help with your procurement
-          needs
-        </p>
+    <div className='flex h-full flex-col'>
+      {/* Messages area or Welcome screen - with bottom padding for fixed input */}
+      <div className='flex-1 overflow-hidden pb-20'>
+        {hasStarted ? (
+          <AgentChatMessages messages={messages} />
+        ) : (
+          <AgentWelcome onPromptClick={handleSendMessage} userName={userName} />
+        )}
       </div>
 
-      {/* Chat Container */}
-      <Card className='flex-1 flex flex-col overflow-hidden'>
-        {/* Messages Area */}
-        <CardContent className='flex-1 overflow-y-auto p-6 space-y-4'>
-          {messages.map((msg, index) => (
-            <MessageBubble
-              key={index}
-              message={msg.content}
-              role={msg.role}
-              timestamp={msg.timestamp}
-            />
-          ))}
-
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className='flex gap-3 mb-4'>
-              <div className='shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center'>
-                <MessageSquare className='h-5 w-5 text-muted-foreground' />
-              </div>
-              <div className='flex-1 max-w-2xl'>
-                <div className='bg-card border border-border rounded-lg px-4 py-2'>
-                  <div className='flex gap-1'>
-                    <span
-                      className='w-2 h-2 bg-muted-foreground rounded-full animate-bounce'
-                      style={{ animationDelay: '0ms' }}
-                    />
-                    <span
-                      className='w-2 h-2 bg-muted-foreground rounded-full animate-bounce'
-                      style={{ animationDelay: '150ms' }}
-                    />
-                    <span
-                      className='w-2 h-2 bg-muted-foreground rounded-full animate-bounce'
-                      style={{ animationDelay: '300ms' }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </CardContent>
-
-        {/* Input Area */}
-        <CardFooter className='border-t flex-col gap-2 items-stretch'>
-          <form onSubmit={handleSendMessage} className='flex gap-2'>
-            <Textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder='Type your message... (Press Enter to send, Shift+Enter for new line)'
-              rows={1}
-              className='resize-none max-h-32'
-              disabled={isTyping}
-            />
-            <Button
-              type='submit'
-              disabled={!inputValue.trim() || isTyping}
-              className='flex items-center gap-2 px-4'
-            >
-              <Send className='h-4 w-4' />
-              Send
-            </Button>
-          </form>
-          <p className='text-xs text-muted-foreground'>
-            Mock AI responses • No real AI integration yet
-          </p>
-        </CardFooter>
-      </Card>
+      {/* Input area - now fixed at bottom */}
+      <AgentChatInput onSend={handleSendMessage} isLoading={isLoading} />
     </div>
   );
 }
