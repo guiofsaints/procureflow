@@ -13,11 +13,11 @@
     "clean": "rm -rf node_modules dist"
   },
   "dependencies": {
-    "@pulumi/gcp": "^8.11.1",
+    "@pulumi/gcp": "9.4.0",
     "@pulumi/pulumi": "^3.206.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
+    "@types/node": "^24.10.0",
     "typescript": "^5.9.3"
   },
   "engines": {
