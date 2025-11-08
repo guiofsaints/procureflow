@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 interface UserMenuProps {
@@ -25,11 +26,13 @@ interface UserMenuProps {
  * Migrated to shadcn Avatar and DropdownMenu components
  */
 export function UserMenu({ collapsed }: UserMenuProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
-  // User data from session (fallback to defaults if session not loaded)
+  const isLoading = status === 'loading';
+
+  // User data from session (fallback to skeleton if loading)
   const user = {
-    name: session?.user?.name || 'Loading...',
+    name: session?.user?.name || '',
     email: session?.user?.email || '',
     initials:
       session?.user?.name
@@ -86,10 +89,19 @@ export function UserMenu({ collapsed }: UserMenuProps) {
             <>
               {/* User info */}
               <div className='flex-1 text-left min-w-0 hidden sm:block'>
-                <p className='text-sm font-medium truncate'>{user.name}</p>
-                <p className='text-xs text-muted-foreground truncate'>
-                  {user.email}
-                </p>
+                {isLoading ? (
+                  <>
+                    <Skeleton className='h-4 w-24 mb-1' />
+                    <Skeleton className='h-3 w-32' />
+                  </>
+                ) : (
+                  <>
+                    <p className='text-sm font-medium truncate'>{user.name}</p>
+                    <p className='text-xs text-muted-foreground truncate'>
+                      {user.email}
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Dropdown icon */}
@@ -106,10 +118,19 @@ export function UserMenu({ collapsed }: UserMenuProps) {
       >
         <DropdownMenuLabel className='font-normal'>
           <div className='flex flex-col space-y-1'>
-            <p className='text-sm font-medium leading-none'>{user.name}</p>
-            <p className='text-xs leading-none text-muted-foreground'>
-              {user.email}
-            </p>
+            {isLoading ? (
+              <>
+                <Skeleton className='h-4 w-28' />
+                <Skeleton className='h-3 w-36 mt-1' />
+              </>
+            ) : (
+              <>
+                <p className='text-sm font-medium leading-none'>{user.name}</p>
+                <p className='text-xs leading-none text-muted-foreground'>
+                  {user.email}
+                </p>
+              </>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
