@@ -178,10 +178,8 @@ export function CartPageContent() {
         duration: 5000,
       });
 
-      // Reload cart (should be empty now)
-      await loadCart();
-
-      // Redirect to purchase request detail page
+      // Redirect immediately to purchase request detail page
+      // Note: Cart will be cleared on server, no need to reload before redirect
       router.push(`/purchase-requests/${purchaseRequest.id}`);
     } catch (error) {
       console.error('Error during checkout:', error);
