@@ -1,7 +1,7 @@
 'use client';
 
 import { Loader2, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -16,32 +16,70 @@ import { useCart } from '@/contexts/CartContext';
 import type { CartItem } from '@/domain/entities';
 import { cn } from '@/lib/utils';
 
-import { mockCartItems } from '../mock';
-
 /**
  * CartPageContent - Client component for cart UI
  * Features:
+ * - Load cart from API on mount
  * - Display cart items with quantity controls
- * - Increment/decrement quantity
- * - Remove items
+ * - Update quantities via API
+ * - Remove items via API
  * - Calculate total
- * - Checkout button (mock)
+ * - Checkout via API (creates purchase request)
  */
 export function CartPageContent() {
-  const [cartItems, setCartItems] = useState<CartItem[]>(mockCartItems);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { setItemCount } = useCart();
 
-  // Sync cart counter with actual cart items
-  useEffect(() => {
-    setItemCount(cartItems.length);
-  }, [cartItems, setItemCount]);
+  // Load cart from API
+  const loadCart = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/cart');
 
-  const handleQuantityChange = (itemId: string, delta: number) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch cart: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const items = data.cart?.items || [];
+      setCartItems(items);
+      setItemCount(items.length);
+    } catch (error) {
+      console.error('Error loading cart:', error);
+      toast.error('Failed to load cart', {
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Please try refreshing the page',
+      });
+      setCartItems([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setItemCount]);
+
+  // Load cart on mount
+  useEffect(() => {
+    loadCart();
+  }, [loadCart]);
+
+  const handleQuantityChange = async (itemId: string, delta: number) => {
+    const currentItem = cartItems.find((item) => item.itemId === itemId);
+    if (!currentItem) {
+      return;
+    }
+
+    const newQuantity = Math.max(
+      1,
+      Math.min(999, currentItem.quantity + delta)
+    );
+
+    // Optimistic update
     setCartItems((items) =>
       items.map((item) => {
         if (item.itemId === itemId) {
-          const newQuantity = Math.max(1, Math.min(999, item.quantity + delta));
           return {
             ...item,
             quantity: newQuantity,
@@ -51,45 +89,133 @@ export function CartPageContent() {
         return item;
       })
     );
+
+    try {
+      const response = await fetch(`/api/cart/items/${itemId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update quantity: ${response.statusText}`);
+      }
+
+      // Reload cart to ensure consistency
+      await loadCart();
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      toast.error('Failed to update quantity', {
+        description: 'Your cart has been refreshed with the latest data.',
+      });
+      // Reload cart on error to revert optimistic update
+      await loadCart();
+    }
   };
 
-  const handleRemoveItem = (itemId: string) => {
+  const handleRemoveItem = async (itemId: string) => {
     const removedItem = cartItems.find((item) => item.itemId === itemId);
-    setCartItems((items) => items.filter((item) => item.itemId !== itemId));
 
-    if (removedItem) {
-      toast.info('Item removed', {
-        description: `${removedItem.itemName} has been removed from your cart.`,
+    // Optimistic update
+    setCartItems((items) => items.filter((item) => item.itemId !== itemId));
+    setItemCount(cartItems.length - 1);
+
+    try {
+      const response = await fetch(`/api/cart/items/${itemId}`, {
+        method: 'DELETE',
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to remove item: ${response.statusText}`);
+      }
+
+      if (removedItem) {
+        toast.info('Item removed', {
+          description: `${removedItem.itemName} has been removed from your cart.`,
+        });
+      }
+
+      // Reload cart to ensure consistency
+      await loadCart();
+    } catch (error) {
+      console.error('Error removing item:', error);
+      toast.error('Failed to remove item', {
+        description: 'Your cart has been refreshed.',
+      });
+      // Reload cart on error to revert optimistic update
+      await loadCart();
     }
   };
 
   const handleCheckout = async () => {
-    // Mock: Simulate checkout process
     setIsCheckingOut(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    setIsCheckingOut(false);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || `Checkout failed: ${response.statusText}`
+        );
+      }
 
-    // Show success toast
-    toast.success('Checkout successful!', {
-      description: `Your order of ${cartItems.length} ${cartItems.length === 1 ? 'item' : 'items'} has been submitted.`,
-    });
+      const data = await response.json();
+      const purchaseRequest = data.purchaseRequest;
 
-    // Clear cart
-    setCartItems([]);
+      // Show success toast with purchase request details
+      toast.success('Checkout successful!', {
+        description: `Purchase request ${purchaseRequest.requestNumber} created with ${cartItems.length} ${cartItems.length === 1 ? 'item' : 'items'}. Total: $${purchaseRequest.totalCost.toFixed(2)}`,
+        duration: 5000,
+      });
+
+      // Reload cart (should be empty now)
+      await loadCart();
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      toast.error('Checkout failed', {
+        description:
+          error instanceof Error ? error.message : 'Please try again later.',
+      });
+    } finally {
+      setIsCheckingOut(false);
+    }
   };
 
   const totalCost = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className='space-y-6'>
+        <div>
+          <h1 className='text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3'>
+            <span>Shopping Cart</span>
+          </h1>
+          <p className='mt-2 text-sm sm:text-base text-muted-foreground'>
+            Review your items and proceed to checkout
+          </p>
+        </div>
+        <Card className='p-12 text-center'>
+          <Loader2 className='h-16 w-16 mx-auto text-muted-foreground mb-4 animate-spin' />
+          <p className='text-muted-foreground'>Loading your cart...</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className='space-y-6'>
       {/* Header */}
       <div>
         <h1 className='text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3'>
-          <ShoppingCart className='h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0' />
           <span>Shopping Cart</span>
         </h1>
         <p className='mt-2 text-sm sm:text-base text-muted-foreground'>
@@ -245,7 +371,7 @@ export function CartPageContent() {
 
                 {/* Additional Info */}
                 <p className='text-xs text-muted-foreground text-center'>
-                  Checkout will create a purchase request (mock)
+                  Checkout will create a purchase request in the system
                 </p>
               </CardFooter>
             </Card>

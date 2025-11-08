@@ -1,4 +1,4 @@
-import { MessageSquare, Package, ShoppingCart } from 'lucide-react';
+import { FileText, MessageSquare, Package, ShoppingCart } from 'lucide-react';
 
 import type { SidebarData } from '../types';
 
@@ -22,6 +22,11 @@ export const sidebarData: SidebarData = {
           title: 'Agent',
           url: '/agent',
           icon: MessageSquare,
+        },
+        {
+          title: 'Purchase History',
+          url: '/purchase-requests',
+          icon: FileText,
         },
       ],
     },

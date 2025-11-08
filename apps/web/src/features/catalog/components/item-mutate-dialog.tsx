@@ -31,6 +31,7 @@ type ItemMutateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentRow?: Item;
+  onSuccess?: () => void;
 };
 
 const formSchema = z.object({
@@ -46,6 +47,7 @@ export function ItemMutateDialog({
   open,
   onOpenChange,
   currentRow,
+  onSuccess,
 }: ItemMutateDialogProps) {
   const isUpdate = !!currentRow;
 
@@ -80,18 +82,56 @@ export function ItemMutateDialog({
 
   const onSubmit = async (data: ItemForm) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (isUpdate) {
+        // TODO: Implement PUT /api/items/{id} when endpoint is ready
+        toast.error('Update not implemented', {
+          description: 'Item update endpoint is not yet available.',
+        });
+        return;
+      }
+
+      // Create new item
+      const response = await fetch('/api/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          category: data.category,
+          description: data.description,
+          estimatedPrice: parseFloat(data.price),
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          // Duplicate item detected
+          const errorData = await response.json();
+          toast.error('Duplicate item detected', {
+            description:
+              errorData.duplicates && errorData.duplicates.length > 0
+                ? `Similar item found: "${errorData.duplicates[0].name}"`
+                : 'A similar item already exists in the catalog.',
+          });
+          return;
+        }
+
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       onOpenChange(false);
       form.reset();
 
-      toast.success(isUpdate ? 'Item updated!' : 'Item created!', {
-        description: `${data.name} has been ${isUpdate ? 'updated' : 'created'} successfully.`,
+      toast.success('Item created!', {
+        description: `${data.name} has been added to the catalog.`,
       });
+
+      // Trigger catalog refresh
+      onSuccess?.();
     } catch (_error) {
       toast.error('Error', {
-        description: `Failed to ${isUpdate ? 'update' : 'create'} item.`,
+        description: 'Failed to create item. Please try again.',
       });
     }
   };

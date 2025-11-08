@@ -233,11 +233,11 @@ export const PurchaseRequestSchema = new Schema(
     /**
      * User who created this purchase request
      * - Optional but recommended
-     * - Reference to User collection
+     * - String type to match User._id (supports UUIDs and demo users)
      * - Can be null for anonymous/test requests
      */
     userId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: false, // Optional to support test scenarios
     },
@@ -419,7 +419,7 @@ PurchaseRequestSchema.statics.generateRequestNumber =
 /**
  * Find purchase requests by user ID
  */
-PurchaseRequestSchema.statics.findByUserId = function (userId: Types.ObjectId) {
+PurchaseRequestSchema.statics.findByUserId = function (userId: string) {
   return this.find({ userId }).sort({ createdAt: -1 });
 };
 

@@ -23,14 +23,13 @@ import {
 } from '@/components';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useCart } from '@/contexts/CartContext';
+import type { Item } from '@/domain/entities';
 import { ItemStatus } from '@/domain/entities';
-
-import { mockItems } from '../mock';
 
 /**
  * ProductDetailPageContent - Client component for product detail UI
  * Features:
- * - Display full product information
+ * - Display full product information (loaded from API)
  * - Add to cart with quantity selector
  * - Back to catalog navigation
  * - Responsive layout
@@ -42,9 +41,49 @@ export function ProductDetailPageContent() {
   const { setDynamicLabel, clearDynamicLabel } = useBreadcrumb();
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [item, setItem] = useState<Item | null>(null);
+  const [isLoadingItem, setIsLoadingItem] = useState(true);
 
   const itemId = params?.itemId as string;
-  const item = mockItems.find((i) => i.id === itemId);
+
+  // Load item from API
+  useEffect(() => {
+    async function loadItem() {
+      if (!itemId) {
+        return;
+      }
+
+      setIsLoadingItem(true);
+      try {
+        const response = await fetch(`/api/items/${itemId}`);
+
+        if (response.status === 404) {
+          setItem(null);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch item: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setItem(data);
+      } catch (error) {
+        console.error('Error loading item:', error);
+        toast.error('Failed to load item details', {
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Please try refreshing the page',
+        });
+        setItem(null);
+      } finally {
+        setIsLoadingItem(false);
+      }
+    }
+
+    loadItem();
+  }, [itemId]);
 
   // Set breadcrumb label with item name
   useEffect(() => {
@@ -57,27 +96,77 @@ export function ProductDetailPageContent() {
   }, [item, itemId, setDynamicLabel, clearDynamicLabel]);
 
   const handleAddToCart = async () => {
-    setIsAddingToCart(true);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    setIsAddingToCart(false);
-
-    // Increment cart counter for each quantity
-    for (let i = 0; i < quantity; i++) {
-      addItem();
+    if (!item) {
+      return;
     }
 
-    // Show success toast
-    toast.success('Added to cart!', {
-      description: `${quantity} ${quantity === 1 ? 'item' : 'items'} of ${item?.name} added to your cart.`,
-    });
+    setIsAddingToCart(true);
+
+    try {
+      // Call API to add item to cart
+      const response = await fetch('/api/cart/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: item.id,
+          quantity,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add item to cart');
+      }
+
+      // Increment cart counter for each quantity
+      for (let i = 0; i < quantity; i++) {
+        addItem();
+      }
+
+      // Show success toast
+      toast.success('Added to cart!', {
+        description: `${quantity} ${quantity === 1 ? 'item' : 'items'} of ${item?.name} added to your cart.`,
+      });
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+      toast.error('Failed to add item to cart', {
+        description:
+          error instanceof Error ? error.message : 'Please try again later.',
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => Math.max(1, Math.min(999, prev + delta)));
   };
+
+  // Show loading skeleton while fetching item
+  if (isLoadingItem) {
+    return (
+      <div className='flex-1 p-6 lg:p-8'>
+        <div className='max-w-4xl mx-auto'>
+          <div className='h-4 w-32 bg-muted rounded animate-pulse mb-6' />
+          <Card>
+            <CardHeader className='border-b'>
+              <div className='space-y-3'>
+                <div className='h-6 w-20 bg-muted rounded animate-pulse' />
+                <div className='h-8 w-3/4 bg-muted rounded animate-pulse' />
+              </div>
+            </CardHeader>
+            <CardContent className='space-y-6'>
+              <div className='space-y-2'>
+                <div className='h-5 w-24 bg-muted rounded animate-pulse' />
+                <div className='h-4 w-full bg-muted rounded animate-pulse' />
+                <div className='h-4 w-5/6 bg-muted rounded animate-pulse' />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (!item) {
     return (

@@ -157,6 +157,116 @@ export async function checkoutCart(
   }
 }
 
+/**
+ * Get all purchase requests for a user
+ *
+ * @param userId - User ID
+ * @param filters - Optional filters (status)
+ * @returns List of purchase requests
+ */
+export async function getPurchaseRequestsForUser(
+  userId: string,
+  filters?: { status?: PurchaseRequestStatus }
+): Promise<PurchaseRequest[]> {
+  await connectDB();
+
+  try {
+    // Build query
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: any = { userId };
+
+    if (filters?.status) {
+      query.status = filters.status;
+    }
+
+    // Fetch purchase requests
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const requests: any[] = await (PurchaseRequestModel as any)
+      .find(query)
+      .sort({ createdAt: -1 }) // Most recent first
+      .lean()
+      .exec();
+
+    // Map to DTOs
+    return requests.map((request) => ({
+      id: request._id.toString(),
+      userId: request.userId.toString(),
+      items: request.items.map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (item: any) => ({
+          itemId: item.itemId?.toString() || '',
+          itemName: item.name,
+          itemCategory: item.category,
+          itemDescription: item.description,
+          unitPrice: item.unitPrice,
+          quantity: item.quantity,
+          subtotal: item.subtotal,
+        })
+      ),
+      totalCost: request.total,
+      notes: request.notes || '',
+      status: request.status as PurchaseRequestStatus,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+    }));
+  } catch (error) {
+    console.error('Error fetching purchase requests:', error);
+    throw new Error('Failed to fetch purchase requests');
+  }
+}
+
+/**
+ * Get a single purchase request by ID
+ *
+ * @param userId - User ID (for authorization)
+ * @param requestId - Purchase request ID
+ * @returns Purchase request or null if not found
+ */
+export async function getPurchaseRequestById(
+  userId: string,
+  requestId: string
+): Promise<PurchaseRequest | null> {
+  await connectDB();
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const request: any = await (PurchaseRequestModel as any)
+      .findOne({ _id: requestId, userId })
+      .lean()
+      .exec();
+
+    if (!request) {
+      return null;
+    }
+
+    // Map to DTO
+    return {
+      id: request._id.toString(),
+      userId: request.userId.toString(),
+      items: request.items.map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (item: any) => ({
+          itemId: item.itemId?.toString() || '',
+          itemName: item.name,
+          itemCategory: item.category,
+          itemDescription: item.description,
+          unitPrice: item.unitPrice,
+          quantity: item.quantity,
+          subtotal: item.subtotal,
+        })
+      ),
+      totalCost: request.total,
+      notes: request.notes || '',
+      status: request.status as PurchaseRequestStatus,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+    };
+  } catch (error) {
+    console.error('Error fetching purchase request:', error);
+    throw new Error('Failed to fetch purchase request');
+  }
+}
+
 // ============================================================================
 // Helper Functions
 // ============================================================================

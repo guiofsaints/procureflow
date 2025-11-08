@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       quantity: body.quantity,
     });
 
-    return NextResponse.json(cart);
+    return NextResponse.json({ cart });
   } catch (error) {
     console.error('Error in POST /api/cart/items:', error);
 

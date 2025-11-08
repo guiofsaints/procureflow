@@ -36,7 +36,7 @@ export const authConfig: NextAuthOptions = {
           credentials.password === 'demo123'
         ) {
           return {
-            id: '1',
+            id: '507f1f77bcf86cd799439011', // Valid MongoDB ObjectId format
             email: 'demo@procureflow.com',
             name: 'Demo User',
             role: 'admin',

@@ -56,7 +56,27 @@ import UserSchema, {
  * NOTE: Using optional chaining (?.) to avoid Turbopack compatibility issues.
  * In Turbopack, mongoose.models may be undefined during module evaluation.
  * This pattern safely checks if the model exists before trying to access it.
+ *
+ * IMPORTANT: When schemas change (e.g., field types), we need to delete
+ * the cached model to force Mongoose to recreate it with the new schema.
+ * This is especially important when changing from ObjectId to String.
  */
+
+// Helper to safely get or create a model
+function getOrCreateModel(
+  collectionName: string,
+  schema: mongoose.Schema
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): mongoose.Model<any> {
+  // If model exists in Mongoose cache, delete it to force recreation
+  // This ensures schema changes (like ObjectId -> String) are applied
+  if (mongoose.models && mongoose.models[collectionName]) {
+    delete mongoose.models[collectionName];
+  }
+
+  // Always create a fresh model with the current schema
+  return mongoose.model(collectionName, schema);
+}
 
 /**
  * User Model
@@ -64,9 +84,7 @@ import UserSchema, {
  * Represents authenticated users in the system.
  * Used for: authentication, cart ownership, purchase request tracking.
  */
-export const UserModel =
-  (mongoose.models && mongoose.models[USER_COLLECTION_NAME]) ||
-  mongoose.model(USER_COLLECTION_NAME, UserSchema);
+export const UserModel = getOrCreateModel(USER_COLLECTION_NAME, UserSchema);
 
 /**
  * Item (CatalogItem) Model
@@ -74,9 +92,7 @@ export const UserModel =
  * Represents materials and services in the procurement catalog.
  * Used for: catalog search, item registration, cart/request line items.
  */
-export const ItemModel =
-  (mongoose.models && mongoose.models[ITEM_COLLECTION_NAME]) ||
-  mongoose.model(ITEM_COLLECTION_NAME, ItemSchema);
+export const ItemModel = getOrCreateModel(ITEM_COLLECTION_NAME, ItemSchema);
 
 /**
  * Cart Model
@@ -84,9 +100,7 @@ export const ItemModel =
  * Represents a user's shopping cart with line items.
  * Used for: cart management, checkout preparation.
  */
-export const CartModel =
-  (mongoose.models && mongoose.models[CART_COLLECTION_NAME]) ||
-  mongoose.model(CART_COLLECTION_NAME, CartSchema);
+export const CartModel = getOrCreateModel(CART_COLLECTION_NAME, CartSchema);
 
 /**
  * PurchaseRequest Model
@@ -94,9 +108,10 @@ export const CartModel =
  * Represents a simulated purchase request (ERP submission).
  * Used for: checkout, request history, agent-created requests.
  */
-export const PurchaseRequestModel =
-  (mongoose.models && mongoose.models[PURCHASE_REQUEST_COLLECTION_NAME]) ||
-  mongoose.model(PURCHASE_REQUEST_COLLECTION_NAME, PurchaseRequestSchema);
+export const PurchaseRequestModel = getOrCreateModel(
+  PURCHASE_REQUEST_COLLECTION_NAME,
+  PurchaseRequestSchema
+);
 
 /**
  * AgentConversation Model
@@ -104,9 +119,10 @@ export const PurchaseRequestModel =
  * Represents a conversation between user and AI agent.
  * Used for: agent-first experience, conversation history, debugging.
  */
-export const AgentConversationModel =
-  (mongoose.models && mongoose.models[AGENT_CONVERSATION_COLLECTION_NAME]) ||
-  mongoose.model(AGENT_CONVERSATION_COLLECTION_NAME, AgentConversationSchema);
+export const AgentConversationModel = getOrCreateModel(
+  AGENT_CONVERSATION_COLLECTION_NAME,
+  AgentConversationSchema
+);
 
 // ============================================================================
 // Re-export Constants and Enums for Convenience

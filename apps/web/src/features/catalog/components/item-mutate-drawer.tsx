@@ -31,6 +31,7 @@ type ItemMutateDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentRow?: Item;
+  onSuccess?: () => void; // Callback to refresh catalog after creation
 };
 
 const formSchema = z.object({
@@ -46,6 +47,7 @@ export function ItemMutateDrawer({
   open,
   onOpenChange,
   currentRow,
+  onSuccess,
 }: ItemMutateDrawerProps) {
   const isUpdate = !!currentRow;
 
@@ -80,18 +82,71 @@ export function ItemMutateDrawer({
 
   const onSubmit = async (data: ItemForm) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (isUpdate) {
+        // TODO: Implement update API endpoint
+        toast.info('Update not implemented', {
+          description: 'Item update functionality coming soon.',
+        });
+        return;
+      }
 
+      // Create new item via API
+      const response = await fetch('/api/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          category: data.category,
+          description: data.description,
+          estimatedPrice: parseFloat(data.price),
+        }),
+      });
+
+      // Handle duplicate detection (409 Conflict)
+      if (response.status === 409) {
+        const errorData = await response.json();
+        const duplicates = errorData.duplicates || [];
+
+        toast.warning('Potential duplicates found', {
+          description: `${duplicates.length} similar item(s) exist. Are you sure you want to create this item?`,
+          action: {
+            label: 'Create Anyway',
+            onClick: async () => {
+              // TODO: Implement force create with confirmation
+              toast.info('Force create not implemented yet');
+            },
+          },
+        });
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create item');
+      }
+
+      const newItem = await response.json();
+
+      // Close drawer and reset form
       onOpenChange(false);
       form.reset();
 
-      toast.success(isUpdate ? 'Item updated!' : 'Item created!', {
-        description: `${data.name} has been ${isUpdate ? 'updated' : 'created'} successfully.`,
+      // Show success message
+      toast.success('Item created!', {
+        description: `${newItem.name} has been added to the catalog.`,
       });
-    } catch (_error) {
+
+      // Trigger catalog refresh
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error creating item:', error);
       toast.error('Error', {
-        description: `Failed to ${isUpdate ? 'update' : 'create'} item.`,
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create item. Please try again.',
       });
     }
   };

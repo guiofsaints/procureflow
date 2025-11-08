@@ -17,11 +17,18 @@ type CatalogContextType = {
     item: Omit<Item, 'createdAt' | 'updatedAt'>
   ) => Promise<void>;
   addingToCart: string | null;
+  onRefreshCatalog?: () => void; // Callback to refresh catalog after mutations
 };
 
 const CatalogContext = React.createContext<CatalogContextType | null>(null);
 
-export function CatalogProvider({ children }: { children: React.ReactNode }) {
+export function CatalogProvider({
+  children,
+  onRefreshCatalog,
+}: {
+  children: React.ReactNode;
+  onRefreshCatalog?: () => void;
+}) {
   const [open, setOpen] = useState<CatalogDialogType | null>(null);
   const [currentRow, setCurrentRow] = useState<Item | null>(null);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
@@ -32,15 +39,37 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
   ) => {
     setAddingToCart(item.id);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      // Call API to add item to cart with quantity 1
+      const response = await fetch('/api/cart/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: item.id,
+          quantity: 1,
+        }),
+      });
 
-    setAddingToCart(null);
-    addItem();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add item to cart');
+      }
 
-    toast.success('Added to cart!', {
-      description: `${item.name} has been added to your cart.`,
-    });
+      // Increment cart counter
+      addItem();
+
+      toast.success('Added to cart!', {
+        description: `${item.name} has been added to your cart.`,
+      });
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+      toast.error('Failed to add item to cart', {
+        description:
+          error instanceof Error ? error.message : 'Please try again later.',
+      });
+    } finally {
+      setAddingToCart(null);
+    }
   };
 
   return (
@@ -52,6 +81,7 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
         setCurrentRow,
         handleAddToCart,
         addingToCart,
+        onRefreshCatalog,
       }}
     >
       {children}

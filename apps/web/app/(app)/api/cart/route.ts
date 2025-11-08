@@ -31,7 +31,7 @@ export async function GET(_request: NextRequest) {
     // Get cart for user
     const cart = await cartService.getCartForUser(session.user.id);
 
-    return NextResponse.json(cart);
+    return NextResponse.json({ cart });
   } catch (error) {
     console.error('Error in GET /api/cart:', error);
     return NextResponse.json(

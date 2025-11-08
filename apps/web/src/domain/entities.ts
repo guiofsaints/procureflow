@@ -366,7 +366,7 @@ export interface PurchaseRequest {
 // ============================================================================
 
 /**
- * AgentMessage represents a single message in the conversation
+ * AgentMessage represents a single message in an agent conversation
  * [MVP]
  */
 export interface AgentMessage {
@@ -378,6 +378,19 @@ export interface AgentMessage {
 
   /** Timestamp when this message was created */
   timestamp: Date;
+
+  /**
+   * Optional items attached to the message (e.g., search results)
+   * Used for rendering product cards in the chat UI
+   */
+  items?: Array<{
+    id: string;
+    name: string;
+    category: string;
+    description: string;
+    price: number;
+    availability: 'in_stock' | 'out_of_stock' | 'limited';
+  }>;
 }
 
 /**

@@ -7,6 +7,7 @@
  * Scope: [MVP]
  * - Minimal user model to support Auth.js (Credentials provider)
  * - Links to carts, purchase requests, and conversations
+ * - Uses String _id (not ObjectId) to support demo users and UUIDs
  *
  * Future enhancements:
  * - OAuth providers (Google, SSO)
@@ -55,6 +56,17 @@ export enum UserRole {
  */
 export const UserSchema = new Schema(
   {
+    /**
+     * User ID - Custom string ID (not auto-generated ObjectId)
+     * - Required
+     * - Supports demo users (e.g., "1") and UUIDs
+     * - Must be unique
+     */
+    _id: {
+      type: String,
+      required: true,
+    },
+
     /**
      * Email address (used for login)
      * - Required

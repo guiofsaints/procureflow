@@ -176,15 +176,18 @@ CartItemSchema.set('toObject', { virtuals: true });
 export const CartSchema = new Schema(
   {
     /**
-     * User who owns this cart
+     * Reference to user who owns this cart
      * - Required
-     * - Reference to User collection
-     * - Business Rule BR-2.3: Cart associated with authenticated user
+     * - String type to match User._id (supports various ID formats)
+     * - Each user has exactly one cart (enforced via unique constraint)
+     * - Cart ID is derived from userId for simplicity
      */
     userId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: [true, 'User ID is required'],
+      unique: true, // Each user can only have one cart
+      index: true, // Fast lookups by userId
     },
 
     /**
@@ -390,16 +393,14 @@ CartSchema.methods.clear = function () {
 /**
  * Find cart by user ID
  */
-CartSchema.statics.findByUserId = function (userId: Types.ObjectId) {
+CartSchema.statics.findByUserId = function (userId: string) {
   return this.findOne({ userId });
 };
 
 /**
  * Find or create cart for user
  */
-CartSchema.statics.findOrCreateForUser = async function (
-  userId: Types.ObjectId
-) {
+CartSchema.statics.findOrCreateForUser = async function (userId: string) {
   let cart = await this.findOne({ userId });
 
   if (!cart) {

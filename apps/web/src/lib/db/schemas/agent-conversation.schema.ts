@@ -16,7 +16,7 @@
  * - Conversation summary generation
  */
 
-import { Schema, Types } from 'mongoose';
+import { Schema } from 'mongoose';
 
 // ============================================================================
 // Constants
@@ -172,10 +172,10 @@ export const AgentConversationSchema = new Schema(
     /**
      * User who initiated this conversation
      * - Optional (can be null for anonymous/test conversations)
-     * - Reference to User collection
+     * - String type to match User._id (supports UUIDs and demo users)
      */
     userId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: false, // Optional to support test scenarios
     },
@@ -456,18 +456,14 @@ AgentConversationSchema.methods.logAction = function (
 /**
  * Find conversations by user ID
  */
-AgentConversationSchema.statics.findByUserId = function (
-  userId: Types.ObjectId
-) {
+AgentConversationSchema.statics.findByUserId = function (userId: string) {
   return this.find({ userId }).sort({ createdAt: -1 });
 };
 
 /**
  * Find active conversations for a user
  */
-AgentConversationSchema.statics.findActiveByUserId = function (
-  userId: Types.ObjectId
-) {
+AgentConversationSchema.statics.findActiveByUserId = function (userId: string) {
   return this.find({
     userId,
     status: ConversationStatus.InProgress,
@@ -479,7 +475,7 @@ AgentConversationSchema.statics.findActiveByUserId = function (
  * Returns the most recent in-progress conversation or creates a new one
  */
 AgentConversationSchema.statics.findOrCreateActiveForUser = async function (
-  userId: Types.ObjectId
+  userId: string
 ) {
   let conversation = await this.findOne({
     userId,

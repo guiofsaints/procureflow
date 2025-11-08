@@ -218,7 +218,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
 
     // Create item
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newItem = new (ItemModel as any)({
+    const itemData: any = {
       name: normalizedName,
       category: normalizedCategory,
       description: normalizedDescription,
@@ -226,8 +226,11 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
       unit: input.unit,
       status: 'active',
       preferredSupplier: input.preferredSupplier,
-      createdByUserId: input.createdByUserId,
-    });
+      createdByUserId: input.createdByUserId, // Now accepts any string (demo user "1", UUID, etc.)
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newItem = new (ItemModel as any)(itemData);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const item: any = await newItem.save();

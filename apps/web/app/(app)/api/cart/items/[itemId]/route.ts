@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       body.quantity
     );
 
-    return NextResponse.json(cart);
+    return NextResponse.json({ cart });
   } catch (error) {
     console.error('Error in PATCH /api/cart/items/[itemId]:', error);
 
@@ -114,7 +114,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     // Remove item from cart
     const cart = await cartService.removeCartItem(session.user.id, itemId);
 
-    return NextResponse.json(cart);
+    return NextResponse.json({ cart });
   } catch (error) {
     console.error('Error in DELETE /api/cart/items/[itemId]:', error);
 

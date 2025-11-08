@@ -2,7 +2,8 @@ import { useCatalog } from './catalog-provider';
 import { ItemMutateDialog } from './item-mutate-dialog';
 
 export function CatalogDialogs() {
-  const { open, setOpen, currentRow, setCurrentRow } = useCatalog();
+  const { open, setOpen, currentRow, setCurrentRow, onRefreshCatalog } =
+    useCatalog();
 
   return (
     <>
@@ -10,6 +11,7 @@ export function CatalogDialogs() {
         key='item-create'
         open={open === 'create'}
         onOpenChange={(isOpen) => setOpen(isOpen ? 'create' : null)}
+        onSuccess={onRefreshCatalog}
       />
 
       {currentRow && (
@@ -25,6 +27,7 @@ export function CatalogDialogs() {
             }
           }}
           currentRow={currentRow}
+          onSuccess={onRefreshCatalog}
         />
       )}
     </>

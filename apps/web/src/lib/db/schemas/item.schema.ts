@@ -164,11 +164,11 @@ export const ItemSchema = new Schema(
     /**
      * User ID of the person who registered this item
      * - Optional: null for seeded/pre-loaded items
-     * - Reference to User collection
+     * - String type to match User._id (supports UUIDs and demo users)
      * - Enables tracking of user-contributed catalog entries
      */
     createdByUserId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       // Not required - seeded items won't have this
     },
