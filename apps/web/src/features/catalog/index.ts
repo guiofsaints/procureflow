@@ -5,4 +5,3 @@
 
 export * from './lib/catalog.service';
 export { CatalogPageContent } from './components/CatalogPageContent';
-export { mockItems } from './mock';

@@ -1,5 +1,8 @@
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+
+import { verifyCredentials } from '@/features/auth';
+
 // import GoogleProvider from 'next-auth/providers/google';
 
 export const authConfig: NextAuthOptions = {
@@ -19,37 +22,26 @@ export const authConfig: NextAuthOptions = {
         },
       },
       async authorize(credentials) {
-        // WARNING: This is a bootstrap placeholder implementation
-        // In production, replace with proper user verification:
-        // - Hash password comparison
-        // - Database user lookup
-        // - Proper error handling
-
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        // Demo credentials for bootstrap testing
-        // TODO: Remove this and implement real user authentication
-        if (
-          credentials.email === 'demo@procureflow.com' &&
-          credentials.password === 'demo123'
-        ) {
-          return {
-            id: '507f1f77bcf86cd799439011', // Valid MongoDB ObjectId format
-            email: 'demo@procureflow.com',
-            name: 'Demo User',
-            role: 'admin',
-          };
+        // Verify user credentials using bcrypt
+        const user = await verifyCredentials({
+          email: credentials.email,
+          password: credentials.password,
+        });
+
+        if (!user) {
+          return null;
         }
 
-        // In a real app, you would:
-        // 1. Hash the password using bcrypt or similar
-        // 2. Query your database for the user
-        // 3. Compare the hashed password
-        // 4. Return the user object or null
-
-        return null;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role || 'requester',
+        };
       },
     }),
 
@@ -80,6 +72,7 @@ export const authConfig: NextAuthOptions = {
     async jwt({ token, user }) {
       // Persist additional user data in the token
       if (user) {
+        token.id = user.id; // Preserve custom user ID
         token.role = user.role;
       }
       return token;
@@ -88,7 +81,7 @@ export const authConfig: NextAuthOptions = {
     async session({ session, token }) {
       // Send properties to the client
       if (token && session.user) {
-        session.user.id = token.sub!;
+        session.user.id = token.id as string; // Use custom ID instead of token.sub
         session.user.role = token.role as string;
       }
       return session;
@@ -114,5 +107,12 @@ declare module 'next-auth' {
       id: string;
       role?: string;
     };
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id?: string;
+    role?: string;
   }
 }

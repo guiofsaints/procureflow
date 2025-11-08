@@ -5,4 +5,3 @@
 
 export * from './lib/cart.service';
 export { CartPageContent } from './components/CartPageContent';
-export { mockCartItems } from './mock';
