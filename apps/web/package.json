@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
     "db:create-text-index": "tsx scripts/create-text-index.ts",
-    "db:seed-office-items": "tsx scripts/seed-office-items.ts"
+    "db:seed-office-items": "tsx scripts/seed-office-items.ts",
+    "db:seed-initial-user": "tsx scripts/seed-initial-user.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

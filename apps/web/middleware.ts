@@ -1,7 +1,9 @@
 /**
- * Security Headers Middleware
+ * Security Headers and Authentication Middleware
  *
- * Implements helmet-style security headers for Next.js App Router
+ * Implements:
+ * 1. Security headers (helmet-style)
+ * 2. Authentication check for protected routes
  *
  * Headers configured:
  * - X-Frame-Options: Prevent clickjacking
@@ -13,8 +15,33 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export function middleware(_request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if route requires authentication (routes under /app group except /api)
+  const isProtectedRoute =
+    pathname.startsWith('/catalog') ||
+    pathname.startsWith('/cart') ||
+    pathname.startsWith('/agent') ||
+    pathname.startsWith('/purchase-requests');
+
+  // Check authentication for protected routes
+  if (isProtectedRoute) {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
+    if (!token) {
+      // Redirect to login page with callback URL
+      const url = new URL('/api/auth/signin', request.url);
+      url.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Get response
   const response = NextResponse.next();
 

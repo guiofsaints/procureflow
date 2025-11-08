@@ -4,3 +4,5 @@
  */
 
 export * from './lib/auth.service';
+export { SignInForm } from './components/SignInForm';
+export { AuthProvider } from './components/AuthProvider';

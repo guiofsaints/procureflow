@@ -4,6 +4,42 @@ This directory contains database migration and maintenance scripts for ProcureFl
 
 ## Available Scripts
 
+### `seed-initial-user.ts`
+
+Creates the initial admin user account for ProcureFlow with secure password hashing.
+
+**Usage:**
+
+```bash
+# From project root
+pnpm --filter web db:seed-initial-user
+
+# Or directly with tsx
+cd apps/web
+npx tsx scripts/seed-initial-user.ts
+```
+
+**What it does:**
+
+- Creates an admin user with email `guilherme@procureflow.com`
+- Uses bcrypt to hash the password securely
+- Skips creation if user already exists
+- Idempotent - safe to run multiple times
+
+**Credentials:**
+
+- Email: `guilherme@procureflow.com`
+- Password: `guigui123`
+- Role: `admin`
+
+**When to run:**
+
+- After initial database setup
+- When setting up a new environment
+- To create the first admin user
+
+---
+
 ### `create-text-index.ts`
 
 Creates a text index on the `items` collection to enable full-text search using MongoDB's `$text` query operator.
