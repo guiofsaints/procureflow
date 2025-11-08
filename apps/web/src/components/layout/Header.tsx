@@ -47,13 +47,22 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
       return [{ label: 'Home', href: '/' }];
     }
 
+    // Custom label mappings for specific routes
+    const labelMap: Record<string, string> = {
+      'purchase-requests': 'Purchase Requests',
+    };
+
     const breadcrumbs = paths.map((path, index) => {
       const href = '/' + paths.slice(0, index + 1).join('/');
 
       // Check if there's a dynamic label for this path
       const dynamicLabel = dynamicLabels[href];
+      // Check if there's a custom label mapping
+      const customLabel = labelMap[path];
       const label =
-        dynamicLabel || path.charAt(0).toUpperCase() + path.slice(1);
+        dynamicLabel ||
+        customLabel ||
+        path.charAt(0).toUpperCase() + path.slice(1);
 
       return { label, href };
     });
