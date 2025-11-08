@@ -53,13 +53,19 @@ import UserSchema, {
 // ============================================================================
 
 /**
+ * NOTE: Using optional chaining (?.) to avoid Turbopack compatibility issues.
+ * In Turbopack, mongoose.models may be undefined during module evaluation.
+ * This pattern safely checks if the model exists before trying to access it.
+ */
+
+/**
  * User Model
  *
  * Represents authenticated users in the system.
  * Used for: authentication, cart ownership, purchase request tracking.
  */
 export const UserModel =
-  mongoose.models[USER_COLLECTION_NAME] ||
+  (mongoose.models && mongoose.models[USER_COLLECTION_NAME]) ||
   mongoose.model(USER_COLLECTION_NAME, UserSchema);
 
 /**
@@ -69,7 +75,7 @@ export const UserModel =
  * Used for: catalog search, item registration, cart/request line items.
  */
 export const ItemModel =
-  mongoose.models[ITEM_COLLECTION_NAME] ||
+  (mongoose.models && mongoose.models[ITEM_COLLECTION_NAME]) ||
   mongoose.model(ITEM_COLLECTION_NAME, ItemSchema);
 
 /**
@@ -79,7 +85,7 @@ export const ItemModel =
  * Used for: cart management, checkout preparation.
  */
 export const CartModel =
-  mongoose.models[CART_COLLECTION_NAME] ||
+  (mongoose.models && mongoose.models[CART_COLLECTION_NAME]) ||
   mongoose.model(CART_COLLECTION_NAME, CartSchema);
 
 /**
@@ -89,7 +95,7 @@ export const CartModel =
  * Used for: checkout, request history, agent-created requests.
  */
 export const PurchaseRequestModel =
-  mongoose.models[PURCHASE_REQUEST_COLLECTION_NAME] ||
+  (mongoose.models && mongoose.models[PURCHASE_REQUEST_COLLECTION_NAME]) ||
   mongoose.model(PURCHASE_REQUEST_COLLECTION_NAME, PurchaseRequestSchema);
 
 /**
@@ -99,7 +105,7 @@ export const PurchaseRequestModel =
  * Used for: agent-first experience, conversation history, debugging.
  */
 export const AgentConversationModel =
-  mongoose.models[AGENT_CONVERSATION_COLLECTION_NAME] ||
+  (mongoose.models && mongoose.models[AGENT_CONVERSATION_COLLECTION_NAME]) ||
   mongoose.model(AGENT_CONVERSATION_COLLECTION_NAME, AgentConversationSchema);
 
 // ============================================================================
