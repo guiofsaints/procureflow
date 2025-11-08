@@ -69,7 +69,9 @@ export class CartLimitError extends Error {
  * NextAuth returns userId as string, but MongoDB stores ObjectId.
  */
 function toObjectId(userId: string | Types.ObjectId): Types.ObjectId {
-  return typeof userId === 'string' ? new MongooseTypes.ObjectId(userId) : userId;
+  return typeof userId === 'string'
+    ? new MongooseTypes.ObjectId(userId)
+    : userId;
 }
 
 /**
@@ -84,7 +86,9 @@ function toObjectId(userId: string | Types.ObjectId): Types.ObjectId {
  * @param userId - User ID (ObjectId or string)
  * @returns User's cart
  */
-export async function getCartForUser(userId: string | Types.ObjectId): Promise<Cart> {
+export async function getCartForUser(
+  userId: string | Types.ObjectId
+): Promise<Cart> {
   await connectDB();
 
   try {
@@ -93,7 +97,10 @@ export async function getCartForUser(userId: string | Types.ObjectId): Promise<C
 
     // Try to find existing cart by userId
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let cart: any = await (CartModel as any).findOne({ userId: userIdQuery }).lean().exec();
+    let cart: any = await (CartModel as any)
+      .findOne({ userId: userIdQuery })
+      .lean()
+      .exec();
 
     if (!cart) {
       // Create new cart if doesn't exist
@@ -157,7 +164,9 @@ export async function addItemToCart(
 
     // Find or create cart
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let cart: any = await (CartModel as any).findOne({ userId: userIdQuery }).exec();
+    let cart: any = await (CartModel as any)
+      .findOne({ userId: userIdQuery })
+      .exec();
 
     if (!cart) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -246,7 +255,9 @@ export async function updateCartItemQuantity(
     const userIdQuery = toObjectId(userId);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cart: any = await (CartModel as any).findOne({ userId: userIdQuery }).exec();
+    const cart: any = await (CartModel as any)
+      .findOne({ userId: userIdQuery })
+      .exec();
 
     if (!cart) {
       throw new ValidationError('Cart not found');
@@ -292,7 +303,9 @@ export async function removeCartItem(
     const userIdQuery = toObjectId(userId);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cart: any = await (CartModel as any).findOne({ userId: userIdQuery }).exec();
+    const cart: any = await (CartModel as any)
+      .findOne({ userId: userIdQuery })
+      .exec();
 
     if (!cart) {
       throw new ValidationError('Cart not found');
@@ -327,7 +340,9 @@ export async function removeCartItem(
  * @param userId - User ID (ObjectId or string)
  * @returns Empty cart
  */
-export async function clearCart(userId: string | Types.ObjectId): Promise<Cart> {
+export async function clearCart(
+  userId: string | Types.ObjectId
+): Promise<Cart> {
   await connectDB();
 
   try {
@@ -335,7 +350,9 @@ export async function clearCart(userId: string | Types.ObjectId): Promise<Cart> 
     const userIdQuery = toObjectId(userId);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cart: any = await (CartModel as any).findOne({ userId: userIdQuery }).exec();
+    const cart: any = await (CartModel as any)
+      .findOne({ userId: userIdQuery })
+      .exec();
 
     if (!cart) {
       // Create empty cart if doesn't exist

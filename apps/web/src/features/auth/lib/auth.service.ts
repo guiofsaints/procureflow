@@ -144,11 +144,8 @@ export async function verifyCredentials(
     return null;
   }
 
-  // Return user without passwordHash
-  const userObject = user.toObject();
-  delete userObject.passwordHash;
-
-  return userObject as User;
+  // Return user without passwordHash using mapper
+  return mapUserToEntity(user.toObject() as Partial<UserDocument>);
 }
 
 /**

@@ -28,6 +28,14 @@ export async function GET(_request: NextRequest) {
       );
     }
 
+    if (!session.user.id) {
+      console.error('[GET /api/cart] User ID is undefined in session');
+      return NextResponse.json(
+        { error: 'Invalid session', message: 'User ID not found in session' },
+        { status: 500 }
+      );
+    }
+
     // Get cart for user
     const cart = await cartService.getCartForUser(session.user.id);
 
