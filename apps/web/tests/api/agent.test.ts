@@ -11,7 +11,7 @@ import * as agentService from '@/features/agent';
 import { AgentConversationModel } from '@/lib/db/models';
 
 describe('Agent Service', () => {
-  const testUserId = new Types.ObjectId().toString();
+  const testUserId = new Types.ObjectId(); // Keep as ObjectId, not string
 
   // Clean up before each test
   beforeEach(async () => {

@@ -231,13 +231,13 @@ export const PurchaseRequestSchema = new Schema(
     },
 
     /**
-     * User who created this purchase request
+     * User who created this request
      * - Optional but recommended
-     * - String type to match User._id (supports UUIDs and demo users)
+     * - ObjectId type to match User._id
      * - Can be null for anonymous/test requests
      */
     userId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: false, // Optional to support test scenarios
     },

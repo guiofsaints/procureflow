@@ -172,10 +172,10 @@ export const AgentConversationSchema = new Schema(
     /**
      * User who initiated this conversation
      * - Optional (can be null for anonymous/test conversations)
-     * - String type to match User._id (supports UUIDs and demo users)
+     * - ObjectId type to match User._id
      */
     userId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: false, // Optional to support test scenarios
     },

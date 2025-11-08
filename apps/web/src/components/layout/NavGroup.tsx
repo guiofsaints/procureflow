@@ -99,16 +99,28 @@ function SidebarMenuLink({
   setOpenMobile: (open: boolean) => void;
 }) {
   const isActive = checkIsActive(pathname, item);
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = state === 'collapsed' && !isMobile;
+  const hasBadge = item.badge !== undefined && item.badge !== 0;
 
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
         <Link href={item.url} onClick={() => setOpenMobile(false)}>
-          {item.icon && <item.icon className='h-6 w-6' />}
-          <span>{item.title}</span>
-          {item.badge !== undefined && item.badge !== 0 && (
-            <NavBadge>{item.badge}</NavBadge>
+          {item.icon && (
+            <div className='relative'>
+              <item.icon className='h-6 w-6' />
+              {/* Show badge indicator when collapsed */}
+              {isCollapsed && hasBadge && (
+                <span className='absolute -right-1 -top-1 flex h-3 w-3'>
+                  <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75'></span>
+                  <span className='relative inline-flex h-3 w-3 rounded-full bg-red-500'></span>
+                </span>
+              )}
+            </div>
           )}
+          <span>{item.title}</span>
+          {!isCollapsed && hasBadge && <NavBadge>{item.badge}</NavBadge>}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -172,25 +184,31 @@ function SidebarMenuCollapsedDropdown({
   pathname: string;
 }) {
   const isActive = checkIsActive(pathname, item);
+  const hasBadge = item.badge !== undefined && item.badge !== 0;
 
   return (
     <SidebarMenuItem>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <SidebarMenuButton tooltip={item.title} isActive={isActive}>
-            {item.icon && <item.icon className='h-6 w-6' />}
-            <span>{item.title}</span>
-            {item.badge !== undefined && item.badge !== 0 && (
-              <NavBadge>{item.badge}</NavBadge>
+            {item.icon && (
+              <div className='relative'>
+                <item.icon className='h-6 w-6' />
+                {/* Show badge indicator when collapsed */}
+                {hasBadge && (
+                  <span className='absolute -right-1 -top-1 flex h-3 w-3'>
+                    <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75'></span>
+                    <span className='relative inline-flex h-3 w-3 rounded-full bg-red-500'></span>
+                  </span>
+                )}
+              </div>
             )}
+            <span>{item.title}</span>
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent side='right' align='start' sideOffset={4}>
           <DropdownMenuLabel>
-            {item.title}{' '}
-            {item.badge !== undefined && item.badge !== 0
-              ? `(${item.badge})`
-              : ''}
+            {item.title} {hasBadge ? `(${item.badge})` : ''}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {item.items.map((sub) => (

@@ -10,6 +10,8 @@
  * Enforces business rules from PRD (BR-2.x).
  */
 
+import type { Types } from 'mongoose';
+
 import type { Cart } from '@/domain/entities';
 import {
   CartModel,
@@ -70,10 +72,10 @@ export class CartLimitError extends Error {
  * Business Rules:
  * - BR-2.3: Cart associated with authenticated user
  *
- * @param userId - User ID (also used as cart ID)
+ * @param userId - User ID (ObjectId or string)
  * @returns User's cart
  */
-export async function getCartForUser(userId: string): Promise<Cart> {
+export async function getCartForUser(userId: string | Types.ObjectId): Promise<Cart> {
   await connectDB();
 
   try {
@@ -107,12 +109,12 @@ export async function getCartForUser(userId: string): Promise<Cart> {
  * - BR-2.3: Cart associated with authenticated user
  * - Max 50 items per cart
  *
- * @param userId - User ID
+ * @param userId - User ID (ObjectId or string)
  * @param input - Item and quantity
  * @returns Updated cart
  */
 export async function addItemToCart(
-  userId: string,
+  userId: string | Types.ObjectId,
   input: AddItemToCartInput
 ): Promise<Cart> {
   await connectDB();
@@ -205,13 +207,13 @@ export async function addItemToCart(
  * Business Rules:
  * - BR-2.2: Quantity per item: min 1, max 999
  *
- * @param userId - User ID
+ * @param userId - User ID (ObjectId or string)
  * @param itemId - Item ID in cart
  * @param quantity - New quantity
  * @returns Updated cart
  */
 export async function updateCartItemQuantity(
-  userId: string,
+  userId: string | Types.ObjectId,
   itemId: string,
   quantity: number
 ): Promise<Cart> {
@@ -257,12 +259,12 @@ export async function updateCartItemQuantity(
 /**
  * Remove item from cart
  *
- * @param userId - User ID
+ * @param userId - User ID (ObjectId or string)
  * @param itemId - Item ID to remove
  * @returns Updated cart
  */
 export async function removeCartItem(
-  userId: string,
+  userId: string | Types.ObjectId,
   itemId: string
 ): Promise<Cart> {
   await connectDB();
@@ -301,10 +303,10 @@ export async function removeCartItem(
  *
  * Used after successful checkout (BR-2.7)
  *
- * @param userId - User ID
+ * @param userId - User ID (ObjectId or string)
  * @returns Empty cart
  */
-export async function clearCart(userId: string): Promise<Cart> {
+export async function clearCart(userId: string | Types.ObjectId): Promise<Cart> {
   await connectDB();
 
   try {

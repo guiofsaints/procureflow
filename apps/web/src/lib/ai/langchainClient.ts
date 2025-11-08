@@ -3,7 +3,7 @@ import { ChatOpenAI } from '@langchain/openai';
 
 // Configuration for LangChain OpenAI client
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const DEFAULT_MODEL = 'gpt-3.5-turbo';
+const DEFAULT_MODEL = 'gpt-4o-mini'; // Changed to gpt-4o-mini for function calling
 const DEFAULT_TEMPERATURE = 0.7;
 const DEFAULT_MAX_TOKENS = 1000;
 
@@ -188,6 +188,172 @@ function getModelConfig() {
   };
 }
 
-export { chatCompletion, isAIAvailable, getModelConfig, initializeChatModel };
+/**
+ * Chat completion with function/tool calling support
+ *
+ * @param prompt - The user prompt/message
+ * @param options - Configuration options including tools
+ * @returns Promise with response content and optional tool calls
+ */
+interface ToolDefinition {
+  name: string;
+  description: string;
+  parameters: {
+    type: 'object';
+    properties: Record<string, unknown>;
+    required: string[];
+  };
+}
 
-export type { ChatCompletionOptions, ChatResponse };
+interface ChatWithToolsOptions extends ChatCompletionOptions {
+  tools?: ToolDefinition[];
+  conversationHistory?: Array<{ role: string; content: string }>;
+}
+
+interface ToolCall {
+  id: string;
+  name: string;
+  arguments: Record<string, unknown>;
+}
+
+interface ChatWithToolsResponse extends ChatResponse {
+  toolCalls?: ToolCall[];
+  finishReason?: 'stop' | 'tool_calls' | 'length';
+}
+
+async function chatCompletionWithTools(
+  prompt: string,
+  options: ChatWithToolsOptions = {}
+): Promise<ChatWithToolsResponse> {
+  try {
+    if (!OPENAI_API_KEY) {
+      throw new Error(
+        'OpenAI API key is required. Please set OPENAI_API_KEY in your environment variables.'
+      );
+    }
+
+    // Create model with function calling support
+    const model = new ChatOpenAI({
+      apiKey: OPENAI_API_KEY,
+      model: options.model || DEFAULT_MODEL,
+      temperature: options.temperature ?? DEFAULT_TEMPERATURE,
+      maxTokens: options.maxTokens ?? DEFAULT_MAX_TOKENS,
+      timeout: 30000,
+    });
+
+    // Format tools for OpenAI function calling
+    let formattedTools: unknown[] | undefined;
+    if (options.tools && options.tools.length > 0) {
+      formattedTools = options.tools.map((tool) => ({
+        type: 'function' as const,
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+        },
+      }));
+
+      // Debug: Log tools being passed
+      console.warn(
+        '[LangChain] Tools configured:',
+        options.tools.map((t) => t.name)
+      );
+    }
+
+    // Prepare messages with conversation history
+    const messages = [];
+
+    if (options.systemMessage) {
+      messages.push(new SystemMessage(options.systemMessage));
+    }
+
+    // Add conversation history if provided
+    if (options.conversationHistory && options.conversationHistory.length > 0) {
+      for (const msg of options.conversationHistory) {
+        if (msg.role === 'user') {
+          messages.push(new HumanMessage(msg.content));
+        } else if (msg.role === 'assistant' || msg.role === 'agent') {
+          messages.push(new SystemMessage(msg.content));
+        }
+      }
+    }
+
+    messages.push(new HumanMessage(prompt));
+
+    // Call the model with tools if provided
+    const invokeOptions = formattedTools ? { tools: formattedTools } : {};
+    const response = await model.invoke(messages, invokeOptions);
+
+    // Debug: Log response structure
+    console.warn('[LangChain] Response:', {
+      contentLength: (response.content as string)?.length || 0,
+      hasToolCalls: !!response.additional_kwargs?.tool_calls,
+      toolCallsCount: response.additional_kwargs?.tool_calls?.length || 0,
+      finishReason: response.additional_kwargs?.finish_reason,
+    });
+
+    // Extract tool calls if present
+    const toolCalls: ToolCall[] = [];
+
+    // Check if response has tool_calls (OpenAI function calling format)
+    if (response.additional_kwargs?.tool_calls) {
+      for (const toolCall of response.additional_kwargs.tool_calls) {
+        toolCalls.push({
+          id: toolCall.id,
+          name: toolCall.function.name,
+          arguments: JSON.parse(toolCall.function.arguments),
+        });
+      }
+    }
+
+    return {
+      content: response.content as string,
+      model: options.model || DEFAULT_MODEL,
+      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      finishReason:
+        (response.additional_kwargs?.finish_reason as
+          | 'stop'
+          | 'tool_calls'
+          | 'length') || 'stop',
+    };
+  } catch (error) {
+    console.error('❌ OpenAI API error:', error);
+
+    if (error instanceof Error) {
+      if (error.message.includes('API key')) {
+        throw new Error('Invalid or missing OpenAI API key');
+      }
+      if (error.message.includes('rate limit')) {
+        throw new Error(
+          'OpenAI API rate limit exceeded. Please try again later.'
+        );
+      }
+      if (error.message.includes('quota')) {
+        throw new Error(
+          'OpenAI API quota exceeded. Please check your billing.'
+        );
+      }
+    }
+
+    throw new Error(
+      `AI service error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+export {
+  chatCompletion,
+  chatCompletionWithTools,
+  isAIAvailable,
+  getModelConfig,
+  initializeChatModel,
+};
+
+export type {
+  ChatCompletionOptions,
+  ChatResponse,
+  ChatWithToolsOptions,
+  ChatWithToolsResponse,
+  ToolDefinition,
+  ToolCall,
+};

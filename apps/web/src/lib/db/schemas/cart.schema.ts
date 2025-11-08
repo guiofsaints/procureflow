@@ -178,12 +178,11 @@ export const CartSchema = new Schema(
     /**
      * Reference to user who owns this cart
      * - Required
-     * - String type to match User._id (supports various ID formats)
+     * - ObjectId type to match User._id
      * - Each user has exactly one cart (enforced via unique constraint)
-     * - Cart ID is derived from userId for simplicity
      */
     userId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'User ID is required'],
       unique: true, // Each user can only have one cart

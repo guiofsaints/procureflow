@@ -72,7 +72,7 @@ export function UserMenu({ collapsed }: UserMenuProps) {
           {!collapsed && (
             <>
               {/* User info */}
-              <div className='flex-1 text-left min-w-0'>
+              <div className='flex-1 text-left min-w-0 hidden sm:block'>
                 <p className='text-sm font-medium truncate'>{user.name}</p>
                 <p className='text-xs text-muted-foreground truncate'>
                   {user.email}

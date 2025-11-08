@@ -7,8 +7,12 @@
 
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+import { Skeleton } from '@/components/ui/skeleton';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 import type { AgentMessage } from '../types';
 
@@ -32,6 +36,33 @@ export function AgentChatPageContent({
     initialConversationId
   );
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
+  const [conversationTitle, setConversationTitle] = useState<string>('');
+
+  const { setDynamicLabel, clearDynamicLabel } = useBreadcrumb();
+  const pathname = usePathname();
+
+  // Reset state when conversationId changes (including when it becomes undefined)
+  useEffect(() => {
+    // If initialConversationId changes, reset the component state
+    setConversationId(initialConversationId);
+
+    // If no conversationId (new conversation), reset all state
+    if (!initialConversationId) {
+      setMessages([]);
+      setHasStarted(false);
+      setIsLoading(false);
+      setConversationTitle('');
+      setIsLoadingConversation(false);
+    }
+  }, [initialConversationId]);
+
+  // Set loading placeholder in breadcrumb immediately when loading conversation
+  useEffect(() => {
+    if (initialConversationId && pathname) {
+      // Set loading placeholder immediately
+      setDynamicLabel(pathname, '...');
+    }
+  }, [initialConversationId, pathname, setDynamicLabel]);
 
   // Load conversation messages from API when conversationId is provided
   const loadConversation = useCallback(async (convId: string) => {
@@ -46,14 +77,19 @@ export function AgentChatPageContent({
 
       const data = await response.json();
 
+      // Set conversation title from response
+      if (data.conversation?.title) {
+        setConversationTitle(data.conversation.title);
+      }
+
       // Map API messages to AgentMessage format
       const loadedMessages: AgentMessage[] = data.conversation.messages.map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (msg: any, index: number) => ({
-          id: `${msg.sender}-${index}`,
-          role: msg.sender === 'user' ? 'user' : 'assistant',
+          id: `${msg.role}-${index}`,
+          role: msg.role,
           content: msg.content,
-          items: msg.metadata?.items, // Include items from metadata if available
+          items: msg.items, // Include items if available
         })
       );
 
@@ -69,12 +105,30 @@ export function AgentChatPageContent({
     }
   }, []);
 
+  // Update breadcrumb when conversation title changes
+  useEffect(() => {
+    if (conversationTitle && pathname) {
+      setDynamicLabel(pathname, conversationTitle);
+    }
+
+    return () => {
+      if (pathname) {
+        clearDynamicLabel(pathname);
+      }
+    };
+  }, [conversationTitle, pathname, setDynamicLabel, clearDynamicLabel]);
+
   // Load conversation on mount if conversationId is provided
   useEffect(() => {
     if (initialConversationId) {
       loadConversation(initialConversationId);
     }
   }, [initialConversationId, loadConversation]);
+
+  // Trigger custom event when conversation is updated (for sidebar refresh)
+  const triggerConversationUpdate = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('conversationUpdated'));
+  }, []);
 
   const handleSendMessage = async (content: string) => {
     // Mark chat as started
@@ -114,7 +168,13 @@ export function AgentChatPageContent({
       // Update conversationId if this is a new conversation
       if (data.conversationId && !conversationId) {
         setConversationId(data.conversationId);
+
+        // Update URL without reload for new conversations
+        window.history.replaceState(null, '', `/agent/${data.conversationId}`);
       }
+
+      // Trigger sidebar update
+      triggerConversationUpdate();
 
       // Get the latest agent message from the response
       const apiMessages = data.messages || [];
@@ -128,6 +188,7 @@ export function AgentChatPageContent({
           role: 'assistant',
           content: latestAgentMessage.content,
           items: latestAgentMessage.items, // Include items if present
+          cart: latestAgentMessage.cart, // Include cart if present
         };
 
         setMessages((prev) => [...prev, agentMessage]);
@@ -164,11 +225,29 @@ export function AgentChatPageContent({
       {/* Messages area or Welcome screen - scrollable */}
       <div className='flex-1 overflow-y-auto'>
         {isLoadingConversation ? (
-          <div className='flex h-full items-center justify-center'>
-            <div className='text-muted-foreground'>Loading conversation...</div>
+          <div className='mx-auto flex h-full max-w-4xl flex-col gap-6 p-6'>
+            {/* Skeleton for loading messages */}
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`flex gap-3 ${i % 2 === 0 ? 'flex-row-reverse' : ''}`}
+              >
+                <Skeleton className='h-10 w-10 shrink-0 rounded-full' />
+                <div className='flex max-w-[80%] flex-col gap-2'>
+                  <Skeleton className='h-5 w-32' />
+                  <Skeleton
+                    className={`h-20 w-full ${i === 2 ? 'w-4/5' : ''}`}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         ) : hasStarted ? (
-          <AgentChatMessages messages={messages} />
+          <AgentChatMessages
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+          />
         ) : (
           <AgentWelcome onPromptClick={handleSendMessage} userName={userName} />
         )}

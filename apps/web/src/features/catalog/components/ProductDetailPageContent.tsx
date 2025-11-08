@@ -148,7 +148,7 @@ export function ProductDetailPageContent() {
       <div className='flex-1 p-6 lg:p-8'>
         <div className='max-w-4xl mx-auto'>
           <div className='h-4 w-32 bg-muted rounded animate-pulse mb-6' />
-          <Card>
+          <Card className='py-6'>
             <CardHeader className='border-b'>
               <div className='space-y-3'>
                 <div className='h-6 w-20 bg-muted rounded animate-pulse' />
@@ -207,7 +207,7 @@ export function ProductDetailPageContent() {
         </button>
 
         {/* Product Card */}
-        <Card>
+        <Card className='py-6'>
           {/* Product Header */}
           <CardHeader className='border-b'>
             <div className='flex items-start justify-between gap-4'>

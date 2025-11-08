@@ -13,7 +13,7 @@ import * as checkoutService from '@/features/checkout';
 import { ItemModel, CartModel, PurchaseRequestModel } from '@/lib/db/models';
 
 describe('Cart and Checkout Flow', () => {
-  const testUserId = new Types.ObjectId().toString();
+  const testUserId = new Types.ObjectId(); // Keep as ObjectId, not string
   let testItemId: string;
 
   // Clean up before each test

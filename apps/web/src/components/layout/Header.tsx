@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { cn } from '@/lib/utils';
 
@@ -84,6 +85,8 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
           <BreadcrumbList>
             {breadcrumbs.map((crumb, index) => {
               const isLast = index === breadcrumbs.length - 1;
+              const isLoading = crumb.label === '...';
+
               return (
                 <Fragment key={crumb.href}>
                   <BreadcrumbItem>
@@ -91,6 +94,8 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
                       <BreadcrumbLink asChild>
                         <Link href={crumb.href}>{crumb.label}</Link>
                       </BreadcrumbLink>
+                    ) : isLoading ? (
+                      <Skeleton className='h-5 w-32' />
                     ) : (
                       <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                     )}

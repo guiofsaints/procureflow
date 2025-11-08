@@ -1,12 +1,12 @@
 /**
  * Agent Conversation by ID API Route
- * GET /api/agent/conversations/[id] - Get specific conversation summary
+ * GET /api/agent/conversations/[id] - Get specific conversation with full messages
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
-import { getConversationSummaryById } from '@/features/agent';
+import { getConversationById } from '@/features/agent';
 import { authConfig } from '@/lib/auth/config';
 
 export async function GET(
@@ -27,8 +27,8 @@ export async function GET(
     // Get conversation ID from params
     const { id } = await params;
 
-    // Fetch conversation summary
-    const conversation = await getConversationSummaryById(session.user.id, id);
+    // Fetch complete conversation with messages
+    const conversation = await getConversationById(session.user.id, id);
 
     if (!conversation) {
       return NextResponse.json(
@@ -39,7 +39,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: conversation,
+      conversation,
     });
   } catch (error) {
     console.error('GET /api/agent/conversations/[id] error:', error);

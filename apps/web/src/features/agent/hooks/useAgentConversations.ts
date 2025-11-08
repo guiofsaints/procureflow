@@ -71,6 +71,20 @@ export function useAgentConversations(): UseAgentConversationsReturn {
 
   useEffect(() => {
     fetchConversations();
+
+    // Listen for conversation updates
+    const handleConversationUpdate = () => {
+      fetchConversations();
+    };
+
+    window.addEventListener('conversationUpdated', handleConversationUpdate);
+
+    return () => {
+      window.removeEventListener(
+        'conversationUpdated',
+        handleConversationUpdate
+      );
+    };
   }, []);
 
   return {

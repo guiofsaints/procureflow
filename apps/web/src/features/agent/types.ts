@@ -15,11 +15,25 @@ export interface AgentItem {
   availability: 'in_stock' | 'out_of_stock' | 'limited';
 }
 
+export interface AgentCartItem {
+  itemId: string;
+  itemName: string;
+  itemPrice: number;
+  quantity: number;
+}
+
+export interface AgentCart {
+  items: AgentCartItem[];
+  totalCost: number;
+  itemCount: number;
+}
+
 export interface AgentMessage {
   id: string;
   role: AgentRole;
   content: string;
   items?: AgentItem[];
+  cart?: AgentCart;
 }
 
 export interface AgentConversationSummary {

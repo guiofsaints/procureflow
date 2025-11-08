@@ -30,23 +30,55 @@ interface AgentProductCardProps {
 
 export function AgentProductCard({ item }: AgentProductCardProps) {
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
   const { addItem } = useCart();
 
-  const handleAddToCart = () => {
-    // Add items to cart context (updates sidebar counter)
-    for (let i = 0; i < quantity; i++) {
-      addItem();
-    }
+  const handleAddToCart = async () => {
+    setIsAdding(true);
 
-    toast.success(
-      `Added ${quantity} ${quantity === 1 ? 'unit' : 'units'} of "${item.name}" to cart`,
-      {
-        description: `Total: $${(item.price * quantity).toFixed(2)}`,
+    try {
+      // Call the cart API to add the item
+      const response = await fetch('/api/cart/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          itemId: item.id,
+          quantity,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add item to cart');
       }
-    );
 
-    // Reset quantity after adding
-    setQuantity(1);
+      const data = await response.json();
+
+      // Update cart context counter
+      for (let i = 0; i < quantity; i++) {
+        addItem();
+      }
+
+      toast.success(
+        `Added ${quantity} ${quantity === 1 ? 'unit' : 'units'} of "${item.name}" to cart`,
+        {
+          description: `Cart total: $${data.cart.totalCost.toFixed(2)}`,
+        }
+      );
+
+      // Reset quantity after adding
+      setQuantity(1);
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+      toast.error('Failed to add item to cart', {
+        description:
+          error instanceof Error ? error.message : 'Please try again later.',
+      });
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const incrementQuantity = () => {
@@ -75,7 +107,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
   };
 
   return (
-    <Card className='w-full'>
+    <Card className='w-full py-6'>
       <CardHeader>
         <div className='flex items-start justify-between gap-2'>
           <div className='flex-1'>
@@ -137,12 +169,14 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
         {/* Add to Cart Button */}
         <Button
           onClick={handleAddToCart}
-          disabled={item.availability === 'out_of_stock'}
+          disabled={item.availability === 'out_of_stock' || isAdding}
           className='w-full'
           size='sm'
         >
           <ShoppingCart className='mr-2 h-4 w-4' />
-          Add {quantity > 1 ? `${quantity} ` : ''}to Cart
+          {isAdding
+            ? 'Adding...'
+            : `Add ${quantity > 1 ? `${quantity} ` : ''}to Cart`}
         </Button>
       </CardFooter>
     </Card>

@@ -13,6 +13,8 @@
  * Enforces business rules from PRD (BR-1.x).
  */
 
+import type { Types } from 'mongoose';
+
 import type { Item } from '@/domain/entities';
 import { ItemStatus } from '@/domain/entities';
 import { ItemModel } from '@/lib/db/models';
@@ -56,7 +58,7 @@ export interface CreateItemInput {
   estimatedPrice: number;
 
   /** User ID of the person registering this item (optional) */
-  createdByUserId?: string;
+  createdByUserId?: string | Types.ObjectId;
 
   /** Unit of measure (optional, e.g., "each", "box") */
   unit?: string;

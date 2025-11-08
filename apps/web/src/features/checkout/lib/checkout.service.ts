@@ -9,6 +9,8 @@
  * Enforces business rules from PRD (BR-4.x).
  */
 
+import type { Types } from 'mongoose';
+
 import type { PurchaseRequest } from '@/domain/entities';
 import { PurchaseRequestStatus } from '@/domain/entities';
 import { CartModel, ItemModel, PurchaseRequestModel } from '@/lib/db/models';
@@ -45,12 +47,12 @@ export class ValidationError extends Error {
  * - BR-4.3: Record with timestamp, user ID, items, total
  * - BR-2.7: Clear cart after successful checkout
  *
- * @param userId - User ID
+ * @param userId - User ID (ObjectId or string)
  * @param notes - Optional notes/justification
  * @returns Created purchase request
  */
 export async function checkoutCart(
-  userId: string,
+  userId: string | Types.ObjectId,
   notes?: string
 ): Promise<PurchaseRequest> {
   await connectDB();
@@ -160,12 +162,12 @@ export async function checkoutCart(
 /**
  * Get all purchase requests for a user
  *
- * @param userId - User ID
+ * @param userId - User ID (ObjectId or string)
  * @param filters - Optional filters (status)
  * @returns List of purchase requests
  */
 export async function getPurchaseRequestsForUser(
-  userId: string,
+  userId: string | Types.ObjectId,
   filters?: { status?: PurchaseRequestStatus }
 ): Promise<PurchaseRequest[]> {
   await connectDB();
@@ -218,12 +220,12 @@ export async function getPurchaseRequestsForUser(
 /**
  * Get a single purchase request by ID
  *
- * @param userId - User ID (for authorization)
+ * @param userId - User ID (for authorization) (ObjectId or string)
  * @param requestId - Purchase request ID
  * @returns Purchase request or null if not found
  */
 export async function getPurchaseRequestById(
-  userId: string,
+  userId: string | Types.ObjectId,
   requestId: string
 ): Promise<PurchaseRequest | null> {
   await connectDB();

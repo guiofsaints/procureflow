@@ -391,6 +391,21 @@ export interface AgentMessage {
     price: number;
     availability: 'in_stock' | 'out_of_stock' | 'limited';
   }>;
+
+  /**
+   * Optional cart data attached to the message
+   * Used for rendering cart view in the chat UI
+   */
+  cart?: {
+    items: Array<{
+      itemId: string;
+      itemName: string;
+      itemPrice: number;
+      quantity: number;
+    }>;
+    totalCost: number;
+    itemCount: number;
+  };
 }
 
 /**

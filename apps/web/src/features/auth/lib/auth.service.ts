@@ -100,14 +100,8 @@ export async function registerUser(
   // Hash password
   const passwordHash = await hashPassword(input.password);
 
-  // Generate user ID (simple counter-based approach for MVP)
-  // In production, consider using UUIDs or MongoDB ObjectIds
-  const userCount = await UserModel.countDocuments().exec();
-  const userId = `user_${Date.now()}_${userCount + 1}`;
-
-  // Create user
+  // Create user (MongoDB will auto-generate ObjectId for _id)
   const user = await UserModel.create({
-    _id: userId,
     email: input.email.toLowerCase(),
     name: input.name,
     passwordHash,

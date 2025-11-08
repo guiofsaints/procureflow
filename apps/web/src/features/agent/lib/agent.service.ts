@@ -10,6 +10,8 @@
  * Enforces business rules from PRD (BR-3.x).
  */
 
+import type { Types } from 'mongoose';
+
 import type { AgentMessage } from '@/domain/entities';
 import {
   AgentActionType,
@@ -20,7 +22,8 @@ import type { AgentConversationSummary } from '@/features/agent/types';
 import * as cartService from '@/features/cart';
 import * as catalogService from '@/features/catalog';
 import * as checkoutService from '@/features/checkout';
-import { chatCompletion } from '@/lib/ai/langchainClient';
+import { chatCompletionWithTools } from '@/lib/ai/langchainClient';
+import type { ToolDefinition } from '@/lib/ai/langchainClient';
 import { AgentConversationModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
 
@@ -30,7 +33,7 @@ import connectDB from '@/lib/db/mongoose';
 
 export interface HandleAgentMessageParams {
   /** User ID (optional for demo, recommended for production) */
-  userId?: string;
+  userId?: string | Types.ObjectId;
 
   /** User's message */
   message: string;
@@ -48,8 +51,20 @@ export interface AgentResponseItem {
   availability: 'in_stock' | 'out_of_stock' | 'limited';
 }
 
+export interface AgentResponseCart {
+  items: Array<{
+    itemId: string;
+    itemName: string;
+    itemPrice: number;
+    quantity: number;
+  }>;
+  totalCost: number;
+  itemCount: number;
+}
+
 export interface AgentResponse {
   conversationId: string;
+  title?: string;
   messages: AgentMessage[];
 }
 
@@ -93,6 +108,14 @@ export async function handleAgentMessage(
     throw new ValidationError('Message cannot be empty');
   }
 
+  // Debug: Log userId for debugging conversation issues
+  if (!userId) {
+    console.warn(
+      '[handleAgentMessage] No userId provided. conversationId:',
+      conversationId
+    );
+  }
+
   try {
     // Find or create conversation
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,10 +131,22 @@ export async function handleAgentMessage(
         throw new ValidationError('Conversation not found');
       }
     } else {
-      // Create new conversation
+      // Create new conversation with title from first message
+      const title = message.trim().substring(0, 60); // First 60 chars as title
+      const preview = message.trim().substring(0, 100); // First 100 chars as preview
+
+      // Validate userId for new conversations
+      if (!userId) {
+        console.warn(
+          '[handleAgentMessage] Creating conversation with null userId - it will not appear in user conversation list'
+        );
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       conversation = new (AgentConversationModel as any)({
         userId: userId || null,
+        title: title || 'New conversation',
+        lastMessagePreview: preview || 'No messages yet',
         messages: [],
         actions: [],
         status: 'in_progress',
@@ -125,6 +160,9 @@ export async function handleAgentMessage(
       createdAt: new Date(),
     });
 
+    // Update lastMessagePreview with user's message
+    conversation.lastMessagePreview = message.trim().substring(0, 100);
+
     // Generate agent response using LangChain
     const agentReply = await generateAgentResponse(
       message,
@@ -132,17 +170,24 @@ export async function handleAgentMessage(
       userId
     );
 
-    // Add agent message to conversation with metadata for items
+    // Add agent message to conversation with metadata for items and cart
+    const metadata: Record<string, unknown> = {};
+    if (agentReply.items) {
+      metadata.items = agentReply.items;
+    }
+    if (agentReply.cart) {
+      metadata.cart = agentReply.cart;
+    }
+
     conversation.messages.push({
       sender: 'agent',
       content: agentReply.text,
       createdAt: new Date(),
-      metadata: agentReply.items
-        ? {
-            items: agentReply.items,
-          }
-        : undefined,
+      metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
     });
+
+    // Update lastMessagePreview with agent's response
+    conversation.lastMessagePreview = agentReply.text.substring(0, 100);
 
     // Save conversation
     await conversation.save();
@@ -162,6 +207,11 @@ export async function handleAgentMessage(
           // Add items if present in metadata
           if (msg.metadata?.items) {
             message.items = msg.metadata.items;
+          }
+
+          // Add cart if present in metadata
+          if (msg.metadata?.cart) {
+            message.cart = msg.metadata.cart;
           }
 
           return message;
@@ -187,81 +237,334 @@ export async function handleAgentMessage(
 interface AgentReplyWithItems {
   text: string;
   items?: AgentResponseItem[];
+  cart?: AgentResponseCart;
 }
 
 /**
- * Generate agent response using LangChain with tool calling
+ * Generate agent response using LangChain with function calling
  *
- * Implements structured tool calling to enable the agent to:
- * - Search the catalog
- * - Manage cart operations (add, view, remove)
- * - Complete checkout
- *
- * This uses LangChain's DynamicStructuredTool for type-safe tool integration.
+ * Uses OpenAI's function calling to let the model decide when to use tools
  */
 async function generateAgentResponse(
   userMessage: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   conversationHistory: any[],
-  userId?: string
+  userId?: string | Types.ObjectId
 ): Promise<AgentReplyWithItems> {
   try {
-    // Build conversation context
-    const messages = conversationHistory
-      .slice(-10)
-      .map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (msg: any) => `${msg.sender}: ${msg.content}`
-      )
-      .join('\n');
+    // Define available tools for function calling
+    const tools: ToolDefinition[] = [
+      {
+        name: 'search_catalog',
+        description:
+          'Search for products in the catalog by a SINGLE keyword. Returns product cards that will be displayed to the user. If user asks for multiple products, call this function multiple times with different keywords.',
+        parameters: {
+          type: 'object',
+          properties: {
+            keyword: {
+              type: 'string',
+              description:
+                'A SINGLE product name or category to search for (e.g., "wireless mice", "laptops", "monitors"). Do NOT include multiple items in one keyword - call the function multiple times instead.',
+            },
+          },
+          required: ['keyword'],
+        },
+      },
+      {
+        name: 'add_to_cart',
+        description:
+          'Add an item to the user cart. Use this when user wants to add products. You must use the item ID from previously shown products or search results.',
+        parameters: {
+          type: 'object',
+          properties: {
+            itemId: {
+              type: 'string',
+              description:
+                'The unique identifier of the item to add (from search results or displayed products)',
+            },
+            quantity: {
+              type: 'number',
+              description: 'The quantity to add (default: 1)',
+            },
+          },
+          required: ['itemId'],
+        },
+      },
+      {
+        name: 'update_cart_quantity',
+        description:
+          'Update the quantity of an item in the cart. Use this when user wants to change quantity (increase or decrease). If new quantity is 0, the item will be removed.',
+        parameters: {
+          type: 'object',
+          properties: {
+            itemId: {
+              type: 'string',
+              description:
+                'The unique identifier of the item to update (from cart items)',
+            },
+            newQuantity: {
+              type: 'number',
+              description:
+                'The new total quantity for this item (not the difference)',
+            },
+          },
+          required: ['itemId', 'newQuantity'],
+        },
+      },
+      {
+        name: 'view_cart',
+        description:
+          'Display the current cart contents and total cost. Use this when user asks to see their cart.',
+        parameters: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'remove_from_cart',
+        description:
+          'Remove an item completely from the cart (all quantities). Use the itemId from the cart display. Only use when user explicitly says "remove all" or clicks delete button.',
+        parameters: {
+          type: 'object',
+          properties: {
+            itemId: {
+              type: 'string',
+              description:
+                'The unique identifier of the item to remove (from cart items)',
+            },
+          },
+          required: ['itemId'],
+        },
+      },
+      {
+        name: 'checkout',
+        description:
+          'Complete the purchase request with current cart items. Should ask for confirmation first.',
+        parameters: {
+          type: 'object',
+          properties: {
+            notes: {
+              type: 'string',
+              description: 'Optional notes or justification for the purchase',
+            },
+          },
+          required: [],
+        },
+      },
+    ];
 
-    // System prompt with tool descriptions
+    // System prompt
     const systemPrompt = `You are a helpful procurement assistant for ProcureFlow.
 
-You have access to the following tools to help users:
-1. **search_catalog**: Search for items in the catalog by keyword
-2. **add_to_cart**: Add an item to the user's cart (requires item ID and quantity)
-3. **view_cart**: Display the current cart contents and total
-4. **remove_from_cart**: Remove an item from the cart (requires item ID)
-5. **checkout**: Complete the purchase request from current cart items
+You have access to these functions:
+- search_catalog: Search for products by keyword
+- add_to_cart: Add NEW items to cart (requires itemId from search results)
+- update_cart_quantity: Change quantity of EXISTING cart items (use when user says "remove X" or "add X more")
+- view_cart: Show current cart contents with item IDs and quantities
+- remove_from_cart: Remove item COMPLETELY from cart (only when user says "remove all")
+- checkout: Complete purchase
 
-IMPORTANT GUIDELINES:
-- When users ask to search/find items, use the search_catalog tool
-- Before adding to cart, confirm the item ID with the user
-- Always show cart contents after modifications
-- Ask for confirmation before checkout
-- Be conversational and helpful
-- If a tool call fails, explain the error clearly
+IMPORTANT: When user asks for MULTIPLE products (e.g., "show me pen, pencil and laptop"), you MUST:
+1. Identify ALL products mentioned in the request
+2. Search for each product separately by calling search_catalog multiple times
+3. Present all results together to the user
 
-Example interactions:
-- User: "find laptops" → Use search_catalog with keyword "laptops"
-- User: "add item abc123 to cart" → Use add_to_cart with itemId and quantity
-- User: "show my cart" → Use view_cart
-- User: "checkout" → Confirm first, then use checkout tool`;
+For example:
+- User: "show me pen, pencil and laptop"
+- You should: Call search_catalog("pen"), search_catalog("pencil"), search_catalog("laptop")
+- Then combine and present all results
 
-    const lowerMessage = userMessage.toLowerCase();
+CRITICAL RULES FOR CART OPERATIONS:
+1. Cart context shows: {itemId: "abc123", itemName: "Laptop", quantity: 5}
+2. When user says "Remove 2 Laptop from my cart":
+   - Current quantity is 5
+   - New quantity should be 3 (5 - 2)
+   - USE update_cart_quantity(itemId: "abc123", newQuantity: 3)
+   - DO NOT use remove_from_cart (that removes all)
+3. When user says "Add 3 more Monitor":
+   - Current quantity is 1
+   - New quantity should be 4 (1 + 3)
+   - USE update_cart_quantity(itemId: "xyz789", newQuantity: 4)
+4. When user says "Remove all Keyboard" or clicks delete button:
+   - USE remove_from_cart(itemId: "def456")
+5. Match item names to itemIds from cart context in conversation history
+6. Always calculate NEW TOTAL quantity, not the difference
 
-    // Tool detection and execution logic
-    // In production, this would use AgentExecutor with OpenAI function calling
+Examples:
+- "Remove 1 Pen" with current quantity 3 → update_cart_quantity(itemId, newQuantity: 2)
+- "Add 2 more Monitor" with current quantity 1 → update_cart_quantity(itemId, newQuantity: 3)
+- "Remove all Laptop" → remove_from_cart(itemId)`;
 
-    // Search catalog
-    if (
-      lowerMessage.includes('search') ||
-      lowerMessage.includes('find') ||
-      lowerMessage.includes('look for')
-    ) {
-      const keywords = userMessage
-        .toLowerCase()
-        .replace(/search|find|look for|in catalog|for/gi, '')
-        .trim();
+    // Build conversation history for context (include metadata with cart info)
+    const history = conversationHistory
+      .slice(-10)
+      .map(
+        (msg: {
+          sender: string;
+          content: string;
+          metadata?: { cart?: unknown };
+        }) => {
+          let content = msg.content;
 
-      if (keywords) {
+          // If message has cart metadata, append it to content for context
+          if (msg.metadata?.cart) {
+            const cart = msg.metadata.cart as {
+              items: Array<{
+                itemId: string;
+                itemName: string;
+                quantity: number;
+              }>;
+            };
+            if (cart.items && cart.items.length > 0) {
+              const cartInfo = cart.items
+                .map(
+                  (item) =>
+                    `{itemId: "${item.itemId}", itemName: "${item.itemName}", quantity: ${item.quantity}}`
+                )
+                .join(', ');
+              content += `\n[Cart Context: ${cartInfo}]`;
+            }
+          }
+
+          return {
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content,
+          };
+        }
+      );
+
+    // Call LLM with function calling
+    const response = await chatCompletionWithTools(userMessage, {
+      systemMessage: systemPrompt,
+      conversationHistory: history,
+      tools,
+      temperature: 0.7,
+    });
+
+    // Debug: Log response to see what's happening
+    console.warn('[Agent] LLM Response:', {
+      content: response.content?.substring(0, 100),
+      hasToolCalls: !!response.toolCalls,
+      toolCallsCount: response.toolCalls?.length || 0,
+      finishReason: response.finishReason,
+    });
+
+    // Check if model wants to call a tool
+    if (response.toolCalls && response.toolCalls.length > 0) {
+      console.warn(
+        `[Agent] Processing ${response.toolCalls.length} tool call(s)`
+      );
+
+      // For search_catalog, we can handle multiple calls and combine results
+      const searchCalls = response.toolCalls.filter(
+        (tc) => tc.name === 'search_catalog'
+      );
+
+      if (searchCalls.length > 1) {
+        console.warn(
+          `[Agent] Multiple search calls detected: ${searchCalls.length}`
+        );
+
         try {
-          const items = await catalogService.searchItems({ q: keywords });
+          // Execute all search calls in parallel
+          const searchResults = await Promise.all(
+            searchCalls.map(async (toolCall) => {
+              console.warn(
+                '[Agent] Search tool called:',
+                toolCall.name,
+                'with args:',
+                toolCall.arguments
+              );
+              const items = await catalogService.searchItems({
+                q: toolCall.arguments.keyword as string,
+              });
+              return {
+                keyword: toolCall.arguments.keyword as string,
+                items,
+              };
+            })
+          );
+
+          // Combine all results
+          const allItems: AgentResponseItem[] = [];
+          const keywords: string[] = [];
+          let totalFound = 0;
+
+          for (const result of searchResults) {
+            keywords.push(result.keyword as string);
+            totalFound += result.items.length;
+
+            // Map and add items (limit per search)
+            const mappedItems = result.items
+              .slice(0, 5) // Limit to 5 items per keyword to avoid too many results
+              .map(
+                (item) =>
+                  ({
+                    id: item.id,
+                    name: item.name,
+                    category: item.category,
+                    description: item.description || 'No description available',
+                    price: item.price,
+                    availability:
+                      item.status === ItemStatus.Active
+                        ? 'in_stock'
+                        : 'out_of_stock',
+                  }) as AgentResponseItem
+              );
+
+            allItems.push(...mappedItems);
+          }
+
+          if (allItems.length === 0) {
+            return {
+              text: `No items found matching your search for: ${keywords.join(', ')}. Try different keywords or browse the full catalog.`,
+            };
+          }
+
+          const resultMessage = `Found ${totalFound} total products across ${keywords.length} searches (${keywords.join(', ')}). Showing ${allItems.length} results:`;
+
+          return {
+            text: resultMessage,
+            items: allItems,
+          };
+        } catch (error) {
+          console.error('Error executing multiple search tools:', error);
+          const errorMsg =
+            error instanceof Error ? error.message : 'Unknown error';
+          return {
+            text: `Error performing searches: ${errorMsg}`,
+          };
+        }
+      }
+
+      // Handle single tool call (original behavior)
+      const toolCall = response.toolCalls[0];
+
+      console.warn(
+        '[Agent] Tool called:',
+        toolCall.name,
+        'with args:',
+        toolCall.arguments
+      );
+
+      try {
+        // Execute the tool
+        const toolResult = await executeTool(
+          toolCall.name as AgentActionType,
+          toolCall.arguments,
+          userId
+        );
+
+        // Handle search_catalog tool result
+        if (toolCall.name === 'search_catalog') {
+          const items = toolResult as Awaited<
+            ReturnType<typeof catalogService.searchItems>
+          >;
 
           if (items.length === 0) {
             return {
-              text: `No items found matching "${keywords}". Try different keywords or browse the full catalog.`,
+              text: `No items found matching "${toolCall.arguments.keyword}". Try different keywords or browse the full catalog.`,
             };
           }
 
@@ -278,213 +581,169 @@ Example interactions:
                 item.status === ItemStatus.Active ? 'in_stock' : 'out_of_stock',
             }));
 
-          const itemList = agentItems
-            .map(
-              (item, idx) =>
-                `${idx + 1}. ${item.name} (${item.category}) - $${item.price.toFixed(2)}\n   ID: ${item.id}\n   ${item.description}`
-            )
-            .join('\n\n');
+          // Short message with item count only
+          const resultMessage =
+            items.length > 10
+              ? `Found ${items.length} matching products for "${toolCall.arguments.keyword}". Showing top 10 results:`
+              : `Found ${items.length} matching product${items.length === 1 ? '' : 's'} for "${toolCall.arguments.keyword}":`;
 
           return {
-            text: `Found ${items.length} item(s) matching "${keywords}":\n\n${itemList}${items.length > 10 ? '\n\n(Showing top 10 results)' : ''}`,
+            text: resultMessage,
             items: agentItems,
           };
-        } catch (error) {
-          console.error('Error searching catalog:', error);
-          return {
-            text: 'Error searching catalog. Please try again.',
-          };
-        }
-      }
-    }
-
-    // Add to cart
-    if (
-      lowerMessage.includes('add to cart') ||
-      lowerMessage.includes('add item')
-    ) {
-      const itemIdMatch = userMessage.match(
-        /[a-f0-9]{24}|item[:\s]+([^\s,]+)/i
-      );
-      const quantityMatch = userMessage.match(/quantity[:\s]+(\d+)|(\d+)\s*×/i);
-
-      if (itemIdMatch) {
-        const itemId = itemIdMatch[1] || itemIdMatch[0];
-        const quantity = quantityMatch
-          ? parseInt(quantityMatch[1] || quantityMatch[2])
-          : 1;
-
-        if (!userId) {
-          return {
-            text: 'Error: You must be logged in to add items to your cart.',
-          };
         }
 
-        try {
-          const cart = await cartService.addItemToCart(userId, {
-            itemId,
-            quantity,
-          });
-          const addedItem = cart.items.find((item) => item.itemId === itemId);
+        // Handle add_to_cart tool result
+        if (toolCall.name === 'add_to_cart') {
+          const cart = toolResult as Awaited<
+            ReturnType<typeof cartService.addItemToCart>
+          >;
+          const addedItem = cart.items.find(
+            (item) => item.itemId === toolCall.arguments.itemId
+          );
+
+          const itemCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
 
           if (!addedItem) {
             return {
               text: `Item added to cart. Cart now has ${cart.items.length} item(s).`,
+              cart: {
+                items: cart.items,
+                totalCost: cart.totalCost,
+                itemCount,
+              },
             };
           }
 
           return {
-            text: `Successfully added ${quantity} × "${addedItem.itemName}" to your cart. Cart total: $${cart.totalCost.toFixed(2)} (${cart.items.length} item types, ${cart.items.reduce((sum, i) => sum + i.quantity, 0)} total items).`,
-          };
-        } catch (error) {
-          console.error('Error adding to cart:', error);
-          const errorMsg =
-            error instanceof Error ? error.message : 'Unknown error';
-          return {
-            text: `Error adding item to cart: ${errorMsg}`,
-          };
-        }
-      } else {
-        return {
-          text: "To add an item to your cart, I need the item ID. You can find item IDs by searching the catalog first. For example, say 'search for laptops' to see available items.",
-        };
-      }
-    }
-
-    // View cart
-    if (
-      lowerMessage.includes('view cart') ||
-      lowerMessage.includes('show cart') ||
-      lowerMessage.includes('my cart') ||
-      lowerMessage === 'cart'
-    ) {
-      if (!userId) {
-        return {
-          text: 'Error: You must be logged in to view your cart.',
-        };
-      }
-
-      try {
-        const cart = await cartService.getCartForUser(userId);
-
-        if (!cart || cart.items.length === 0) {
-          return {
-            text: 'Your cart is empty. Use search to find items to add.',
+            text: `Successfully added ${toolCall.arguments.quantity || 1} × "${addedItem.itemName}" to your cart. Cart total: $${cart.totalCost.toFixed(2)} (${cart.items.length} item types, ${itemCount} total items).`,
+            cart: {
+              items: cart.items,
+              totalCost: cart.totalCost,
+              itemCount,
+            },
           };
         }
 
-        const itemList = cart.items
-          .map(
-            (item, idx) =>
-              `${idx + 1}. ${item.itemName} × ${item.quantity} = $${(item.itemPrice * item.quantity).toFixed(2)}\n   ID: ${item.itemId} | Unit price: $${item.itemPrice.toFixed(2)}`
-          )
-          .join('\n\n');
+        // Handle update_cart_quantity tool result
+        if (toolCall.name === 'update_cart_quantity') {
+          const { itemId, newQuantity } = toolCall.arguments as {
+            itemId: string;
+            newQuantity: number;
+          };
 
-        return {
-          text: `Your cart contains ${cart.items.length} item type(s) (${cart.items.reduce((sum, i) => sum + i.quantity, 0)} total items):\n\n${itemList}\n\n**Total: $${cart.totalCost.toFixed(2)}**`,
-        };
-      } catch (error) {
-        console.error('Error viewing cart:', error);
-        return {
-          text: 'Error retrieving cart. Please try again.',
-        };
-      }
-    }
+          // If new quantity is 0, remove the item
+          if (newQuantity <= 0) {
+            const cart = toolResult as Awaited<
+              ReturnType<typeof cartService.removeCartItem>
+            >;
+            const itemCount = cart.items.reduce(
+              (sum, i) => sum + i.quantity,
+              0
+            );
 
-    // Remove from cart
-    if (
-      lowerMessage.includes('remove from cart') ||
-      lowerMessage.includes('delete from cart')
-    ) {
-      const itemIdMatch = userMessage.match(
-        /[a-f0-9]{24}|item[:\s]+([^\s,]+)/i
-      );
+            return {
+              text: `Item removed from cart (quantity set to 0). Cart now has ${cart.items.length} item type(s). Total: $${cart.totalCost.toFixed(2)}.`,
+              cart: {
+                items: cart.items,
+                totalCost: cart.totalCost,
+                itemCount,
+              },
+            };
+          }
 
-      if (itemIdMatch) {
-        const itemId = itemIdMatch[1] || itemIdMatch[0];
+          // Otherwise, it's an update
+          const cart = toolResult as Awaited<
+            ReturnType<typeof cartService.addItemToCart>
+          >;
+          const updatedItem = cart.items.find((item) => item.itemId === itemId);
+          const itemCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
 
-        if (!userId) {
+          if (!updatedItem) {
+            return {
+              text: `Cart updated. Total: $${cart.totalCost.toFixed(2)}.`,
+              cart: {
+                items: cart.items,
+                totalCost: cart.totalCost,
+                itemCount,
+              },
+            };
+          }
+
           return {
-            text: 'Error: You must be logged in to modify your cart.',
+            text: `Updated "${updatedItem.itemName}" quantity to ${newQuantity}. Cart total: $${cart.totalCost.toFixed(2)} (${itemCount} total items).`,
+            cart: {
+              items: cart.items,
+              totalCost: cart.totalCost,
+              itemCount,
+            },
           };
         }
 
-        try {
-          const cart = await cartService.removeCartItem(userId, itemId);
+        // Handle view_cart tool result
+        if (toolCall.name === 'view_cart') {
+          const cart = toolResult as Awaited<
+            ReturnType<typeof cartService.getCartForUser>
+          >;
+
+          if (!cart || cart.items.length === 0) {
+            return {
+              text: 'Your cart is empty. Use search to find items to add.',
+            };
+          }
+
+          const itemCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
+
+          return {
+            text: `Your cart contains ${cart.items.length} item type(s) (${itemCount} total items). Total: $${cart.totalCost.toFixed(2)}`,
+            cart: {
+              items: cart.items,
+              totalCost: cart.totalCost,
+              itemCount,
+            },
+          };
+        }
+
+        // Handle remove_from_cart tool result
+        if (toolCall.name === 'remove_from_cart') {
+          const cart = toolResult as Awaited<
+            ReturnType<typeof cartService.removeCartItem>
+          >;
+
+          const itemCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
+
           return {
             text: `Item removed from cart. Cart now has ${cart.items.length} item type(s). Total: $${cart.totalCost.toFixed(2)}.`,
-          };
-        } catch (error) {
-          console.error('Error removing from cart:', error);
-          const errorMsg =
-            error instanceof Error ? error.message : 'Unknown error';
-          return {
-            text: `Error removing item: ${errorMsg}`,
+            cart: {
+              items: cart.items,
+              totalCost: cart.totalCost,
+              itemCount,
+            },
           };
         }
-      } else {
-        return {
-          text: 'To remove an item from your cart, I need the item ID. You can see item IDs by viewing your cart first.',
-        };
-      }
-    }
 
-    // Checkout
-    if (
-      lowerMessage.includes('checkout') ||
-      lowerMessage.includes('complete purchase')
-    ) {
-      const notesMatch = userMessage.match(
-        /notes?[:\s]+(.+)|justification[:\s]+(.+)/i
-      );
-      const notes = notesMatch
-        ? (notesMatch[1] || notesMatch[2]).trim()
-        : undefined;
-
-      // Confirm checkout
-      if (!lowerMessage.includes('confirm') && !lowerMessage.includes('yes')) {
-        return {
-          text: "Are you sure you want to proceed with checkout? Your cart items will be submitted as a purchase request. Reply with 'confirm checkout' to proceed.",
-        };
-      }
-
-      if (!userId) {
-        return {
-          text: 'Error: You must be logged in to checkout.',
-        };
-      }
-
-      try {
-        const purchaseRequest = await checkoutService.checkoutCart(
-          userId,
-          notes
-        );
-        return {
-          text: `✅ Checkout successful! Purchase request #${purchaseRequest.id} created with ${purchaseRequest.items.length} item(s). Total: $${purchaseRequest.totalCost.toFixed(2)}. Status: ${purchaseRequest.status}. ${notes ? `Notes: ${notes}` : ''}`,
-        };
+        // Handle checkout tool result
+        if (toolCall.name === 'checkout') {
+          const purchaseRequest = toolResult as Awaited<
+            ReturnType<typeof checkoutService.checkoutCart>
+          >;
+          return {
+            text: `✅ Checkout successful! Purchase request #${purchaseRequest.id} created with ${purchaseRequest.items.length} item(s). Total: $${purchaseRequest.totalCost.toFixed(2)}. Status: ${purchaseRequest.status}. ${toolCall.arguments.notes ? `Notes: ${toolCall.arguments.notes}` : ''}`,
+          };
+        }
       } catch (error) {
-        console.error('Error during checkout:', error);
+        console.error(`Error executing tool ${toolCall.name}:`, error);
         const errorMsg =
           error instanceof Error ? error.message : 'Unknown error';
         return {
-          text: `Error during checkout: ${errorMsg}`,
+          text: `Error: ${errorMsg}`,
         };
       }
     }
 
-    // No tool needed - use LLM for conversational response
-    const userPrompt = `${messages ? `Previous conversation:\n${messages}\n\n` : ''}User: ${userMessage}
-
-Please provide a helpful response. Be conversational and guide the user on what they can do.`;
-
-    const response = await chatCompletion(userPrompt, {
-      systemMessage: systemPrompt,
-    });
-
+    // No tool call - return conversational response
     return {
-      text:
-        response.content ||
-        'I apologize, but I encountered an issue processing your request. Could you please rephrase that?',
+      text: response.content || 'How can I help you today?',
     };
   } catch (error) {
     console.error('Error generating agent response:', error);
@@ -495,20 +754,31 @@ Please provide a helpful response. Be conversational and guide the user on what 
 }
 
 /**
- * Execute agent tool (placeholder for future tool integration)
- *
- * This function would be called by LangChain's structured tool framework
- * in a production implementation.
+ * Execute agent tool (now used by function calling)
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function executeTool(
-  toolName: AgentActionType,
+  toolName: AgentActionType | string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parameters: Record<string, any>,
-  userId?: string
+  userId?: string | Types.ObjectId
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
-  switch (toolName) {
+  // Map function names to AgentActionType
+  const toolMap: Record<string, AgentActionType> = {
+    search_catalog: AgentActionType.SearchCatalog,
+    add_to_cart: AgentActionType.AddToCart,
+    update_cart_quantity: AgentActionType.UpdateCartItem,
+    view_cart: AgentActionType.ViewCart,
+    remove_from_cart: AgentActionType.RemoveFromCart,
+    checkout: AgentActionType.Checkout,
+  };
+
+  const actionType =
+    typeof toolName === 'string' && toolName in toolMap
+      ? toolMap[toolName]
+      : (toolName as AgentActionType);
+
+  switch (actionType) {
     case AgentActionType.SearchCatalog:
       return await catalogService.searchItems({ q: parameters.keyword });
 
@@ -530,11 +800,32 @@ async function executeTool(
         quantity: parameters.quantity || 1,
       });
 
+    case AgentActionType.UpdateCartItem:
+      if (!userId) {
+        throw new Error('User must be authenticated to update cart');
+      }
+      // If new quantity is 0 or less, remove the item
+      if (parameters.newQuantity <= 0) {
+        return await cartService.removeCartItem(userId, parameters.itemId);
+      }
+      // Otherwise, use updateCartItemQuantity which sets the exact quantity
+      return await cartService.updateCartItemQuantity(
+        userId,
+        parameters.itemId,
+        parameters.newQuantity
+      );
+
     case AgentActionType.ViewCart:
       if (!userId) {
         throw new Error('User must be authenticated to view cart');
       }
       return await cartService.getCartForUser(userId);
+
+    case AgentActionType.RemoveFromCart:
+      if (!userId) {
+        throw new Error('User must be authenticated to modify cart');
+      }
+      return await cartService.removeCartItem(userId, parameters.itemId);
 
     case AgentActionType.Checkout:
       if (!userId) {
@@ -572,10 +863,14 @@ export async function listConversationsForUser(
       // If userId is not a valid ObjectId (e.g., demo user with id "1"),
       // return empty array instead of querying
       console.warn(
-        `Invalid ObjectId for userId: "${userId}". Returning empty conversations.`
+        `[listConversationsForUser] Invalid ObjectId for userId: "${userId}". Returning empty conversations.`
       );
       return [];
     }
+
+    console.warn(
+      `[listConversationsForUser] Querying conversations for userId: ${userId}`
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const conversations = await (AgentConversationModel as any)
@@ -584,6 +879,10 @@ export async function listConversationsForUser(
       .limit(limit)
       .lean()
       .exec();
+
+    console.warn(
+      `[listConversationsForUser] Found ${conversations.length} conversations for userId: ${userId}`
+    );
 
     return conversations.map(mapToConversationSummary);
   } catch (error) {
@@ -659,6 +958,64 @@ export async function getConversationSummaryById(
     }
 
     return mapToConversationSummary(conversation);
+  } catch (error) {
+    console.error('Error getting conversation:', error);
+    return null;
+  }
+}
+
+/**
+ * Get a complete conversation by ID (with user validation)
+ * Includes all messages, unlike the summary version
+ *
+ * @param userId - User ID (for authorization)
+ * @param id - Conversation ID
+ * @returns Complete conversation with messages or null if not found
+ */
+export async function getConversationById(
+  userId: string,
+  id: string
+): Promise<AgentResponse | null> {
+  await connectDB();
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const conversation = await (AgentConversationModel as any)
+      .findOne({ _id: id, userId })
+      .lean()
+      .exec();
+
+    if (!conversation) {
+      return null;
+    }
+
+    // Map to AgentResponse format with full messages
+    return {
+      conversationId: conversation._id.toString(),
+      title: conversation.title || 'Untitled conversation',
+      messages: conversation.messages.map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (msg: any) => {
+          const message: AgentMessage = {
+            role: msg.sender as AgentMessageRole,
+            content: msg.content,
+            timestamp: msg.createdAt,
+          };
+
+          // Add items if present in metadata
+          if (msg.metadata?.items) {
+            message.items = msg.metadata.items;
+          }
+
+          // Add cart if present in metadata
+          if (msg.metadata?.cart) {
+            message.cart = msg.metadata.cart;
+          }
+
+          return message;
+        }
+      ),
+    };
   } catch (error) {
     console.error('Error getting conversation:', error);
     return null;
