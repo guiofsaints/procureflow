@@ -82,8 +82,8 @@ export default withAuth(
       },
     },
     pages: {
-      // Custom sign-in page (instead of default /api/auth/signin)
-      signIn: '/auth/signin',
+      // Redirect to home page instead of signin page
+      signIn: '/',
     },
   }
 );
