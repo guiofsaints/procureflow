@@ -172,6 +172,9 @@ export function CartPageContent() {
       const data = await response.json();
       const purchaseRequest = data.purchaseRequest;
 
+      // Update cart count to 0 (cart is cleared on server)
+      setItemCount(0);
+
       // Show success toast with purchase request details
       toast.success('Checkout successful!', {
         description: `Purchase request ${purchaseRequest.requestNumber} created with ${cartItems.length} ${cartItems.length === 1 ? 'item' : 'items'}. Total: $${purchaseRequest.totalCost.toFixed(2)}`,
