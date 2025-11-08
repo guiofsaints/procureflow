@@ -131,7 +131,7 @@ export function PurchaseRequestDetailPageContent({
   if (notFound || !purchaseRequest) {
     return (
       <div className='container mx-auto py-8'>
-        <Card>
+        <Card className='py-8'>
           <CardHeader>
             <CardTitle>Purchase Request Not Found</CardTitle>
             <CardDescription>
@@ -164,7 +164,7 @@ export function PurchaseRequestDetailPageContent({
       </div>
 
       {/* Main Card */}
-      <Card>
+      <Card className='py-8'>
         <CardHeader>
           <div className='flex items-start justify-between'>
             <div>

@@ -56,12 +56,6 @@ export default function LoginPage() {
     }
   };
 
-  // Demo credentials helper (not used in UI but kept for development reference)
-  const _fillDemoCredentials = () => {
-    setEmail('demo@procureflow.com');
-    setPassword('demo123');
-  };
-
   return (
     <div className='min-h-screen flex items-center justify-center px-4'>
       <div className='w-full max-w-md'>

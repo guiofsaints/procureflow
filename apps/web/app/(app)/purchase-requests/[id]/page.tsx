@@ -12,5 +12,9 @@ export default function PurchaseRequestDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  return <PurchaseRequestDetailPageContent params={params} />;
+  return (
+    <div className='container mx-auto p-6 max-w-7xl'>
+      <PurchaseRequestDetailPageContent params={params} />
+    </div>
+  );
 }

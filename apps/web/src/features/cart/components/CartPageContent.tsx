@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -27,6 +28,7 @@ import { cn } from '@/lib/utils';
  * - Checkout via API (creates purchase request)
  */
 export function CartPageContent() {
+  const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -178,6 +180,9 @@ export function CartPageContent() {
 
       // Reload cart (should be empty now)
       await loadCart();
+
+      // Redirect to purchase request detail page
+      router.push(`/purchase-requests/${purchaseRequest.id}`);
     } catch (error) {
       console.error('Error during checkout:', error);
       toast.error('Checkout failed', {

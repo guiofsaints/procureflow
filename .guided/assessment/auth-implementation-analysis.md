@@ -420,6 +420,7 @@ export default async function RootLayout({ children }) {
 ```
 
 **Benefícios**:
+
 - ✅ Melhor performance na hidratação (session já disponível no cliente)
 - ✅ Session sempre atualizada (5 min interval)
 - ✅ Session atualiza ao focar janela (UX aprimorada)
