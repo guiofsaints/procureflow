@@ -3,7 +3,7 @@ import nextPlugin from 'eslint-config-next';
 const eslintConfig = [
   // Next.js recommended config (native flat config in Next.js 16)
   ...nextPlugin,
-  
+
   // Custom rules
   {
     rules: {
@@ -51,7 +51,7 @@ const eslintConfig = [
       ],
     },
   },
-  
+
   // Ignores
   {
     ignores: [

@@ -1,5 +1,5 @@
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { HumanMessage, SystemMessage } from 'langchain/schema';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { ChatOpenAI } from '@langchain/openai';
 
 // Configuration for LangChain OpenAI client
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -26,8 +26,8 @@ function initializeChatModel(): ChatOpenAI {
 
   if (!chatModel) {
     chatModel = new ChatOpenAI({
-      openAIApiKey: OPENAI_API_KEY,
-      modelName: DEFAULT_MODEL,
+      apiKey: OPENAI_API_KEY,
+      model: DEFAULT_MODEL,
       temperature: DEFAULT_TEMPERATURE,
       maxTokens: DEFAULT_MAX_TOKENS,
       timeout: 30000, // 30 seconds timeout
@@ -68,18 +68,20 @@ async function chatCompletion(
   options: ChatCompletionOptions = {}
 ): Promise<ChatResponse> {
   try {
-    const model = initializeChatModel();
+    if (!OPENAI_API_KEY) {
+      throw new Error(
+        'OpenAI API key is required. Please set OPENAI_API_KEY in your environment variables.'
+      );
+    }
 
-    // Override model settings if provided
-    if (options.model && options.model !== DEFAULT_MODEL) {
-      model.modelName = options.model;
-    }
-    if (options.temperature !== undefined) {
-      model.temperature = options.temperature;
-    }
-    if (options.maxTokens !== undefined) {
-      model.maxTokens = options.maxTokens;
-    }
+    // Create model with options (LangChain 1.0: create instance per request for different configs)
+    const model = new ChatOpenAI({
+      apiKey: OPENAI_API_KEY,
+      model: options.model || DEFAULT_MODEL,
+      temperature: options.temperature ?? DEFAULT_TEMPERATURE,
+      maxTokens: options.maxTokens ?? DEFAULT_MAX_TOKENS,
+      timeout: 30000,
+    });
 
     // Prepare messages
     const messages = [];
@@ -90,12 +92,12 @@ async function chatCompletion(
 
     messages.push(new HumanMessage(prompt));
 
-    // Call the model
-    const response = await model.call(messages);
+    // Call the model using invoke() (LangChain 1.0 API)
+    const response = await model.invoke(messages);
 
     return {
       content: response.content as string,
-      model: model.modelName,
+      model: options.model || DEFAULT_MODEL,
       // Note: Usage information might not be available in all LangChain versions
       // You may need to implement token counting separately if needed
     };
