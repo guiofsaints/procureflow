@@ -74,8 +74,8 @@ export function AgentChatPageContent({
 
   return (
     <div className='flex h-full flex-col'>
-      {/* Messages area or Welcome screen - with bottom padding for fixed input */}
-      <div className='flex-1 overflow-hidden pb-20'>
+      {/* Messages area or Welcome screen - scrollable */}
+      <div className='flex-1 overflow-y-auto'>
         {hasStarted ? (
           <AgentChatMessages messages={messages} />
         ) : (
@@ -83,8 +83,10 @@ export function AgentChatPageContent({
         )}
       </div>
 
-      {/* Input area - now fixed at bottom */}
-      <AgentChatInput onSend={handleSendMessage} isLoading={isLoading} />
+      {/* Input area - sticky at bottom */}
+      <div className='shrink-0'>
+        <AgentChatInput onSend={handleSendMessage} isLoading={isLoading} />
+      </div>
     </div>
   );
 }

@@ -41,8 +41,8 @@ export function AgentChatMessages({ messages }: AgentChatMessagesProps) {
   }
 
   return (
-    <div className='h-full overflow-y-auto px-4 pb-4'>
-      <div className='mx-auto max-w-4xl space-y-4 py-6'>
+    <div className='h-full px-4 py-4'>
+      <div className='mx-auto max-w-4xl space-y-4'>
         {messages.map((message) => (
           <div
             key={message.id}

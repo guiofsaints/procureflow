@@ -5,5 +5,9 @@ import { CatalogPageContent } from '@/features/catalog/components/CatalogPageCon
  * Displays the catalog feature UI
  */
 export default function CatalogPage() {
-  return <CatalogPageContent />;
+  return (
+    <div className='container mx-auto p-6 max-w-7xl'>
+      <CatalogPageContent />
+    </div>
+  );
 }

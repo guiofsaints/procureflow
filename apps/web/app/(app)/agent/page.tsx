@@ -21,5 +21,10 @@ export default async function AgentPage() {
     return 'there';
   };
 
-  return <AgentChatPageContent userName={getUserFirstName()} />;
+  return (
+    // Fullscreen layout - takes full height of Main, prevents scrolling on Main
+    <div className='absolute inset-0 flex flex-col'>
+      <AgentChatPageContent userName={getUserFirstName()} />
+    </div>
+  );
 }

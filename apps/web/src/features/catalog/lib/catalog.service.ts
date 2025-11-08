@@ -108,10 +108,12 @@ export async function searchItems(
   const { q, limit = 50, includeArchived = false } = params;
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let items: any[];
 
     if (q && q.trim()) {
       // Use text search index if keyword is provided
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items = await (ItemModel as any)
         .find({
           $text: { $search: q.trim() },
@@ -126,6 +128,7 @@ export async function searchItems(
         .exec();
     } else {
       // No keyword: return all items sorted by most recent
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items = await (ItemModel as any)
         .find(includeArchived ? {} : { status: 'active' })
         .sort({ createdAt: -1 })
@@ -181,6 +184,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
   try {
     // Check for potential duplicates (BR-1.3)
     // Find items with similar name and category
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const duplicates: any[] = await (ItemModel as any)
       .find({
         name: { $regex: new RegExp(normalizedName, 'i') },
@@ -213,6 +217,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
     }
 
     // Create item
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newItem = new (ItemModel as any)({
       name: normalizedName,
       category: normalizedCategory,
@@ -224,6 +229,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
       createdByUserId: input.createdByUserId,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const item: any = await newItem.save();
 
     // Convert to domain type
@@ -259,6 +265,7 @@ export async function getItemById(itemId: string): Promise<Item | null> {
   await connectDB();
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const item: any = await (ItemModel as any).findById(itemId).lean().exec();
 
     if (!item) {

@@ -68,7 +68,9 @@ export function AppSidebar() {
         <SidebarSeparator className='my-2' />
 
         {/* Agent Conversation History */}
-        <AgentConversationHistoryList collapsed={isCollapsed} />
+        {!isCollapsed && (
+          <AgentConversationHistoryList collapsed={isCollapsed} />
+        )}
       </SidebarContent>
 
       {/* Rail for hover-to-expand */}

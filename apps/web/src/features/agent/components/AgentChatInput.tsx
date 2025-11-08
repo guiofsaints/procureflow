@@ -40,8 +40,8 @@ export function AgentChatInput({
   };
 
   return (
-    <div className='fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80'>
-      <div className='container mx-auto max-w-4xl p-4'>
+    <div className='border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80'>
+      <div className='mx-auto max-w-4xl p-4'>
         <div className='flex gap-2'>
           {/* Input field */}
           <Input

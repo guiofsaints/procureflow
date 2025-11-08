@@ -86,6 +86,7 @@ export async function handleAgentMessage(
     let conversation: any;
 
     if (conversationId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       conversation = await (AgentConversationModel as any)
         .findById(conversationId)
         .exec();
@@ -95,6 +96,7 @@ export async function handleAgentMessage(
       }
     } else {
       // Create new conversation
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       conversation = new (AgentConversationModel as any)({
         userId: userId || null,
         messages: [],

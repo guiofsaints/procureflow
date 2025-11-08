@@ -1,19 +1,19 @@
 import { useCatalog } from './catalog-provider';
-import { ItemMutateDrawer } from './item-mutate-drawer';
+import { ItemMutateDialog } from './item-mutate-dialog';
 
 export function CatalogDialogs() {
   const { open, setOpen, currentRow, setCurrentRow } = useCatalog();
 
   return (
     <>
-      <ItemMutateDrawer
+      <ItemMutateDialog
         key='item-create'
         open={open === 'create'}
         onOpenChange={(isOpen) => setOpen(isOpen ? 'create' : null)}
       />
 
       {currentRow && (
-        <ItemMutateDrawer
+        <ItemMutateDialog
           key={`item-update-${currentRow.id}`}
           open={open === 'update'}
           onOpenChange={(isOpen) => {
@@ -21,7 +21,7 @@ export function CatalogDialogs() {
             if (!isOpen) {
               setTimeout(() => {
                 setCurrentRow(null);
-              }, 500);
+              }, 300);
             }
           }}
           currentRow={currentRow}

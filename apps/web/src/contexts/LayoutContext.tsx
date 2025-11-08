@@ -33,7 +33,9 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
         setLayout,
       }}
     >
-      {children}
+      {/* Gradient Background */}
+      <div className='gradient-background' aria-hidden='true' />
+      <div className='bg-accent/60'>{children}</div>
     </LayoutContext.Provider>
   );
 }

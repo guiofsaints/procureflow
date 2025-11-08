@@ -42,9 +42,6 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <LayoutProvider>
       <SidebarProvider defaultOpen={defaultOpen}>
-        {/* Gradient Background */}
-        <div className='gradient-background' aria-hidden='true' />
-
         <SkipToMain />
         <AppSidebar />
         <SidebarInset className='@container/content has-data-[layout=fixed]:h-svh peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]'>
@@ -58,9 +55,7 @@ export function AppShell({ children }: AppShellProps) {
               <UserMenu />
             </div>
           </Header>
-          <Main>
-            <div className='container mx-auto p-6 max-w-7xl'>{children}</div>
-          </Main>
+          <Main>{children}</Main>
         </SidebarInset>
       </SidebarProvider>
     </LayoutProvider>

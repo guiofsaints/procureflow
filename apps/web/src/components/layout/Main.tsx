@@ -10,7 +10,7 @@ export function Main({ className, fixed, children, ...props }: MainProps) {
       id='main-content'
       data-layout={fixed ? 'fixed' : 'scroll'}
       className={cn(
-        'flex flex-1 flex-col overflow-auto',
+        'relative flex flex-1 flex-col overflow-auto',
         fixed && '@lg/content:overflow-hidden',
         className
       )}

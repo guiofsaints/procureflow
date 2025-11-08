@@ -27,9 +27,12 @@ export default async function AgentConversationPage({
   };
 
   return (
-    <AgentChatPageContent
-      userName={getUserFirstName()}
-      conversationId={conversationId}
-    />
+    // Fullscreen layout - takes full height of Main, prevents scrolling on Main
+    <div className='absolute inset-0 flex flex-col'>
+      <AgentChatPageContent
+        userName={getUserFirstName()}
+        conversationId={conversationId}
+      />
+    </div>
   );
 }

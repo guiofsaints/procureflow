@@ -24,6 +24,7 @@ export function ThemeToggle() {
 
   // Avoid hydration mismatch - only set mounted on client side
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

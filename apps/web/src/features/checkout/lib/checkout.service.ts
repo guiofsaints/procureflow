@@ -108,6 +108,7 @@ export async function checkoutCart(
     );
 
     // Create purchase request
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const purchaseRequest = new (PurchaseRequestModel as any)({
       requestNumber,
       userId,

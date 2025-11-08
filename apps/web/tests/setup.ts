@@ -34,7 +34,7 @@ beforeAll(async () => {
 afterAll(async () => {
   try {
     await disconnectDB();
-    console.log('✅ Disconnected from test database');
+    console.error('✅ Disconnected from test database');
   } catch (error) {
     console.error('❌ Failed to disconnect from test database:', error);
   }

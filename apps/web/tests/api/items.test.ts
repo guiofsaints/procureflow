@@ -13,6 +13,7 @@ describe('Catalog Service', () => {
   describe('createItem', () => {
     // Clean up items before each test in this describe block
     beforeEach(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (ItemModel as any).deleteMany({});
     });
 
@@ -68,6 +69,7 @@ describe('Catalog Service', () => {
   describe('searchItems', () => {
     beforeEach(async () => {
       // Clean up first
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (ItemModel as any).deleteMany({});
 
       // Then seed test items
