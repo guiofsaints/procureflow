@@ -358,20 +358,26 @@ export const PurchaseRequestSchema = new Schema(
 // Indexes
 // ============================================================================
 
+/**
+ * NOTE: Explicit .index() calls are commented out to avoid Turbopack compatibility issues.
+ * The unique index on requestNumber is already defined via schema field option { unique: true }.
+ * Other indexes can be created manually via MongoDB or enabled when not using Turbopack.
+ */
+
 // Unique index on requestNumber
-PurchaseRequestSchema.index({ requestNumber: 1 }, { unique: true });
+// PurchaseRequestSchema.index({ requestNumber: 1 }, { unique: true });
 
 // Index on userId for user's request history
-PurchaseRequestSchema.index({ userId: 1 });
+// PurchaseRequestSchema.index({ userId: 1 });
 
 // Index on createdAt for chronological queries
-PurchaseRequestSchema.index({ createdAt: -1 }); // Descending for recent-first
+// PurchaseRequestSchema.index({ createdAt: -1 }); // Descending for recent-first
 
 // Compound index on userId + createdAt for user's recent requests
-PurchaseRequestSchema.index({ userId: 1, createdAt: -1 });
+// PurchaseRequestSchema.index({ userId: 1, createdAt: -1 });
 
 // Index on status for filtering by status
-PurchaseRequestSchema.index({ status: 1 });
+// PurchaseRequestSchema.index({ status: 1 });
 
 // ============================================================================
 // Static Methods

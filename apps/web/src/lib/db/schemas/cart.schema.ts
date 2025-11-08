@@ -273,11 +273,17 @@ CartSchema.virtual('totalQuantity').get(function () {
 // Indexes
 // ============================================================================
 
+/**
+ * NOTE: Explicit .index() calls are commented out to avoid Turbopack compatibility issues.
+ * The unique index on userId is already defined via schema field option { unique: true }.
+ * Other indexes can be created manually via MongoDB or enabled when not using Turbopack.
+ */
+
 // Index on userId for fast cart lookups by user
-CartSchema.index({ userId: 1 }, { unique: true }); // Each user has one active cart
+// CartSchema.index({ userId: 1 }, { unique: true }); // Each user has one active cart
 
 // Index on updatedAt for cleanup of stale carts
-CartSchema.index({ updatedAt: 1 });
+// CartSchema.index({ updatedAt: 1 });
 
 // ============================================================================
 // Instance Methods

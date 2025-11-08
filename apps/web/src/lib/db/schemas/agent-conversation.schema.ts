@@ -313,20 +313,25 @@ export const AgentConversationSchema = new Schema(
 // Indexes
 // ============================================================================
 
+/**
+ * NOTE: Explicit .index() calls are commented out to avoid Turbopack compatibility issues.
+ * Indexes can be created manually via MongoDB or enabled when not using Turbopack.
+ */
+
 // Index on userId for user's conversation history
-AgentConversationSchema.index({ userId: 1 });
+// AgentConversationSchema.index({ userId: 1 });
 
 // Index on status for filtering conversations by status
-AgentConversationSchema.index({ status: 1 });
+// AgentConversationSchema.index({ status: 1 });
 
 // Index on createdAt for chronological queries
-AgentConversationSchema.index({ createdAt: -1 }); // Descending for recent-first
+// AgentConversationSchema.index({ createdAt: -1 }); // Descending for recent-first
 
 // Compound index on userId + status for active user conversations
-AgentConversationSchema.index({ userId: 1, status: 1 });
+// AgentConversationSchema.index({ userId: 1, status: 1 });
 
 // Compound index on userId + updatedAt for conversation history listing (sorted by recent)
-AgentConversationSchema.index({ userId: 1, updatedAt: -1 });
+// AgentConversationSchema.index({ userId: 1, updatedAt: -1 });
 
 // ============================================================================
 // Virtual Properties

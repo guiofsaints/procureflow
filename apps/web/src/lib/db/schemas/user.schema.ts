@@ -175,11 +175,17 @@ export const UserSchema = new Schema(
 // Indexes
 // ============================================================================
 
+/**
+ * NOTE: Explicit .index() calls are commented out to avoid Turbopack compatibility issues.
+ * The unique index on email is already defined via schema field option { unique: true }.
+ * Other indexes can be created manually via MongoDB or enabled when not using Turbopack.
+ */
+
 // Unique index on email (already defined in schema, but explicit for clarity)
-UserSchema.index({ email: 1 }, { unique: true });
+// UserSchema.index({ email: 1 }, { unique: true });
 
 // Index on role for future RBAC queries
-UserSchema.index({ role: 1 });
+// UserSchema.index({ role: 1 });
 
 // ============================================================================
 // Pre-save Hooks

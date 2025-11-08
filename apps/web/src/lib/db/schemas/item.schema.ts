@@ -197,21 +197,26 @@ export const ItemSchema = new Schema(
 // Indexes
 // ============================================================================
 
+/**
+ * NOTE: Explicit .index() calls are commented out to avoid Turbopack compatibility issues.
+ * Indexes can be created manually via MongoDB or enabled when not using Turbopack.
+ */
+
 // Compound index on name + category for search and duplicate detection
 // Business Rule BR-1.3: Item name should be unique within same category
-ItemSchema.index({ name: 1, category: 1 });
+// ItemSchema.index({ name: 1, category: 1 });
 
 // Text index on name, description, and category for full-text search
-ItemSchema.index({ name: 'text', description: 'text', category: 'text' });
+// ItemSchema.index({ name: 'text', description: 'text', category: 'text' });
 
 // Index on category for filtering
-ItemSchema.index({ category: 1 });
+// ItemSchema.index({ category: 1 });
 
 // Index on status for active item queries
-ItemSchema.index({ status: 1 });
+// ItemSchema.index({ status: 1 });
 
 // Index on createdByUserId for user's registered items
-ItemSchema.index({ createdByUserId: 1 });
+// ItemSchema.index({ createdByUserId: 1 });
 
 // ============================================================================
 // Virtual Properties
