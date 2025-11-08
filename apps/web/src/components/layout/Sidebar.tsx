@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 
 import {
@@ -21,7 +22,7 @@ import { NavGroup } from './NavGroup';
  * AppSidebar component using shadcn Sidebar
  *
  * Features:
- * - Logo/title at top
+ * - ProcureFlow logo at top
  * - Navigation groups in middle
  * - Collapsible with keyboard shortcut (Ctrl+B)
  * - Supports variants: sidebar (default), floating, inset
@@ -41,14 +42,20 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
-      {/* Header with Logo */}
+      {/* Header with ProcureFlow Logo */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size='lg' asChild>
               <Link href='/catalog'>
-                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
-                  <span className='font-bold text-sm'>PF</span>
+                <div className='flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg'>
+                  <Image
+                    src='/procureflow.png'
+                    alt='ProcureFlow'
+                    width={32}
+                    height={32}
+                    className='h-full w-full object-contain'
+                  />
                 </div>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
                   <span className='truncate font-semibold'>ProcureFlow</span>
