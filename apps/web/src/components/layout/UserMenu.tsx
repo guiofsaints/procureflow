@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronDown, LogOut, Settings, User } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -24,11 +25,23 @@ interface UserMenuProps {
  * Migrated to shadcn Avatar and DropdownMenu components
  */
 export function UserMenu({ collapsed }: UserMenuProps) {
-  // Mock user data - replace with actual user data later
+  const { data: session } = useSession();
+
+  // User data from session (fallback to defaults if session not loaded)
   const user = {
-    name: 'Gui Santos',
-    email: 'gui@procureflow.com',
-    initials: 'GS',
+    name: session?.user?.name || 'Loading...',
+    email: session?.user?.email || '',
+    initials:
+      session?.user?.name
+        ?.split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2) || 'U',
+  };
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: '/' });
   };
 
   const menuItems = [
@@ -45,7 +58,7 @@ export function UserMenu({ collapsed }: UserMenuProps) {
     {
       label: 'Logout',
       icon: LogOut,
-      onClick: () => alert('Logout - Not implemented yet'),
+      onClick: handleLogout,
       danger: true,
     },
   ];

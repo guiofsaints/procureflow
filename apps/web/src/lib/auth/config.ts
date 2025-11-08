@@ -64,7 +64,7 @@ export const authConfig: NextAuthOptions = {
 
   pages: {
     signIn: '/auth/signin',
-    // signUp: '/auth/signup',  // Custom signup page
+    signOut: '/auth/signout',
     // error: '/auth/error',    // Error code passed as query string
   },
 
