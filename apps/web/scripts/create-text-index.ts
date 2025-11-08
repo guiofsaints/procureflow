@@ -13,8 +13,7 @@
 import mongoose from 'mongoose';
 
 // MongoDB connection URI from environment
-const MONGODB_URI =
-  process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 async function createTextIndex() {
   try {

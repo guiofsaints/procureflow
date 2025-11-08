@@ -160,12 +160,24 @@ The application will be available at:
 - **Health Check**: http://localhost:3000/api/health
 - **MongoDB Admin** (Docker): http://localhost:8081
 
-### 4. Verify Setup
+### 4. Database Setup
+
+After starting MongoDB, create the required text index for catalog search:
+
+```bash
+# Create text index on items collection (required for agent search)
+pnpm --filter web db:create-text-index
+```
+
+This enables full-text search on the catalog using MongoDB's `$text` operator.
+
+### 5. Verify Setup
 
 - ✅ Visit http://localhost:3000 to see the landing page
 - ✅ Check http://localhost:3000/api/health for API status
 - ✅ Run `pnpm lint` to verify code quality setup
 - ✅ Test authentication with demo credentials (see Auth section)
+- ✅ Test agent search with "find laptops" in the /agent page
 
 ## 🔧 Development Workflow
 
@@ -182,6 +194,10 @@ pnpm lint             # Run ESLint + Prettier check
 pnpm lint:fix         # Fix linting issues
 pnpm format           # Format code with Prettier
 pnpm type-check       # TypeScript type checking
+
+# Database
+pnpm --filter web db:create-text-index  # Create text index for catalog search
+pnpm --filter web db:seed-office-items  # Seed 200 office items for testing
 
 # Release Management
 pnpm release          # Generate changelog and version bump

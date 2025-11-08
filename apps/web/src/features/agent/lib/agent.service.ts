@@ -11,7 +11,11 @@
  */
 
 import type { AgentMessage } from '@/domain/entities';
-import { AgentActionType, AgentMessageRole, ItemStatus } from '@/domain/entities';
+import {
+  AgentActionType,
+  AgentMessageRole,
+  ItemStatus,
+} from '@/domain/entities';
 import type { AgentConversationSummary } from '@/features/agent/types';
 import * as cartService from '@/features/cart';
 import * as catalogService from '@/features/catalog';
@@ -135,8 +139,8 @@ export async function handleAgentMessage(
       createdAt: new Date(),
       metadata: agentReply.items
         ? {
-          items: agentReply.items,
-        }
+            items: agentReply.items,
+          }
         : undefined,
     });
 
@@ -262,14 +266,17 @@ Example interactions:
           }
 
           // Map items to AgentResponseItem format
-          const agentItems: AgentResponseItem[] = items.slice(0, 10).map((item) => ({
-            id: item.id,
-            name: item.name,
-            category: item.category,
-            description: item.description || 'No description available',
-            price: item.price,
-            availability: item.status === ItemStatus.Active ? 'in_stock' : 'out_of_stock',
-          }));
+          const agentItems: AgentResponseItem[] = items
+            .slice(0, 10)
+            .map((item) => ({
+              id: item.id,
+              name: item.name,
+              category: item.category,
+              description: item.description || 'No description available',
+              price: item.price,
+              availability:
+                item.status === ItemStatus.Active ? 'in_stock' : 'out_of_stock',
+            }));
 
           const itemList = agentItems
             .map(

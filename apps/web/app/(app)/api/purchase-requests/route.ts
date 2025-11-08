@@ -44,9 +44,7 @@ export async function GET(request: NextRequest) {
     if (statusParam) {
       // Validate status parameter
       const validStatuses = Object.values(PurchaseRequestStatus);
-      if (
-        validStatuses.includes(statusParam as PurchaseRequestStatus)
-      ) {
+      if (validStatuses.includes(statusParam as PurchaseRequestStatus)) {
         filters.status = statusParam as PurchaseRequestStatus;
       } else {
         return NextResponse.json(
@@ -60,8 +58,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch purchase requests
-    const purchaseRequests =
-      await checkoutService.getPurchaseRequestsForUser(userId, filters);
+    const purchaseRequests = await checkoutService.getPurchaseRequestsForUser(
+      userId,
+      filters
+    );
 
     return NextResponse.json({
       success: true,

@@ -6,13 +6,7 @@
 
 'use client';
 
-import {
-  CheckCircle2,
-  Clock,
-  FileText,
-  Loader2,
-  XCircle,
-} from 'lucide-react';
+import { CheckCircle2, Clock, FileText, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -65,9 +59,7 @@ export function PurchaseHistoryPageContent() {
       console.error('Error loading purchase requests:', error);
       toast.error('Failed to load purchase history', {
         description:
-          error instanceof Error
-            ? error.message
-            : 'Please try again later.',
+          error instanceof Error ? error.message : 'Please try again later.',
       });
     } finally {
       setIsLoading(false);

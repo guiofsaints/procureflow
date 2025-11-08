@@ -72,9 +72,7 @@ export function PurchaseRequestDetailPageContent({
       console.error('Error loading purchase request:', error);
       toast.error('Failed to load purchase request', {
         description:
-          error instanceof Error
-            ? error.message
-            : 'Please try again later.',
+          error instanceof Error ? error.message : 'Please try again later.',
       });
     } finally {
       setIsLoading(false);
