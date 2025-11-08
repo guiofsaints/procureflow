@@ -11,10 +11,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useCart } from '@/contexts/CartContext';
 import { useLayout } from '@/contexts/LayoutContext';
+import { AgentConversationHistoryList } from '@/features/agent';
 
 import { sidebarData } from './data/sidebar-data';
 import { NavGroup } from './NavGroup';
@@ -32,6 +34,10 @@ import { NavGroup } from './NavGroup';
 export function AppSidebar() {
   const { itemCount } = useCart();
   const { variant, collapsible } = useLayout();
+  const { state } = useSidebar();
+
+  // Check if sidebar is collapsed
+  const isCollapsed = state === 'collapsed';
 
   // Update cart badge dynamically
   const navGroups = sidebarData.navGroups.map((group) => ({
@@ -57,6 +63,12 @@ export function AppSidebar() {
         {navGroups.map((group) => (
           <NavGroup key={group.title} {...group} />
         ))}
+
+        {/* Separator before conversation history */}
+        <SidebarSeparator className='my-2' />
+
+        {/* Agent Conversation History */}
+        <AgentConversationHistoryList collapsed={isCollapsed} />
       </SidebarContent>
 
       {/* Rail for hover-to-expand */}

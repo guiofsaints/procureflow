@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronUp, LogOut, Settings, User } from 'lucide-react';
+import { ChevronDown, LogOut, Settings, User } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -80,7 +80,7 @@ export function UserMenu({ collapsed }: UserMenuProps) {
               </div>
 
               {/* Dropdown icon */}
-              <ChevronUp className='h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180' />
+              <ChevronDown className='h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180' />
             </>
           )}
         </button>

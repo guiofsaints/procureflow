@@ -17,7 +17,6 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 interface AgentWelcomeProps {
@@ -89,13 +88,10 @@ export function AgentWelcome({
                 className='group cursor-pointer transition-all hover:border-primary hover:shadow-md'
                 onClick={() => onPromptClick(prompt.text)}
               >
-                <Button
-                  variant='ghost'
-                  className='h-auto w-full justify-start gap-3 p-4 text-left font-normal'
-                >
+                <div className='h-auto w-full justify-start gap-3 p-4 text-left font-normal flex'>
                   <Icon className='h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary' />
                   <span className='text-sm'>{prompt.text}</span>
-                </Button>
+                </div>
               </Card>
             );
           })}

@@ -21,3 +21,10 @@ export interface AgentMessage {
   content: string;
   items?: AgentItem[];
 }
+
+export interface AgentConversationSummary {
+  id: string;
+  title: string;
+  lastMessagePreview: string;
+  updatedAt: string; // ISO date
+}

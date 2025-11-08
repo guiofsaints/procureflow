@@ -18,14 +18,20 @@ import { AgentWelcome } from './AgentWelcome';
 
 interface AgentChatPageContentProps {
   userName?: string;
+  conversationId?: string;
 }
 
 export function AgentChatPageContent({
   userName = 'there',
+  conversationId: _conversationId,
 }: AgentChatPageContentProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+
+  // TODO: Load conversation messages from API when conversationId is provided
+  // This will be implemented in a follow-up when the full message loading is needed
+  // For now, we just accept the conversationId to enable navigation
 
   const handleSendMessage = async (content: string) => {
     // Mark chat as started

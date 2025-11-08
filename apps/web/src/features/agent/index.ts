@@ -4,7 +4,12 @@
  */
 
 // Types
-export type { AgentItem, AgentMessage, AgentRole } from './types';
+export type {
+  AgentConversationSummary,
+  AgentItem,
+  AgentMessage,
+  AgentRole,
+} from './types';
 
 // Mock data and logic
 export { mockItems } from './mocks/mockItems';
@@ -18,6 +23,7 @@ export {
 export { AgentChatPageContent } from './components/AgentChatPageContent';
 export { AgentChatInput } from './components/AgentChatInput';
 export { AgentChatMessages } from './components/AgentChatMessages';
+export { AgentConversationHistoryList } from './components/AgentConversationHistoryList';
 export { AgentProductCard } from './components/AgentProductCard';
 export { AgentWelcome } from './components/AgentWelcome';
 

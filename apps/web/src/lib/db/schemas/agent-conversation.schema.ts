@@ -27,6 +27,8 @@ export const AGENT_CONVERSATION_COLLECTION_NAME = 'agent_conversations';
 // Validation limits
 export const MAX_MESSAGES_PER_CONVERSATION = 500; // Prevent unbounded growth
 export const MAX_MESSAGE_CONTENT_LENGTH = 10000; // Maximum chars per message
+export const MAX_TITLE_LENGTH = 120; // Maximum chars for conversation title
+export const MAX_PREVIEW_LENGTH = 120; // Maximum chars for last message preview
 
 // ============================================================================
 // Enums
@@ -179,6 +181,40 @@ export const AgentConversationSchema = new Schema(
     },
 
     /**
+     * Conversation title
+     * - Generated from first user message or explicitly set
+     * - Max 120 characters
+     * - Used for display in conversation history
+     */
+    title: {
+      type: String,
+      required: [true, 'Conversation title is required'],
+      trim: true,
+      maxlength: [
+        MAX_TITLE_LENGTH,
+        `Title must not exceed ${MAX_TITLE_LENGTH} characters`,
+      ],
+      default: 'Untitled conversation',
+    },
+
+    /**
+     * Preview of last message
+     * - Used for quick context in conversation list
+     * - Max 120 characters
+     * - Updated when new messages are added
+     */
+    lastMessagePreview: {
+      type: String,
+      required: [true, 'Last message preview is required'],
+      trim: true,
+      maxlength: [
+        MAX_PREVIEW_LENGTH,
+        `Preview must not exceed ${MAX_PREVIEW_LENGTH} characters`,
+      ],
+      default: 'No messages yet',
+    },
+
+    /**
      * Chronological list of messages in the conversation
      * - Array of AgentMessage sub-documents
      * - Max 500 messages to prevent unbounded growth
@@ -288,6 +324,9 @@ AgentConversationSchema.index({ createdAt: -1 }); // Descending for recent-first
 
 // Compound index on userId + status for active user conversations
 AgentConversationSchema.index({ userId: 1, status: 1 });
+
+// Compound index on userId + updatedAt for conversation history listing (sorted by recent)
+AgentConversationSchema.index({ userId: 1, updatedAt: -1 });
 
 // ============================================================================
 // Virtual Properties

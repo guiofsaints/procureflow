@@ -12,6 +12,7 @@
 
 import type { AgentMessage } from '@/domain/entities';
 import { AgentActionType, AgentMessageRole } from '@/domain/entities';
+import type { AgentConversationSummary } from '@/features/agent/types';
 import * as cartService from '@/features/cart';
 import * as catalogService from '@/features/catalog';
 import * as checkoutService from '@/features/checkout';
@@ -269,4 +270,148 @@ async function executeTool(
     default:
       throw new Error(`Unknown tool: ${toolName}`);
   }
+}
+
+// ============================================================================
+// Conversation History Functions
+// ============================================================================
+
+/**
+ * List conversations for a user (sorted by most recent)
+ *
+ * @param userId - User ID
+ * @param limit - Maximum number of conversations to return
+ * @returns Array of conversation summaries
+ */
+export async function listConversationsForUser(
+  userId: string,
+  limit = 10
+): Promise<AgentConversationSummary[]> {
+  await connectDB();
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const conversations = await (AgentConversationModel as any)
+      .find({ userId })
+      .sort({ updatedAt: -1 })
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return conversations.map(mapToConversationSummary);
+  } catch (error) {
+    console.error('Error listing conversations:', error);
+    throw new Error('Failed to list conversations');
+  }
+}
+
+/**
+ * Create a new conversation for a user
+ *
+ * @param userId - User ID
+ * @param params - Conversation parameters
+ * @returns Created conversation summary
+ */
+export async function createConversationForUser(
+  userId: string,
+  params: { title: string; lastMessagePreview: string }
+): Promise<AgentConversationSummary> {
+  await connectDB();
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const conversation = new (AgentConversationModel as any)({
+      userId,
+      title: params.title.substring(0, 120), // Enforce max length
+      lastMessagePreview: params.lastMessagePreview.substring(0, 120),
+      messages: [],
+      status: 'in_progress',
+    });
+
+    await conversation.save();
+
+    return mapToConversationSummary(conversation);
+  } catch (error) {
+    console.error('Error creating conversation:', error);
+    throw new Error('Failed to create conversation');
+  }
+}
+
+/**
+ * Get a conversation summary by ID (with user validation)
+ *
+ * @param userId - User ID (for authorization)
+ * @param id - Conversation ID
+ * @returns Conversation summary or null if not found
+ */
+export async function getConversationSummaryById(
+  userId: string,
+  id: string
+): Promise<AgentConversationSummary | null> {
+  await connectDB();
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const conversation = await (AgentConversationModel as any)
+      .findOne({ _id: id, userId })
+      .lean()
+      .exec();
+
+    if (!conversation) {
+      return null;
+    }
+
+    return mapToConversationSummary(conversation);
+  } catch (error) {
+    console.error('Error getting conversation:', error);
+    return null;
+  }
+}
+
+/**
+ * Update conversation's last message preview and touch updatedAt
+ *
+ * @param userId - User ID (for authorization)
+ * @param id - Conversation ID
+ * @param lastMessagePreview - New preview text
+ */
+export async function touchConversation(
+  userId: string,
+  id: string,
+  lastMessagePreview: string
+): Promise<void> {
+  await connectDB();
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (AgentConversationModel as any)
+      .findOneAndUpdate(
+        { _id: id, userId },
+        {
+          lastMessagePreview: lastMessagePreview.substring(0, 120),
+          updatedAt: new Date(),
+        }
+      )
+      .exec();
+  } catch (error) {
+    console.error('Error touching conversation:', error);
+    throw new Error('Failed to update conversation');
+  }
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/**
+ * Map Mongoose document to AgentConversationSummary
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapToConversationSummary(doc: any): AgentConversationSummary {
+  return {
+    id: doc._id.toString(),
+    title: doc.title || 'Untitled conversation',
+    lastMessagePreview: doc.lastMessagePreview || 'No messages yet',
+    updatedAt: doc.updatedAt?.toISOString() || new Date().toISOString(),
+  };
 }
