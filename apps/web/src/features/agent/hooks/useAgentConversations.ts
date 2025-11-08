@@ -33,7 +33,12 @@ export function useAgentConversations(): UseAgentConversationsReturn {
       const response = await fetch('/api/agent/conversations');
 
       if (!response.ok) {
-        throw new Error('Failed to fetch conversations');
+        // Try to get error details from response
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage =
+          errorData.error ||
+          `Failed to fetch conversations (${response.status})`;
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

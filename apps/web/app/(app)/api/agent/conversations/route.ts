@@ -11,6 +11,17 @@ import { authConfig } from '@/lib/auth/config';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if MongoDB is configured
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json(
+        {
+          success: true,
+          data: [], // Return empty array when DB not configured
+        },
+        { status: 200 }
+      );
+    }
+
     // Check authentication
     const session = await getServerSession(authConfig);
 
