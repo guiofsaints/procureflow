@@ -10,7 +10,7 @@ const DEFAULT_MAX_TOKENS = 1000;
 // Validate API key on module initialization
 if (!OPENAI_API_KEY) {
   console.warn(
-    '⚠️  OPENAI_API_KEY not found in environment variables. AI features will be disabled.'
+    'OPENAI_API_KEY not found in environment variables. AI features will be disabled.'
   );
 }
 
@@ -252,12 +252,6 @@ async function chatCompletionWithTools(
           parameters: tool.parameters,
         },
       }));
-
-      // Debug: Log tools being passed
-      console.warn(
-        '[LangChain] Tools configured:',
-        options.tools.map((t) => t.name)
-      );
     }
 
     // Prepare messages with conversation history
@@ -283,14 +277,6 @@ async function chatCompletionWithTools(
     // Call the model with tools if provided
     const invokeOptions = formattedTools ? { tools: formattedTools } : {};
     const response = await model.invoke(messages, invokeOptions);
-
-    // Debug: Log response structure
-    console.warn('[LangChain] Response:', {
-      contentLength: (response.content as string)?.length || 0,
-      hasToolCalls: !!response.additional_kwargs?.tool_calls,
-      toolCallsCount: response.additional_kwargs?.tool_calls?.length || 0,
-      finishReason: response.additional_kwargs?.finish_reason,
-    });
 
     // Extract tool calls if present
     const toolCalls: ToolCall[] = [];

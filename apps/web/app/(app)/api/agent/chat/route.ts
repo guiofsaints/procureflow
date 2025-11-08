@@ -25,20 +25,6 @@ export async function POST(request: NextRequest) {
     // Check authentication (optional for demo)
     const session = await getServerSession(authConfig);
 
-    // Debug: Log session info
-    if (session?.user) {
-      console.warn(
-        '[POST /api/agent/chat] User authenticated:',
-        session.user.email,
-        'userId:',
-        session.user.id
-      );
-    } else {
-      console.warn(
-        '[POST /api/agent/chat] No authenticated user - conversation will be anonymous'
-      );
-    }
-
     // Parse request body
     const body = await request.json();
 
@@ -66,11 +52,6 @@ export async function POST(request: NextRequest) {
       message: body.message,
       conversationId: body.conversationId,
     });
-
-    console.warn(
-      '[POST /api/agent/chat] Response conversationId:',
-      response.conversationId
-    );
 
     return NextResponse.json(response);
   } catch (error) {

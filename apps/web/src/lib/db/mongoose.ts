@@ -54,12 +54,12 @@ async function connectDB(): Promise<typeof mongoose> {
 
   try {
     cached.conn = await cached.promise;
-    console.error('📦 Connected to MongoDB');
+    console.error('Connected to MongoDB');
     return cached.conn;
   } catch (error) {
     cached.promise = null;
     cached.conn = null;
-    console.error('❌ MongoDB connection error:', error);
+    console.error('MongoDB connection error:', error);
     throw error;
   }
 }
@@ -70,7 +70,7 @@ async function disconnectDB(): Promise<void> {
     await mongoose.disconnect();
     cached.conn = null;
     cached.promise = null;
-    console.error('📦 Disconnected from MongoDB');
+    console.error('Disconnected from MongoDB');
   }
 }
 

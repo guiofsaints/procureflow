@@ -35,9 +35,6 @@ export function useAgentConversations(): UseAgentConversationsReturn {
       if (!response.ok) {
         // Handle 401 Unauthorized - session expired or invalid
         if (response.status === 401) {
-          console.warn(
-            'Session expired or invalid. Please log in again to view conversations.'
-          );
           setConversations([]);
           setIsLoading(false);
           return; // Don't throw error, just clear conversations

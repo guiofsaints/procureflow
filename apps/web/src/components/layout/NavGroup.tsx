@@ -109,7 +109,7 @@ function SidebarMenuLink({
         <Link href={item.url} onClick={() => setOpenMobile(false)}>
           {item.icon && (
             <div className='relative'>
-              <item.icon className='h-6 w-6' />
+              <item.icon className='h-4 w-4' />
               {/* Show badge indicator when collapsed */}
               {isCollapsed && hasBadge && (
                 <span className='absolute -right-1 -top-1 flex h-3 w-3'>

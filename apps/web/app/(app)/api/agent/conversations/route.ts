@@ -32,12 +32,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Debug: Log user ID being used for query
-    console.warn(
-      '[GET /api/agent/conversations] Fetching conversations for userId:',
-      session.user.id
-    );
-
     // Get limit from query params (optional)
     const searchParams = request.nextUrl.searchParams;
     const limitParam = searchParams.get('limit');
@@ -47,12 +41,6 @@ export async function GET(request: NextRequest) {
     const conversations = await listConversationsForUser(
       session.user.id,
       limit
-    );
-
-    console.warn(
-      '[GET /api/agent/conversations] Found',
-      conversations.length,
-      'conversations'
     );
 
     return NextResponse.json({

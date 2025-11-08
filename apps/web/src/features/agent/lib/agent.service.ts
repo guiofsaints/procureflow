@@ -108,14 +108,6 @@ export async function handleAgentMessage(
     throw new ValidationError('Message cannot be empty');
   }
 
-  // Debug: Log userId for debugging conversation issues
-  if (!userId) {
-    console.warn(
-      '[handleAgentMessage] No userId provided. conversationId:',
-      conversationId
-    );
-  }
-
   try {
     // Find or create conversation
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,13 +126,6 @@ export async function handleAgentMessage(
       // Create new conversation with title from first message
       const title = message.trim().substring(0, 60); // First 60 chars as title
       const preview = message.trim().substring(0, 100); // First 100 chars as preview
-
-      // Validate userId for new conversations
-      if (!userId) {
-        console.warn(
-          '[handleAgentMessage] Creating conversation with null userId - it will not appear in user conversation list'
-        );
-      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       conversation = new (AgentConversationModel as any)({
@@ -442,40 +427,18 @@ Examples:
       temperature: 0.7,
     });
 
-    // Debug: Log response to see what's happening
-    console.warn('[Agent] LLM Response:', {
-      content: response.content?.substring(0, 100),
-      hasToolCalls: !!response.toolCalls,
-      toolCallsCount: response.toolCalls?.length || 0,
-      finishReason: response.finishReason,
-    });
-
     // Check if model wants to call a tool
     if (response.toolCalls && response.toolCalls.length > 0) {
-      console.warn(
-        `[Agent] Processing ${response.toolCalls.length} tool call(s)`
-      );
-
       // For search_catalog, we can handle multiple calls and combine results
       const searchCalls = response.toolCalls.filter(
         (tc) => tc.name === 'search_catalog'
       );
 
       if (searchCalls.length > 1) {
-        console.warn(
-          `[Agent] Multiple search calls detected: ${searchCalls.length}`
-        );
-
         try {
           // Execute all search calls in parallel
           const searchResults = await Promise.all(
             searchCalls.map(async (toolCall) => {
-              console.warn(
-                '[Agent] Search tool called:',
-                toolCall.name,
-                'with args:',
-                toolCall.arguments
-              );
               const items = await catalogService.searchItems({
                 q: toolCall.arguments.keyword as string,
               });
@@ -540,13 +503,6 @@ Examples:
 
       // Handle single tool call (original behavior)
       const toolCall = response.toolCalls[0];
-
-      console.warn(
-        '[Agent] Tool called:',
-        toolCall.name,
-        'with args:',
-        toolCall.arguments
-      );
 
       try {
         // Execute the tool
@@ -862,15 +818,8 @@ export async function listConversationsForUser(
     if (!isValidObjectId) {
       // If userId is not a valid ObjectId (e.g., demo user with id "1"),
       // return empty array instead of querying
-      console.warn(
-        `[listConversationsForUser] Invalid ObjectId for userId: "${userId}". Returning empty conversations.`
-      );
       return [];
     }
-
-    console.warn(
-      `[listConversationsForUser] Querying conversations for userId: ${userId}`
-    );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const conversations = await (AgentConversationModel as any)
@@ -879,10 +828,6 @@ export async function listConversationsForUser(
       .limit(limit)
       .lean()
       .exec();
-
-    console.warn(
-      `[listConversationsForUser] Found ${conversations.length} conversations for userId: ${userId}`
-    );
 
     return conversations.map(mapToConversationSummary);
   } catch (error) {

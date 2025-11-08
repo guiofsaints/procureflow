@@ -342,6 +342,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    ```
 
 3. **Passar session inicial** (Server Components):
+
    ```typescript
    // app/(app)/layout.tsx
    export default async function AppLayout({ children }) {
