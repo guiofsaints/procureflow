@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 
 import {
   Breadcrumb,
@@ -23,9 +23,6 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
 export function Header({ className, fixed, children, ...props }: HeaderProps) {
   const [offset, setOffset] = useState(0);
   const pathname = usePathname();
-  const [breadcrumbs, setBreadcrumbs] = useState<
-    Array<{ label: string; href: string }>
-  >([]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -39,38 +36,34 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
     return () => document.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Generate breadcrumb items from pathname
-  useEffect(() => {
-    const generateBreadcrumbs = () => {
-      const paths = pathname.split('/').filter(Boolean);
+  // Generate breadcrumb items from pathname using useMemo (React 19 best practice)
+  const breadcrumbs = useMemo(() => {
+    const paths = pathname.split('/').filter(Boolean);
 
-      if (paths.length === 0) {
-        return [{ label: 'Home', href: '/' }];
+    if (paths.length === 0) {
+      return [{ label: 'Home', href: '/' }];
+    }
+
+    const breadcrumbs = paths.map((path, index) => {
+      const href = '/' + paths.slice(0, index + 1).join('/');
+      let label = path.charAt(0).toUpperCase() + path.slice(1);
+
+      // Check if this is an item ID in catalog route
+      if (
+        index > 0 &&
+        paths[index - 1] === 'catalog' &&
+        typeof window !== 'undefined'
+      ) {
+        const itemName = sessionStorage.getItem(`item-${path}`);
+        if (itemName) {
+          label = itemName;
+        }
       }
 
-      const breadcrumbs = paths.map((path, index) => {
-        const href = '/' + paths.slice(0, index + 1).join('/');
-        let label = path.charAt(0).toUpperCase() + path.slice(1);
+      return { label, href };
+    });
 
-        // Check if this is an item ID in catalog route
-        if (
-          index > 0 &&
-          paths[index - 1] === 'catalog' &&
-          typeof window !== 'undefined'
-        ) {
-          const itemName = sessionStorage.getItem(`item-${path}`);
-          if (itemName) {
-            label = itemName;
-          }
-        }
-
-        return { label, href };
-      });
-
-      return breadcrumbs;
-    };
-
-    setBreadcrumbs(generateBreadcrumbs());
+    return breadcrumbs;
   }, [pathname]);
 
   return (

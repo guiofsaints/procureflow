@@ -19,13 +19,13 @@ import { cn } from '@/lib/utils';
  * Shows animated sun/moon icons with transitions
  */
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch
-  useEffect(() => {
+  // Avoid hydration mismatch - React 19 best practice: set state during render
+  if (!mounted && typeof window !== 'undefined') {
     setMounted(true);
-  }, []);
+  }
 
   // Update theme-color meta tag when theme changes
   useEffect(() => {
@@ -33,12 +33,12 @@ export function ThemeToggle() {
       return;
     }
 
-    const themeColor = theme === 'dark' ? '#212121' : '#fff';
+    const themeColor = resolvedTheme === 'dark' ? '#212121' : '#fff';
     const metaThemeColor = document.querySelector("meta[name='theme-color']");
     if (metaThemeColor) {
       metaThemeColor.setAttribute('content', themeColor);
     }
-  }, [theme, mounted]);
+  }, [resolvedTheme, mounted]);
 
   if (!mounted) {
     return (
