@@ -8,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function PurchaseHistoryPage() {
-  return <PurchaseHistoryPageContent />;
+  return (
+    <div className='container mx-auto p-6 max-w-7xl'>
+      <PurchaseHistoryPageContent />
+    </div>
+  );
 }

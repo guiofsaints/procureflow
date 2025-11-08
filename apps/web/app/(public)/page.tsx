@@ -12,7 +12,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
   Input,
@@ -57,7 +56,8 @@ export default function LoginPage() {
     }
   };
 
-  const fillDemoCredentials = () => {
+  // Demo credentials helper (not used in UI but kept for development reference)
+  const _fillDemoCredentials = () => {
     setEmail('demo@procureflow.com');
     setPassword('demo123');
   };
@@ -93,7 +93,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card>
+        <Card className='py-8'>
           <CardHeader>
             <CardTitle className='text-xl'>Sign in to your account</CardTitle>
           </CardHeader>
@@ -151,23 +151,6 @@ export default function LoginPage() {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className='flex-col gap-3 border-t pt-6'>
-            <p className='text-sm text-muted-foreground self-start'>
-              Demo credentials:
-            </p>
-            <Button
-              type='button'
-              onClick={fillDemoCredentials}
-              variant='outline'
-              className='w-full'
-              disabled={isLoading}
-            >
-              Fill demo credentials
-            </Button>
-            <p className='text-xs text-muted-foreground text-center'>
-              demo@procureflow.com / demo123
-            </p>
-          </CardFooter>
         </Card>
       </div>
     </div>

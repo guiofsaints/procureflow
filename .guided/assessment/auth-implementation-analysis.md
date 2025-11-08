@@ -382,9 +382,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 1. **✅ Fase 1**: Migration middleware → proxy (15 min)
 2. **✅ Fase 2**: Implementar withAuth (30 min)
 3. **✅ Fase 3**: Implementar logout (20 min)
-4. **⏸️ Fase 4**: Otimizar SessionProvider (opcional, 15 min)
+4. **✅ Fase 4**: Otimizar SessionProvider (15 min)
 
-**Tempo Total**: ~1h (sem Fase 4) ou ~1h15 (com Fase 4)
+**Tempo Total**: ~1h15 (todas as fases concluídas)
+
+---
+
+## 🎯 Melhorias Implementadas na Fase 4
+
+### SessionProvider Otimizado
+
+```typescript
+// apps/web/src/features/auth/components/AuthProvider.tsx
+<SessionProvider
+  session={session}                    // ✅ SSR session inicial
+  refetchInterval={5 * 60}            // ✅ Refetch a cada 5 minutos
+  refetchOnWindowFocus={true}         // ✅ Refetch ao focar janela
+>
+  {children}
+</SessionProvider>
+```
+
+### Layout com SSR Session
+
+```typescript
+// apps/web/app/layout.tsx
+export default async function RootLayout({ children }) {
+  // ✅ Get session on server for SSR hydration optimization
+  const session = await getServerSession(authConfig);
+
+  return (
+    <AuthProvider session={session}>
+      {/* ... */}
+    </AuthProvider>
+  );
+}
+```
+
+**Benefícios**:
+- ✅ Melhor performance na hidratação (session já disponível no cliente)
+- ✅ Session sempre atualizada (5 min interval)
+- ✅ Session atualiza ao focar janela (UX aprimorada)
+- ✅ Reduz chamadas desnecessárias ao servidor
 
 ---
 
