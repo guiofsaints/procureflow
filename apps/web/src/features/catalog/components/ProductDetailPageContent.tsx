@@ -21,6 +21,7 @@ import {
   CardHeader,
   Input,
 } from '@/components';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useCart } from '@/contexts/CartContext';
 import { ItemStatus } from '@/domain/entities';
 
@@ -38,19 +39,22 @@ export function ProductDetailPageContent() {
   const params = useParams();
   const router = useRouter();
   const { addItem } = useCart();
+  const { setDynamicLabel, clearDynamicLabel } = useBreadcrumb();
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const itemId = params?.itemId as string;
   const item = mockItems.find((i) => i.id === itemId);
 
-  // Update document title with item name for breadcrumb
+  // Set breadcrumb label with item name
   useEffect(() => {
     if (item) {
-      // Store item name in session storage for breadcrumb
-      sessionStorage.setItem(`item-${itemId}`, item.name);
+      setDynamicLabel(`/catalog/${itemId}`, item.name);
     }
-  }, [item, itemId]);
+    return () => {
+      clearDynamicLabel(`/catalog/${itemId}`);
+    };
+  }, [item, itemId, setDynamicLabel, clearDynamicLabel]);
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
@@ -79,7 +83,7 @@ export function ProductDetailPageContent() {
     return (
       <div className='flex-1 p-6 lg:p-8'>
         <div className='max-w-4xl mx-auto'>
-          <div className='bg-accent border border-border rounded-lg p-6 text-center'>
+          <div className='border border-border rounded-lg p-6 text-center'>
             <Package className='h-12 w-12 text-muted-foreground mx-auto mb-3' />
             <h2 className='text-lg font-semibold text-foreground mb-2'>
               Product Not Found
@@ -102,7 +106,7 @@ export function ProductDetailPageContent() {
   }
 
   return (
-    <div className='flex-1 p-6 lg:p-8 bg-background'>
+    <div className='flex-1 p-6 lg:p-8 '>
       <div className='max-w-4xl mx-auto'>
         {/* Back Button */}
         <button

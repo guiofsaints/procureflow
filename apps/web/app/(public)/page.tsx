@@ -1,6 +1,8 @@
 'use client';
 
 import { Loader2, LogIn } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
@@ -61,19 +63,33 @@ export default function LoginPage() {
   };
 
   return (
-    <div className='min-h-screen from-white to-gray-50 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4'>
+    <div className='min-h-screen flex items-center justify-center px-4'>
       <div className='w-full max-w-md'>
         {/* Logo and Title */}
-        <div className='text-center mb-8'>
-          <div className='inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4'>
-            <span className='text-white font-bold text-2xl'>PF</span>
+        <div className='text-left mb-2'>
+          <div className='container mx-auto w-max flex h-16 items-center px-4'>
+            <Link
+              href='/'
+              className='flex gap-3 transition-opacity hover:opacity-80'
+            >
+              <Image
+                src='/procureflow.png'
+                alt='ProcureFlow'
+                width={48}
+                height={48}
+                className='h-12 w-12 object-contain'
+                priority
+              />
+              <div className='flex flex-col'>
+                <span className='text-lg font-semibold leading-tight text-foreground text-left'>
+                  ProcureFlow
+                </span>
+                <span className='text-xs text-muted-foreground'>
+                  AI-Native Procurement Platform
+                </span>
+              </div>
+            </Link>
           </div>
-          <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>
-            ProcureFlow
-          </h1>
-          <p className='mt-2 text-gray-600 dark:text-gray-400'>
-            AI-Native Procurement Platform
-          </p>
         </div>
 
         {/* Login Card */}
@@ -153,11 +169,6 @@ export default function LoginPage() {
             </p>
           </CardFooter>
         </Card>
-
-        {/* Footer */}
-        <p className='mt-8 text-center text-sm text-gray-500 dark:text-gray-400'>
-          Secure authentication powered by NextAuth.js
-        </p>
       </div>
     </div>
   );

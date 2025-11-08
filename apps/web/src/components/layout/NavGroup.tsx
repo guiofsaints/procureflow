@@ -104,7 +104,7 @@ function SidebarMenuLink({
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
         <Link href={item.url} onClick={() => setOpenMobile(false)}>
-          {item.icon && <item.icon className='h-5 w-5' />}
+          {item.icon && <item.icon className='h-6 w-6' />}
           <span>{item.title}</span>
           {item.badge !== undefined && item.badge !== 0 && (
             <NavBadge>{item.badge}</NavBadge>
@@ -131,7 +131,7 @@ function SidebarMenuCollapsible({
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton tooltip={item.title}>
-            {item.icon && <item.icon className='h-5 w-5' />}
+            {item.icon && <item.icon className='h-6 w-6' />}
             <span>{item.title}</span>
             {item.badge !== undefined && item.badge !== 0 && (
               <NavBadge>{item.badge}</NavBadge>
@@ -148,7 +148,7 @@ function SidebarMenuCollapsible({
                   isActive={checkIsActive(pathname, subItem)}
                 >
                   <Link href={subItem.url} onClick={() => setOpenMobile(false)}>
-                    {subItem.icon && <subItem.icon className='h-4 w-4' />}
+                    {subItem.icon && <subItem.icon className='h-5 w-5' />}
                     <span>{subItem.title}</span>
                     {subItem.badge !== undefined && subItem.badge !== 0 && (
                       <NavBadge>{subItem.badge}</NavBadge>
@@ -178,7 +178,7 @@ function SidebarMenuCollapsedDropdown({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <SidebarMenuButton tooltip={item.title} isActive={isActive}>
-            {item.icon && <item.icon className='h-5 w-5' />}
+            {item.icon && <item.icon className='h-6 w-6' />}
             <span>{item.title}</span>
             {item.badge !== undefined && item.badge !== 0 && (
               <NavBadge>{item.badge}</NavBadge>
@@ -199,7 +199,7 @@ function SidebarMenuCollapsedDropdown({
                 href={sub.url}
                 className={cn(checkIsActive(pathname, sub) && 'bg-secondary')}
               >
-                {sub.icon && <sub.icon className='mr-2 h-4 w-4' />}
+                {sub.icon && <sub.icon className='mr-2 h-5 w-5' />}
                 <span className='max-w-52 text-wrap'>{sub.title}</span>
                 {sub.badge !== undefined && sub.badge !== 0 && (
                   <span className='ms-auto text-xs'>{sub.badge}</span>

@@ -8,7 +8,6 @@ interface MongoConnection {
 
 // Cache the database connection to avoid issues during development hot reloads
 declare global {
-  // eslint-disable-next-line no-var
   var mongoose: MongoConnection | undefined;
 }
 

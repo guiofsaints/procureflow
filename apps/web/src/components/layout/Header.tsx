@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { cn } from '@/lib/utils';
 
 type HeaderProps = React.HTMLAttributes<HTMLElement> & {
@@ -23,6 +24,7 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
 export function Header({ className, fixed, children, ...props }: HeaderProps) {
   const [offset, setOffset] = useState(0);
   const pathname = usePathname();
+  const { dynamicLabels } = useBreadcrumb();
 
   useEffect(() => {
     const onScroll = () => {
@@ -46,25 +48,17 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
 
     const breadcrumbs = paths.map((path, index) => {
       const href = '/' + paths.slice(0, index + 1).join('/');
-      let label = path.charAt(0).toUpperCase() + path.slice(1);
 
-      // Check if this is an item ID in catalog route
-      if (
-        index > 0 &&
-        paths[index - 1] === 'catalog' &&
-        typeof window !== 'undefined'
-      ) {
-        const itemName = sessionStorage.getItem(`item-${path}`);
-        if (itemName) {
-          label = itemName;
-        }
-      }
+      // Check if there's a dynamic label for this path
+      const dynamicLabel = dynamicLabels[href];
+      const label =
+        dynamicLabel || path.charAt(0).toUpperCase() + path.slice(1);
 
       return { label, href };
     });
 
     return breadcrumbs;
-  }, [pathname]);
+  }, [pathname, dynamicLabels]);
 
   return (
     <header
@@ -80,8 +74,8 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
         className={cn(
           'relative flex h-full items-center gap-3 p-4 sm:gap-4',
           offset > 10 &&
-          fixed &&
-          'after:bg-background/20 after:absolute after:inset-0 after:-z-10 after:backdrop-blur-lg'
+            fixed &&
+            'after:bg-background/20 after:absolute after:inset-0 after:-z-10 after:backdrop-blur-lg'
         )}
       >
         <SidebarTrigger variant='outline' className='max-md:scale-125' />

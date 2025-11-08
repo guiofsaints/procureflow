@@ -22,10 +22,10 @@ export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch - React 19 best practice: set state during render
-  if (!mounted && typeof window !== 'undefined') {
+  // Avoid hydration mismatch - only set mounted on client side
+  useEffect(() => {
     setMounted(true);
-  }
+  }, []);
 
   // Update theme-color meta tag when theme changes
   useEffect(() => {
@@ -40,6 +40,7 @@ export function ThemeToggle() {
     }
   }, [resolvedTheme, mounted]);
 
+  // Return a consistent placeholder during SSR to avoid hydration mismatch
   if (!mounted) {
     return (
       <Button variant='ghost' size='icon' className='rounded-full' disabled>

@@ -11,6 +11,7 @@ const eslintConfig = [
       'react/no-unescaped-entities': 'off',
       'react/display-name': 'off',
       '@next/next/no-page-custom-font': 'off',
+      'react-hooks/set-state-in-effect': 'warn', // Allow setState in useEffect for mounted pattern
 
       // TypeScript specific rules
       '@typescript-eslint/no-unused-vars': [

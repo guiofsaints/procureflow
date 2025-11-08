@@ -25,32 +25,32 @@ All critical dependencies upgraded to latest stable versions while maintaining f
 
 ### Critical Framework Upgrades (Breaking Changes)
 
-| Package                | Before    | After     | Status |
-| ---------------------- | --------- | --------- | ------ |
-| `react`                | 18.3.1    | 19.2.0    | ✅     |
-| `react-dom`            | 18.3.1    | 19.2.0    | ✅     |
-| `next`                 | 15.5.6    | 16.0.1    | ✅     |
-| `@types/react`         | 18.3.26   | 19.2.2    | ✅     |
-| `@types/react-dom`     | 18.3.7    | 19.2.2    | ✅     |
-| `eslint`               | 8.57.1    | 9.39.1    | ✅     |
-| `eslint-config-next`   | 15.5.6    | 16.0.1    | ✅     |
-| `langchain`            | 0.0.208   | _removed_ | ✅     |
-| `@langchain/core`      | _new_     | 1.0.3     | ✅     |
-| `@langchain/openai`    | _new_     | 1.0.0     | ✅     |
-| `openai`               | 4.104.0   | 6.8.1     | ✅     |
+| Package              | Before  | After     | Status |
+| -------------------- | ------- | --------- | ------ |
+| `react`              | 18.3.1  | 19.2.0    | ✅     |
+| `react-dom`          | 18.3.1  | 19.2.0    | ✅     |
+| `next`               | 15.5.6  | 16.0.1    | ✅     |
+| `@types/react`       | 18.3.26 | 19.2.2    | ✅     |
+| `@types/react-dom`   | 18.3.7  | 19.2.2    | ✅     |
+| `eslint`             | 8.57.1  | 9.39.1    | ✅     |
+| `eslint-config-next` | 15.5.6  | 16.0.1    | ✅     |
+| `langchain`          | 0.0.208 | _removed_ | ✅     |
+| `@langchain/core`    | _new_   | 1.0.3     | ✅     |
+| `@langchain/openai`  | _new_   | 1.0.0     | ✅     |
+| `openai`             | 4.104.0 | 6.8.1     | ✅     |
 
 ### Minor & Infrastructure Upgrades
 
-| Package             | Before    | After     | Status |
-| ------------------- | --------- | --------- | ------ |
-| `tailwindcss`       | 4.0.0     | 4.1.17    | ✅     |
-| `lucide-react`      | 0.553.0   | 0.563.0   | ✅     |
-| `next-auth`         | 4.24.5    | 4.24.12   | ✅     |
-| `@pulumi/gcp`       | 8.41.1    | 9.4.0     | ✅     |
-| `@pulumi/pulumi`    | 3.150.0   | 3.206.0   | ✅     |
-| `@types/node`       | 20.19.24  | 24.10.0   | ✅     |
-| `@eslint/eslintrc`  | 3.3.1     | _removed_ | ✅     |
-| `@pulumi/docker`    | 4.9.0     | _removed_ | ✅     |
+| Package            | Before   | After     | Status |
+| ------------------ | -------- | --------- | ------ |
+| `tailwindcss`      | 4.0.0    | 4.1.17    | ✅     |
+| `lucide-react`     | 0.553.0  | 0.563.0   | ✅     |
+| `next-auth`        | 4.24.5   | 4.24.12   | ✅     |
+| `@pulumi/gcp`      | 8.41.1   | 9.4.0     | ✅     |
+| `@pulumi/pulumi`   | 3.150.0  | 3.206.0   | ✅     |
+| `@types/node`      | 20.19.24 | 24.10.0   | ✅     |
+| `@eslint/eslintrc` | 3.3.1    | _removed_ | ✅     |
+| `@pulumi/docker`   | 4.9.0    | _removed_ | ✅     |
 
 ### Dependency Statistics
 
@@ -69,6 +69,7 @@ All critical dependencies upgraded to latest stable versions while maintaining f
 **Issue:** React 19 enforces stricter rules around hooks purity and effects
 
 **Files Modified:**
+
 1. `src/components/layout/Header.tsx`
    - **Change:** Replaced `useState` + `useEffect` with `useMemo` for breadcrumbs
    - **Reason:** React 19 rule: avoid `setState` directly in effects
@@ -86,6 +87,7 @@ All critical dependencies upgraded to latest stable versions while maintaining f
 **Issue:** Next.js 16 has native ESLint 9 flat config support
 
 **Files Modified:**
+
 1. `eslint.config.mjs`
    - **Change:** Removed FlatCompat wrapper, direct import of `eslint-config-next`
    - **Reason:** Next.js 16 exports native flat config
@@ -102,6 +104,7 @@ All critical dependencies upgraded to latest stable versions while maintaining f
 **Issue:** LangChain 1.0 split monolith into modular packages with new API
 
 **Files Modified:**
+
 1. `src/lib/ai/langchainClient.ts`
    - **Imports:**
      - `langchain/chat_models/openai` → `@langchain/openai`
@@ -112,6 +115,7 @@ All critical dependencies upgraded to latest stable versions while maintaining f
    - **Pattern:** Create model instance per request (better for config flexibility)
 
 **Packages:**
+
 - Removed: `langchain` 0.0.208
 - Added: `@langchain/core` 1.0.3, `@langchain/openai` 1.0.0
 
@@ -369,6 +373,7 @@ git push --force origin main  # Use with caution
 - ✅ **Production-ready** codebase
 
 The ProcureFlow project is now on the latest stable versions of:
+
 - React 19 + Next.js 16
 - LangChain 1.0 + OpenAI SDK 6
 - ESLint 9 with modern flat config
