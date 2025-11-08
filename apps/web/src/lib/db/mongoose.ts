@@ -7,17 +7,18 @@ interface MongoConnection {
 }
 
 // Cache the database connection to avoid issues during development hot reloads
+// NOTE: Using globalThis instead of global for Turbopack compatibility
 declare global {
   var mongoose: MongoConnection | undefined;
 }
 
-const cached: MongoConnection = global.mongoose || {
+const cached: MongoConnection = globalThis.mongoose || {
   conn: null,
   promise: null,
 };
 
-if (!global.mongoose) {
-  global.mongoose = cached;
+if (!globalThis.mongoose) {
+  globalThis.mongoose = cached;
 }
 
 async function connectDB(): Promise<typeof mongoose> {
