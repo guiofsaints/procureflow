@@ -10,15 +10,15 @@
 
 ### Upgrade Overview
 
-| Category | Packages | Risk | Est. Time |
-|----------|----------|------|-----------|
-| Patch Updates | 1 | ✅ Low | 15 min |
-| Minor Updates | 6 | ⚠️ Medium | 1-2 hours |
-| Major Updates (Tooling) | 3 | 🔴 High | 2-3 hours |
-| Major Updates (Framework) | 5 | 🔴 Critical | 4-6 hours |
-| Major Updates (AI Stack) | 2 | 🔴 Critical | 3-4 hours |
-| Major Updates (Infra) | 1 | ⚠️ Medium | 1-2 hours |
-| Cleanup | 1 | ✅ Low | 30 min |
+| Category                  | Packages | Risk        | Est. Time |
+| ------------------------- | -------- | ----------- | --------- |
+| Patch Updates             | 1        | ✅ Low      | 15 min    |
+| Minor Updates             | 6        | ⚠️ Medium   | 1-2 hours |
+| Major Updates (Tooling)   | 3        | 🔴 High     | 2-3 hours |
+| Major Updates (Framework) | 5        | 🔴 Critical | 4-6 hours |
+| Major Updates (AI Stack)  | 2        | 🔴 Critical | 3-4 hours |
+| Major Updates (Infra)     | 1        | ⚠️ Medium   | 1-2 hours |
+| Cleanup                   | 1        | ✅ Low      | 30 min    |
 
 **Total Estimated Time:** 12-18 hours  
 **Recommended Duration:** 3-4 work sessions over 2-3 days
@@ -30,11 +30,13 @@
 Before starting any upgrades:
 
 - [ ] **Git Status Clean:** No uncommitted changes
+
   ```bash
   git status
   ```
 
 - [ ] **Create Backup Branch:**
+
   ```bash
   git checkout -b backup/pre-upgrade
   git push origin backup/pre-upgrade
@@ -42,11 +44,13 @@ Before starting any upgrades:
   ```
 
 - [ ] **Create Upgrade Branch:**
+
   ```bash
   git checkout -b chore/dependency-upgrades
   ```
 
 - [ ] **Baseline Quality Checks Pass:**
+
   ```bash
   pnpm install
   pnpm lint
@@ -73,9 +77,9 @@ Before starting any upgrades:
 
 Update packages with only patch version changes:
 
-| Package | Location | Current | Target | Change |
-|---------|----------|---------|--------|--------|
-| `@commitlint/config-conventional` | Root | 20.0.0 | 20.1.0 | Patch |
+| Package                           | Location | Current | Target | Change |
+| --------------------------------- | -------- | ------- | ------ | ------ |
+| `@commitlint/config-conventional` | Root     | 20.0.0  | 20.1.0 | Patch  |
 
 ### Commands
 
@@ -127,12 +131,12 @@ pnpm install
 
 Update packages with minor version changes (tooling only):
 
-| Package | Location | Current | Target | Change |
-|---------|----------|---------|--------|--------|
-| `tailwindcss` | apps/web | 4.0.0 | 4.1.17 | Minor |
-| `@pulumi/pulumi` | infra/pulumi/gcp | 3.150.0 | 3.206.0 | Minor |
-| `@pulumi/docker` | infra/pulumi/gcp | 4.5.8 | 4.9.0 | Minor |
-| `lucide-react` | apps/web | 0.553.0 | 0.563.0 | Minor |
+| Package          | Location         | Current | Target  | Change |
+| ---------------- | ---------------- | ------- | ------- | ------ |
+| `tailwindcss`    | apps/web         | 4.0.0   | 4.1.17  | Minor  |
+| `@pulumi/pulumi` | infra/pulumi/gcp | 3.150.0 | 3.206.0 | Minor  |
+| `@pulumi/docker` | infra/pulumi/gcp | 4.5.8   | 4.9.0   | Minor  |
+| `lucide-react`   | apps/web         | 0.553.0 | 0.563.0 | Minor  |
 
 ### Commands
 
@@ -207,9 +211,9 @@ pnpm install
 
 ### Scope
 
-| Package | Location | Current | Target | Change |
-|---------|----------|---------|--------|--------|
-| `next-auth` | apps/web | 4.24.5 | 4.24.12 | Minor |
+| Package     | Location | Current | Target  | Change |
+| ----------- | -------- | ------- | ------- | ------ |
+| `next-auth` | apps/web | 4.24.5  | 4.24.12 | Minor  |
 
 ### Commands
 
@@ -267,10 +271,10 @@ pnpm install
 
 ### Scope
 
-| Package | Location | Current | Target | Change |
-|---------|----------|---------|--------|--------|
-| `eslint` | apps/web | 8.57.1 | 9.39.1 | Major |
-| `@eslint/eslintrc` | apps/web | 2.1.4 | 3.3.1 | Major |
+| Package            | Location | Current | Target | Change |
+| ------------------ | -------- | ------- | ------ | ------ |
+| `eslint`           | apps/web | 8.57.1  | 9.39.1 | Major  |
+| `@eslint/eslintrc` | apps/web | 2.1.4   | 3.3.1  | Major  |
 
 ### Pre-Upgrade Verification
 
@@ -300,11 +304,13 @@ pnpm install
 **File:** `apps/web/eslint.config.mjs`
 
 Review the file and ensure:
+
 1. ✅ `FlatCompat` is still imported correctly
 2. ✅ All plugins are ESLint 9 compatible
 3. ✅ Rules are still valid
 
 Expected structure:
+
 ```javascript
 import { FlatCompat } from '@eslint/eslintrc';
 // ... rest of config
@@ -387,14 +393,14 @@ pnpm install
 
 ### Scope
 
-| Package | Location | Current | Target | Change |
-|---------|----------|---------|--------|--------|
-| `react` | apps/web | 18.3.1 | 19.2.0 | Major |
-| `react-dom` | apps/web | 18.3.1 | 19.2.0 | Major |
-| `next` | apps/web | 15.5.6 | 16.0.1 | Major |
-| `eslint-config-next` | apps/web | 15.5.6 | 16.0.1 | Minor |
-| `@types/react` | apps/web | 18.3.26 | 19.2.2 | Major |
-| `@types/react-dom` | apps/web | 18.3.7 | 19.2.2 | Major |
+| Package              | Location | Current | Target | Change |
+| -------------------- | -------- | ------- | ------ | ------ |
+| `react`              | apps/web | 18.3.1  | 19.2.0 | Major  |
+| `react-dom`          | apps/web | 18.3.1  | 19.2.0 | Major  |
+| `next`               | apps/web | 15.5.6  | 16.0.1 | Major  |
+| `eslint-config-next` | apps/web | 15.5.6  | 16.0.1 | Minor  |
+| `@types/react`       | apps/web | 18.3.26 | 19.2.2 | Major  |
+| `@types/react-dom`   | apps/web | 18.3.7  | 19.2.2 | Major  |
 
 ### Pre-Upgrade Preparation
 
@@ -403,6 +409,7 @@ pnpm install
    - Next.js 16: https://nextjs.org/docs/app/building-your-application/upgrading/version-16
 
 2. **Backup Current State:**
+
    ```bash
    git tag pre-react19-upgrade
    git push origin pre-react19-upgrade
@@ -444,10 +451,8 @@ Review for Next.js 16 specific changes:
 const nextConfig = {
   // Review any experimental features
   // experimental: { ... }
-  
   // Check image optimization settings
   // images: { ... }
-  
   // Verify any custom webpack config
 };
 
@@ -457,6 +462,7 @@ export default nextConfig;
 #### 2. Review App Router Usage
 
 Verify all routes follow Next.js 16 patterns:
+
 - `app/(public)/*` - Public routes
 - `app/(app)/*` - Authenticated routes
 - `app/api/*` - API routes
@@ -473,6 +479,7 @@ Ensure proper `'use client'` directives where needed.
 ```
 
 **If type check fails:**
+
 - Review type errors carefully
 - May need to update component props
 - Fix all type errors before proceeding
@@ -492,6 +499,7 @@ Ensure proper `'use client'` directives where needed.
 ```
 
 **If tests fail:**
+
 - Review test failures
 - Update tests for React 19 changes
 - Fix all failing tests
@@ -503,6 +511,7 @@ Ensure proper `'use client'` directives where needed.
 ```
 
 **If build fails:**
+
 - Review build errors
 - Check for Next.js 16 specific issues
 - Fix all build errors
@@ -510,6 +519,7 @@ Ensure proper `'use client'` directives where needed.
 ### Manual Testing Checklist
 
 #### Authentication Flow
+
 - [ ] Navigate to `/` (landing page)
 - [ ] Click "Sign In" or navigate to login
 - [ ] Sign in with `demo@procureflow.com` / `demo123`
@@ -518,6 +528,7 @@ Ensure proper `'use client'` directives where needed.
 - [ ] Verify redirect to public area
 
 #### Catalog & Shopping
+
 - [ ] Browse catalog at `/catalog`
 - [ ] Search for items
 - [ ] Click item to view details
@@ -528,6 +539,7 @@ Ensure proper `'use client'` directives where needed.
 - [ ] Clear cart
 
 #### Checkout Flow
+
 - [ ] Add items to cart
 - [ ] Navigate to checkout
 - [ ] Fill out checkout form
@@ -535,18 +547,21 @@ Ensure proper `'use client'` directives where needed.
 - [ ] Verify success message
 
 #### AI Agent
+
 - [ ] Navigate to `/agent`
 - [ ] Send a chat message
 - [ ] Verify response
 - [ ] Test conversation continuity
 
 #### Theme & Layout
+
 - [ ] Toggle light/dark theme
 - [ ] Verify theme persists on refresh
 - [ ] Check navigation
 - [ ] Verify responsive layout (mobile, tablet, desktop)
 
 #### API Routes
+
 - [ ] Test `/api/health` - Should return 200 OK
 - [ ] Test `/api/items` - Should return items list
 - [ ] Test protected routes require auth
@@ -567,15 +582,19 @@ pnpm dev
 ### Expected Issues & Solutions
 
 #### Issue 1: Type Errors with React 19
+
 **Solution:** Update component props to use new React 19 types
 
 #### Issue 2: Hydration Mismatches
+
 **Solution:** Ensure Server/Client component split is correct
 
 #### Issue 3: Suspense Boundary Errors
+
 **Solution:** Update Suspense usage to React 19 patterns
 
 #### Issue 4: Next.js Caching Differences
+
 **Solution:** Review and update `revalidate` options if needed
 
 ### Commit
@@ -625,10 +644,10 @@ pnpm install
 
 ### Scope
 
-| Package | Location | Current | Target | Change |
-|---------|----------|---------|--------|--------|
-| `langchain` | apps/web | 0.0.208 | 1.0.3 | Major |
-| `openai` | apps/web | 4.104.0 | 6.8.1 | Major |
+| Package     | Location | Current | Target | Change |
+| ----------- | -------- | ------- | ------ | ------ |
+| `langchain` | apps/web | 0.0.208 | 1.0.3  | Major  |
+| `openai`    | apps/web | 4.104.0 | 6.8.1  | Major  |
 
 ### Pre-Upgrade Preparation
 
@@ -637,6 +656,7 @@ pnpm install
    - OpenAI: https://github.com/openai/openai-node/releases/tag/v6.0.0
 
 2. **Backup Current State:**
+
    ```bash
    git tag pre-langchain1-upgrade
    git push origin pre-langchain1-upgrade
@@ -667,6 +687,7 @@ pnpm install
 #### File 1: `apps/web/src/lib/ai/langchainClient.ts`
 
 **Before (0.0.x):**
+
 ```typescript
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { HumanMessage, SystemMessage } from 'langchain/schema';
@@ -676,39 +697,41 @@ export async function chatCompletion(prompt: string) {
     modelName: 'gpt-4o-mini',
     temperature: 0.7,
   });
-  
+
   const messages = [
     new SystemMessage('You are a helpful assistant'),
     new HumanMessage(prompt),
   ];
-  
+
   const response = await chat.call(messages);
   return response.content;
 }
 ```
 
 **After (1.0.x):**
+
 ```typescript
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 export async function chatCompletion(prompt: string) {
   const chat = new ChatOpenAI({
-    model: 'gpt-4o-mini',  // Changed from modelName
+    model: 'gpt-4o-mini', // Changed from modelName
     temperature: 0.7,
   });
-  
+
   const messages = [
     new SystemMessage('You are a helpful assistant'),
     new HumanMessage(prompt),
   ];
-  
-  const response = await chat.invoke(messages);  // Changed from call()
+
+  const response = await chat.invoke(messages); // Changed from call()
   return response.content;
 }
 ```
 
 **Key Changes:**
+
 1. Import from `@langchain/openai` instead of `langchain/chat_models/openai`
 2. Import messages from `@langchain/core/messages`
 3. Use `model` instead of `modelName`
@@ -734,6 +757,7 @@ grep -r "from 'langchain" apps/web/src
 ```
 
 **If type check fails:**
+
 - Review import errors
 - Update all LangChain imports
 - Fix type mismatches
@@ -754,6 +778,7 @@ grep -r "from 'langchain" apps/web/src
 ### Manual Testing - AI Features
 
 #### AI Agent Chat
+
 1. [ ] Navigate to `/agent`
 2. [ ] Send message: "Hello"
 3. [ ] Verify AI responds
@@ -763,29 +788,35 @@ grep -r "from 'langchain" apps/web/src
 7. [ ] Verify conversation context maintained
 
 #### Request Analysis
+
 1. [ ] Test procurement request analysis
 2. [ ] Verify structured responses work
 3. [ ] Check error handling
 
 #### Streaming (if used)
+
 1. [ ] Verify streaming responses work
 2. [ ] Check for partial response display
 
 ### Expected Issues & Solutions
 
 #### Issue 1: Import Errors
+
 **Symptom:** Cannot find module 'langchain/...'  
 **Solution:** Update all imports to new package structure
 
 #### Issue 2: Method Not Found
+
 **Symptom:** `chat.call is not a function`  
 **Solution:** Replace `.call()` with `.invoke()`
 
 #### Issue 3: Type Errors
+
 **Symptom:** Type mismatches with messages  
 **Solution:** Import message types from `@langchain/core/messages`
 
 #### Issue 4: OpenAI Response Structure
+
 **Symptom:** Different response format  
 **Solution:** Update response handling for OpenAI v6
 
@@ -855,9 +886,9 @@ pnpm install
 
 ### Scope
 
-| Package | Location | Current | Target | Change |
-|---------|----------|---------|--------|--------|
-| `@pulumi/gcp` | infra/pulumi/gcp | 8.11.1 | 9.4.0 | Major |
+| Package       | Location         | Current | Target | Change |
+| ------------- | ---------------- | ------- | ------ | ------ |
+| `@pulumi/gcp` | infra/pulumi/gcp | 8.11.1  | 9.4.0  | Major  |
 
 ### Pre-Upgrade Preparation
 
@@ -865,6 +896,7 @@ pnpm install
    - https://www.pulumi.com/registry/packages/gcp/
 
 2. **Backup Current State:**
+
    ```bash
    git tag pre-pulumi-gcp9-upgrade
    git push origin pre-pulumi-gcp9-upgrade
@@ -903,6 +935,7 @@ cd infra/pulumi/gcp
 ```
 
 **What to check in preview:**
+
 - ✅ If preview shows "no changes" or minor updates: GOOD
 - ⚠️ If preview shows resource replacements: REVIEW CAREFULLY
 - 🔴 If preview shows resource deletions: STOP and investigate
@@ -910,13 +943,14 @@ cd infra/pulumi/gcp
 ### Expected Preview Output
 
 **Good (safe to proceed):**
+
 ```
 Previewing update (dev)
 
 View Live: https://app.pulumi.com/...
 
-     Type                 Name        Plan       
-     pulumi:pulumi:Stack  gcp-dev                
+     Type                 Name        Plan
+     pulumi:pulumi:Stack  gcp-dev
 
 Resources:
     ~ 2 to update
@@ -924,11 +958,12 @@ Resources:
 ```
 
 **Concerning (investigate before proceeding):**
+
 ```
 Previewing update (dev)
 
      Type                 Name        Plan       Info
-     pulumi:pulumi:Stack  gcp-dev                
+     pulumi:pulumi:Stack  gcp-dev
  +-  some-resource        resource    replace    [diff: ~someProperty]
 ```
 
@@ -982,10 +1017,10 @@ cd ../../..
 
 ### Scope
 
-| Package | Location | Current | Target | Change |
-|---------|----------|---------|--------|--------|
-| `@types/node` | apps/web | 20.19.24 | 24.10.0 | Major |
-| `@types/node` | infra/pulumi/gcp | 20.10.0 | 24.10.0 | Major |
+| Package       | Location         | Current  | Target  | Change |
+| ------------- | ---------------- | -------- | ------- | ------ |
+| `@types/node` | apps/web         | 20.19.24 | 24.10.0 | Major  |
+| `@types/node` | infra/pulumi/gcp | 20.10.0  | 24.10.0 | Major  |
 
 ### ⚠️ NOTE
 
@@ -1020,6 +1055,7 @@ pnpm install
 ### Expected Issues
 
 **Node.js Runtime vs Types:**
+
 - Using Node.js 18 runtime with Node.js 24 types
 - Should work fine (types are forward-compatible)
 - Gives access to newer Node.js type definitions
@@ -1053,8 +1089,8 @@ pnpm install
 
 Remove confirmed unused dependencies:
 
-| Package | Location | Status |
-|---------|----------|--------|
+| Package          | Location         | Status    |
+| ---------------- | ---------------- | --------- |
 | `@pulumi/docker` | infra/pulumi/gcp | 🔴 Unused |
 
 ### Pre-Cleanup Verification
@@ -1234,8 +1270,8 @@ Update engines if needed:
 cat > .guided/assessment/upgrade-summary.md << 'EOF'
 # Dependency Upgrade Summary
 
-**Date:** November 7, 2025  
-**Duration:** [Actual time taken]  
+**Date:** November 7, 2025
+**Duration:** [Actual time taken]
 **Result:** ✅ Success
 
 ## Upgraded Packages
@@ -1397,6 +1433,7 @@ git push origin main
 Before considering upgrade complete:
 
 ### Technical Verification
+
 - [ ] All package.json files updated
 - [ ] pnpm-lock.yaml updated
 - [ ] All quality gates pass
@@ -1404,6 +1441,7 @@ Before considering upgrade complete:
 - [ ] Application runs without errors
 
 ### Functional Verification
+
 - [ ] Authentication works
 - [ ] Catalog browsing works
 - [ ] Cart functionality works
@@ -1413,6 +1451,7 @@ Before considering upgrade complete:
 - [ ] All API routes respond correctly
 
 ### Code Quality
+
 - [ ] No linting errors
 - [ ] Code properly formatted
 - [ ] TypeScript compiles without errors
@@ -1421,18 +1460,21 @@ Before considering upgrade complete:
 - [ ] No console warnings (or documented)
 
 ### Documentation
+
 - [ ] README updated
 - [ ] Upgrade summary created
 - [ ] Breaking changes documented
 - [ ] Version lists generated
 
 ### Git Hygiene
+
 - [ ] Commits follow conventional format
 - [ ] Upgrade branch merged to main
 - [ ] Upgrade tagged in git
 - [ ] Backup tags created
 
 ### Cleanup
+
 - [ ] Unused dependencies removed
 - [ ] Old backup branches deleted (optional)
 - [ ] Working directory clean
@@ -1441,21 +1483,21 @@ Before considering upgrade complete:
 
 ## Expected Timeline
 
-| Phase | Duration | Can Run |
-|-------|----------|---------|
-| Phase 1: Patch Updates | 15 min | Evening |
-| Phase 2: Minor - Tools | 1-2 hours | Evening |
-| Phase 3: Minor - Runtime | 30-60 min | Evening |
-| **Break** | - | - |
-| Phase 4: ESLint 9 | 2-3 hours | Morning |
-| **Break / Review** | - | - |
-| Phase 5: React 19 + Next 16 | 4-6 hours | Full day |
-| **Break / Testing** | - | - |
-| Phase 6: LangChain + OpenAI | 3-4 hours | Half day |
-| Phase 7: Pulumi GCP | 1-2 hours | Evening |
-| Phase 8: Type Definitions | 30 min | Evening |
-| Phase 9: Cleanup | 30 min | Evening |
-| Phase 10: Final Verification | 1 hour | Anytime |
+| Phase                        | Duration  | Can Run  |
+| ---------------------------- | --------- | -------- |
+| Phase 1: Patch Updates       | 15 min    | Evening  |
+| Phase 2: Minor - Tools       | 1-2 hours | Evening  |
+| Phase 3: Minor - Runtime     | 30-60 min | Evening  |
+| **Break**                    | -         | -        |
+| Phase 4: ESLint 9            | 2-3 hours | Morning  |
+| **Break / Review**           | -         | -        |
+| Phase 5: React 19 + Next 16  | 4-6 hours | Full day |
+| **Break / Testing**          | -         | -        |
+| Phase 6: LangChain + OpenAI  | 3-4 hours | Half day |
+| Phase 7: Pulumi GCP          | 1-2 hours | Evening  |
+| Phase 8: Type Definitions    | 30 min    | Evening  |
+| Phase 9: Cleanup             | 30 min    | Evening  |
+| Phase 10: Final Verification | 1 hour    | Anytime  |
 
 **Total:** 12-18 hours over 2-3 days
 

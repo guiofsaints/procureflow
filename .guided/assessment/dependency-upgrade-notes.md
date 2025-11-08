@@ -40,6 +40,7 @@ This document captures important findings, breaking changes, and considerations 
    - Changes to `defaultProps` handling
 
 #### Migration Resources:
+
 - **Official Guide:** https://react.dev/blog/2025/01/29/react-19
 - **Upgrade Tool:** `npx codemod@latest upgrade/react/19`
 - **Key Docs:**
@@ -47,6 +48,7 @@ This document captures important findings, breaking changes, and considerations 
   - https://react.dev/reference/react/use
 
 #### Impact Assessment for ProcureFlow:
+
 - ✅ Already using Server Components pattern
 - ✅ Using Next.js App Router (compatible)
 - ⚠️ Need to review all `useEffect` data fetching patterns
@@ -54,6 +56,7 @@ This document captures important findings, breaking changes, and considerations 
 - ⚠️ Test cart context and state management
 
 #### Testing Strategy:
+
 1. Upgrade in isolated branch
 2. Run all tests
 3. Manually test:
@@ -92,11 +95,13 @@ This document captures important findings, breaking changes, and considerations 
    - Changes to `next/image` component
 
 #### Migration Resources:
+
 - **Official Guide:** https://nextjs.org/docs/app/building-your-application/upgrading/version-16
 - **Changelog:** https://github.com/vercel/next.js/releases/tag/v16.0.0
 - **Codemod:** `npx @next/codemod@latest upgrade latest`
 
 #### Impact Assessment for ProcureFlow:
+
 - ✅ Using App Router exclusively
 - ✅ No Pages Router to migrate
 - ⚠️ Review all API routes (`app/(app)/api/*`)
@@ -104,6 +109,7 @@ This document captures important findings, breaking changes, and considerations 
 - ⚠️ Verify static generation for public pages
 
 #### Upgrade Order:
+
 **MUST upgrade React 19 BEFORE or WITH Next.js 16**
 
 ---
@@ -130,17 +136,20 @@ This document captures important findings, breaking changes, and considerations 
    - New recommended rules
 
 #### Migration Resources:
+
 - **Official Guide:** https://eslint.org/docs/latest/use/migrate-to-9.0.0
 - **Flat Config Docs:** https://eslint.org/docs/latest/use/configure/configuration-files
 - **Next.js ESLint:** https://nextjs.org/docs/app/building-your-application/configuring/eslint
 
 #### Impact Assessment for ProcureFlow:
+
 - ✅ Already using flat config (`eslint.config.mjs`)
 - ✅ Using `FlatCompat` from `@eslint/eslintrc`
 - ⚠️ May need to update `eslint-config-next` to v16 (matches Next.js 16)
 - ⚠️ Review and test all lint rules
 
 #### Upgrade Path:
+
 1. Upgrade `@eslint/eslintrc` to v3 first
 2. Upgrade `eslint` to v9
 3. Upgrade `eslint-config-next` to match Next.js version
@@ -164,10 +173,11 @@ This document captures important findings, breaking changes, and considerations 
      - `langchain` - Meta package
 
 2. **Import Paths:**
+
    ```javascript
    // OLD (0.0.x):
    import { ChatOpenAI } from 'langchain/chat_models/openai';
-   
+
    // NEW (1.0.x):
    import { ChatOpenAI } from '@langchain/openai';
    ```
@@ -182,17 +192,20 @@ This document captures important findings, breaking changes, and considerations 
    - Better inference
 
 #### Migration Resources:
+
 - **Migration Guide:** https://js.langchain.com/docs/guides/migrating_to_1_0
 - **v0.2 to v1.0:** https://js.langchain.com/docs/guides/migrating_to_0_2 (intermediate)
 - **API Reference:** https://js.langchain.com/docs/api/
 
 #### Impact Assessment for ProcureFlow:
+
 - 🔴 **HIGH IMPACT** - Core AI functionality
 - ⚠️ Need to update: `src/lib/ai/langchainClient.ts`
 - ⚠️ Need to refactor: `src/features/agent/lib/agent.service.ts`
 - ⚠️ All AI chat and procurement analysis features affected
 
 #### Current Usage in ProcureFlow:
+
 ```typescript
 // File: src/lib/ai/langchainClient.ts
 import { ChatOpenAI } from 'langchain/chat_models/openai';
@@ -200,12 +213,15 @@ import { HumanMessage, SystemMessage } from 'langchain/schema';
 ```
 
 #### Required Changes:
+
 1. Install new packages:
+
    ```bash
    pnpm add @langchain/core @langchain/openai
    ```
 
 2. Update imports:
+
    ```typescript
    import { ChatOpenAI } from '@langchain/openai';
    import { HumanMessage, SystemMessage } from '@langchain/core/messages';
@@ -245,16 +261,19 @@ import { HumanMessage, SystemMessage } from 'langchain/schema';
    - Stricter types
 
 #### Migration Resources:
+
 - **Changelog:** https://github.com/openai/openai-node/releases
 - **v6 Release:** https://github.com/openai/openai-node/releases/tag/v6.0.0
 - **API Docs:** https://platform.openai.com/docs/api-reference
 
 #### Impact Assessment for ProcureFlow:
+
 - ⚠️ Used via LangChain integration
 - ⚠️ May be used directly in some places
 - ⚠️ Coordinate with LangChain upgrade
 
 #### Upgrade Strategy:
+
 **Upgrade AFTER LangChain 1.0** to ensure compatibility
 
 ---
@@ -277,16 +296,19 @@ import { HumanMessage, SystemMessage } from 'langchain/schema';
    - Region/zone handling changes
 
 #### Migration Resources:
+
 - **Provider Docs:** https://www.pulumi.com/registry/packages/gcp/
 - **Migration Guide:** https://www.pulumi.com/registry/packages/gcp/how-to-guides/
 - **Changelog:** https://github.com/pulumi/pulumi-gcp/releases
 
 #### Impact Assessment for ProcureFlow:
+
 - ✅ Infrastructure isolated from web app
 - ⚠️ Review `infra/pulumi/gcp/index.ts`
 - ⚠️ Run `pulumi preview` before applying
 
 #### Upgrade Process:
+
 1. Upgrade package
 2. Run `pulumi preview` to see planned changes
 3. Review any resource replacements
@@ -298,11 +320,13 @@ import { HumanMessage, SystemMessage } from 'langchain/schema';
 ### 7. Type Definitions (@types/node, @types/react, @types/react-dom)
 
 **Current:**
+
 - `@types/node`: 20.19.24
 - `@types/react`: 18.3.26
 - `@types/react-dom`: 18.3.7
 
 **Target:**
+
 - `@types/node`: 24.10.0
 - `@types/react`: 19.2.2
 - `@types/react-dom`: 19.2.2
@@ -325,6 +349,7 @@ import { HumanMessage, SystemMessage } from 'langchain/schema';
    - Matches React types
 
 #### Upgrade Order:
+
 **Upgrade React types SIMULTANEOUSLY with React 19 upgrade**
 
 ---
@@ -334,6 +359,7 @@ import { HumanMessage, SystemMessage } from 'langchain/schema';
 ### None Found ✅
 
 All packages in use are actively maintained:
+
 - ✅ Regular updates within last 3 months
 - ✅ Active GitHub repositories
 - ✅ Strong community support
@@ -350,6 +376,7 @@ All packages in use are actively maintained:
 **Change Type:** Minor
 
 **Notes:**
+
 - Already on Tailwind 4! 🎉
 - Minor version updates (17 patches)
 - Likely bug fixes and performance improvements
@@ -362,6 +389,7 @@ All packages in use are actively maintained:
 **Change Type:** Minor (56 minor versions!)
 
 **Notes:**
+
 - Significant gap (56 minor versions)
 - Likely many new features and improvements
 - Review changelog for relevant updates
@@ -374,7 +402,7 @@ All packages in use are actively maintained:
 ### 🔗 React Ecosystem (Must Upgrade Together):
 
 1. `react` 18 → 19
-2. `react-dom` 18 → 19  
+2. `react-dom` 18 → 19
 3. `@types/react` 18 → 19
 4. `@types/react-dom` 18 → 19
 5. `next` 15 → 16
@@ -402,6 +430,7 @@ All packages in use are actively maintained:
 ## Testing Requirements by Upgrade
 
 ### React 19 + Next.js 16:
+
 - [ ] Authentication flow (sign in/out)
 - [ ] Cart management (add/remove items)
 - [ ] Catalog browsing and search
@@ -413,11 +442,13 @@ All packages in use are actively maintained:
 - [ ] Client components interactivity
 
 ### ESLint 9:
+
 - [ ] `pnpm lint` passes
 - [ ] No new warnings
 - [ ] Rules still enforce code quality
 
 ### LangChain 1.0 + OpenAI v6:
+
 - [ ] AI agent chat functionality
 - [ ] Request analysis
 - [ ] Item recommendations
@@ -425,6 +456,7 @@ All packages in use are actively maintained:
 - [ ] Error handling correct
 
 ### Pulumi GCP v9:
+
 - [ ] `pulumi preview` runs successfully
 - [ ] No unexpected resource changes
 - [ ] Infrastructure state intact
@@ -462,21 +494,25 @@ All packages in use are actively maintained:
 ## Risk Mitigation Strategies
 
 ### 1. Branching Strategy:
+
 - Create feature branches for each major upgrade phase
 - Test thoroughly before merging
 - Keep main branch stable
 
 ### 2. Incremental Approach:
+
 - Upgrade in phases (see upgrade plan)
 - Don't mix unrelated major upgrades
 - One major ecosystem at a time
 
 ### 3. Rollback Plan:
+
 - Git tags before each major upgrade
 - Document known-good versions
 - Keep old lock file for quick rollback
 
 ### 4. Testing:
+
 - Run full test suite after each phase
 - Manual testing of critical paths
 - Monitor for console warnings/errors
@@ -486,26 +522,31 @@ All packages in use are actively maintained:
 ## Known Issues to Watch For
 
 ### React 19:
+
 - Server/Client component hydration mismatches
 - Suspense boundary errors
 - Context API changes
 
 ### Next.js 16:
+
 - Caching behavior changes causing stale data
 - Server Action edge cases
 - Build performance differences
 
 ### ESLint 9:
+
 - Plugin incompatibilities
 - False positive rule violations
 - Performance regressions
 
 ### LangChain 1.0:
+
 - Import path resolution errors
 - Type inference issues
 - Breaking API changes in chains
 
 ### OpenAI v6:
+
 - Streaming response format changes
 - Error handling differences
 - Rate limiting behavior
@@ -526,6 +567,7 @@ All packages in use are actively maintained:
 After all upgrades complete, the following must be true:
 
 ✅ All quality gates pass:
+
 - `pnpm lint` - No errors
 - `pnpm format` - Code formatted
 - `pnpm type-check` - TypeScript compiles
@@ -533,16 +575,19 @@ After all upgrades complete, the following must be true:
 - `pnpm build` - Production build succeeds
 
 ✅ Manual testing passes:
+
 - All major user flows work
 - No console errors
 - No visible regressions
 
 ✅ Performance maintained or improved:
+
 - Build times reasonable
 - Runtime performance good
 - No obvious slowdowns
 
 ✅ Documentation updated:
+
 - README reflects new versions
 - Breaking changes documented
 - Migration notes preserved

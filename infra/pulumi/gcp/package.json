@@ -13,9 +13,9 @@
     "clean": "rm -rf node_modules dist"
   },
   "dependencies": {
-    "@pulumi/docker": "^4.5.8",
+    "@pulumi/docker": "^4.9.0",
     "@pulumi/gcp": "^8.11.1",
-    "@pulumi/pulumi": "^3.150.0"
+    "@pulumi/pulumi": "^3.206.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
