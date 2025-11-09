@@ -110,14 +110,11 @@ export async function handleAgentMessage(
 
   try {
     // Find or create conversation
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let conversation: any;
+    let conversation;
 
     if (conversationId) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      conversation = await (AgentConversationModel as any)
-        .findById(conversationId)
-        .exec();
+      conversation =
+        await AgentConversationModel.findById(conversationId).exec();
 
       if (!conversation) {
         throw new ValidationError('Conversation not found');
@@ -127,8 +124,7 @@ export async function handleAgentMessage(
       const title = message.trim().substring(0, 60); // First 60 chars as title
       const preview = message.trim().substring(0, 100); // First 100 chars as preview
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      conversation = new (AgentConversationModel as any)({
+      conversation = new AgentConversationModel({
         userId: userId || null,
         title: title || 'New conversation',
         lastMessagePreview: preview || 'No messages yet',
@@ -344,10 +340,10 @@ async function generateAgentResponse(
 
 You have access to these functions:
 - search_catalog: Search for products by keyword
-- add_to_cart: Add NEW items to cart (requires itemId from search results)
-- update_cart_quantity: Change quantity of EXISTING cart items (use when user says "remove X" or "add X more")
+- add_to_cart: Add NEW items to cart (only for items NOT currently in cart - requires itemId from search results)
+- update_cart_quantity: Change quantity of EXISTING cart items (use when user says "add X more", "remove X", or wants to change quantity of items already in cart)
 - view_cart: Show current cart contents with item IDs and quantities
-- remove_from_cart: Remove item COMPLETELY from cart (only when user says "remove all")
+- remove_from_cart: Remove item COMPLETELY from cart (only when user says "remove all" or clicks delete button)
 - checkout: Complete purchase
 
 IMPORTANT: When user asks for MULTIPLE products (e.g., "show me pen, pencil and laptop"), you MUST:
@@ -362,23 +358,45 @@ For example:
 
 CRITICAL RULES FOR CART OPERATIONS:
 1. Cart context shows: {itemId: "abc123", itemName: "Laptop", quantity: 5}
-2. When user says "Remove 2 Laptop from my cart":
-   - Current quantity is 5
-   - New quantity should be 3 (5 - 2)
-   - USE update_cart_quantity(itemId: "abc123", newQuantity: 3)
-   - DO NOT use remove_from_cart (that removes all)
-3. When user says "Add 3 more Monitor":
-   - Current quantity is 1
-   - New quantity should be 4 (1 + 3)
-   - USE update_cart_quantity(itemId: "xyz789", newQuantity: 4)
-4. When user says "Remove all Keyboard" or clicks delete button:
-   - USE remove_from_cart(itemId: "def456")
+
+2. ADDING TO CART:
+   a) If item is NOT in cart yet:
+      - User: "Add USB Cable to my cart"
+      - USE add_to_cart(itemId: "found_from_search", quantity: 1)
+   
+   b) If item IS ALREADY in cart (check cart context):
+      - User: "Add 3 more Monitor" (current quantity: 1)
+      - New quantity should be 4 (1 + 3)
+      - USE update_cart_quantity(itemId: "xyz789", newQuantity: 4)
+      - DO NOT use add_to_cart for items already in cart
+   
+   c) Keywords that indicate updating existing items:
+      - "more" (e.g., "add 2 more")
+      - "additional" (e.g., "add 1 additional")
+      - "another" (e.g., "add another one")
+
+3. REMOVING FROM CART:
+   a) Partial removal:
+      - User: "Remove 2 Laptop from my cart" (current quantity: 5)
+      - New quantity should be 3 (5 - 2)
+      - USE update_cart_quantity(itemId: "abc123", newQuantity: 3)
+   
+   b) Complete removal:
+      - User: "Remove all Keyboard" or clicks delete button
+      - USE remove_from_cart(itemId: "def456")
+
+4. BEFORE CALLING add_to_cart:
+   - Check if item is already in cart from cart context
+   - If yes, use update_cart_quantity instead
+   - If no, then use add_to_cart
+
 5. Match item names to itemIds from cart context in conversation history
-6. Always calculate NEW TOTAL quantity, not the difference
 
 Examples:
-- "Remove 1 Pen" with current quantity 3 → update_cart_quantity(itemId, newQuantity: 2)
-- "Add 2 more Monitor" with current quantity 1 → update_cart_quantity(itemId, newQuantity: 3)
+- "Add USB Cable" (not in cart) → add_to_cart(itemId, quantity: 1)
+- "Add 1 more USB Cable" (already 1 in cart) → update_cart_quantity(itemId, newQuantity: 2)
+- "Add 2 more Monitor" (already 1 in cart) → update_cart_quantity(itemId, newQuantity: 3)
+- "Remove 1 Pen" (current quantity: 3) → update_cart_quantity(itemId, newQuantity: 2)
 - "Remove all Laptop" → remove_from_cart(itemId)`;
 
     // Build conversation history for context (include metadata with cart info)
@@ -821,9 +839,7 @@ export async function listConversationsForUser(
       return [];
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const conversations = await (AgentConversationModel as any)
-      .find({ userId })
+    const conversations = await AgentConversationModel.find({ userId })
       .sort({ updatedAt: -1 })
       .limit(limit)
       .lean()
@@ -860,8 +876,7 @@ export async function createConversationForUser(
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const conversation = new (AgentConversationModel as any)({
+    const conversation = new AgentConversationModel({
       userId,
       title: params.title.substring(0, 120), // Enforce max length
       lastMessagePreview: params.lastMessagePreview.substring(0, 120),
@@ -892,9 +907,10 @@ export async function getConversationSummaryById(
   await connectDB();
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const conversation = await (AgentConversationModel as any)
-      .findOne({ _id: id, userId })
+    const conversation = await AgentConversationModel.findOne({
+      _id: id,
+      userId,
+    })
       .lean()
       .exec();
 
@@ -924,9 +940,10 @@ export async function getConversationById(
   await connectDB();
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const conversation = await (AgentConversationModel as any)
-      .findOne({ _id: id, userId })
+    const conversation = await AgentConversationModel.findOne({
+      _id: id,
+      userId,
+    })
       .lean()
       .exec();
 
@@ -982,16 +999,13 @@ export async function touchConversation(
   await connectDB();
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (AgentConversationModel as any)
-      .findOneAndUpdate(
-        { _id: id, userId },
-        {
-          lastMessagePreview: lastMessagePreview.substring(0, 120),
-          updatedAt: new Date(),
-        }
-      )
-      .exec();
+    await AgentConversationModel.findOneAndUpdate(
+      { _id: id, userId },
+      {
+        lastMessagePreview: lastMessagePreview.substring(0, 120),
+        updatedAt: new Date(),
+      }
+    ).exec();
   } catch (error) {
     console.error('Error touching conversation:', error);
     throw new Error('Failed to update conversation');

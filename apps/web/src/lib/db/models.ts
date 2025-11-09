@@ -20,6 +20,15 @@
 
 import mongoose from 'mongoose';
 
+// Import document types
+import type {
+  UserDocument,
+  ItemDocument,
+  CartDocument,
+  PurchaseRequestDocument,
+  AgentConversationDocument,
+} from '@/domain/mongo-schemas';
+
 // Import schemas
 import AgentConversationSchema, {
   AGENT_CONVERSATION_COLLECTION_NAME,
@@ -63,11 +72,10 @@ import UserSchema, {
  */
 
 // Helper to safely get or create a model
-function getOrCreateModel(
+function getOrCreateModel<T = unknown>(
   collectionName: string,
   schema: mongoose.Schema
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): mongoose.Model<any> {
+): mongoose.Model<T> {
   // If model exists in Mongoose cache, delete it to force recreation
   // This ensures schema changes (like ObjectId -> String) are applied
   if (mongoose.models && mongoose.models[collectionName]) {
@@ -75,7 +83,7 @@ function getOrCreateModel(
   }
 
   // Always create a fresh model with the current schema
-  return mongoose.model(collectionName, schema);
+  return mongoose.model<T>(collectionName, schema);
 }
 
 /**
@@ -84,7 +92,10 @@ function getOrCreateModel(
  * Represents authenticated users in the system.
  * Used for: authentication, cart ownership, purchase request tracking.
  */
-export const UserModel = getOrCreateModel(USER_COLLECTION_NAME, UserSchema);
+export const UserModel = getOrCreateModel<UserDocument>(
+  USER_COLLECTION_NAME,
+  UserSchema
+);
 
 /**
  * Item (CatalogItem) Model
@@ -92,7 +103,10 @@ export const UserModel = getOrCreateModel(USER_COLLECTION_NAME, UserSchema);
  * Represents materials and services in the procurement catalog.
  * Used for: catalog search, item registration, cart/request line items.
  */
-export const ItemModel = getOrCreateModel(ITEM_COLLECTION_NAME, ItemSchema);
+export const ItemModel = getOrCreateModel<ItemDocument>(
+  ITEM_COLLECTION_NAME,
+  ItemSchema
+);
 
 /**
  * Cart Model
@@ -100,7 +114,10 @@ export const ItemModel = getOrCreateModel(ITEM_COLLECTION_NAME, ItemSchema);
  * Represents a user's shopping cart with line items.
  * Used for: cart management, checkout preparation.
  */
-export const CartModel = getOrCreateModel(CART_COLLECTION_NAME, CartSchema);
+export const CartModel = getOrCreateModel<CartDocument>(
+  CART_COLLECTION_NAME,
+  CartSchema
+);
 
 /**
  * PurchaseRequest Model
@@ -108,7 +125,7 @@ export const CartModel = getOrCreateModel(CART_COLLECTION_NAME, CartSchema);
  * Represents a simulated purchase request (ERP submission).
  * Used for: checkout, request history, agent-created requests.
  */
-export const PurchaseRequestModel = getOrCreateModel(
+export const PurchaseRequestModel = getOrCreateModel<PurchaseRequestDocument>(
   PURCHASE_REQUEST_COLLECTION_NAME,
   PurchaseRequestSchema
 );
@@ -119,10 +136,11 @@ export const PurchaseRequestModel = getOrCreateModel(
  * Represents a conversation between user and AI agent.
  * Used for: agent-first experience, conversation history, debugging.
  */
-export const AgentConversationModel = getOrCreateModel(
-  AGENT_CONVERSATION_COLLECTION_NAME,
-  AgentConversationSchema
-);
+export const AgentConversationModel =
+  getOrCreateModel<AgentConversationDocument>(
+    AGENT_CONVERSATION_COLLECTION_NAME,
+    AgentConversationSchema
+  );
 
 // ============================================================================
 // Re-export Constants and Enums for Convenience

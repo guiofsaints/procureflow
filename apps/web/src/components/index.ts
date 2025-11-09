@@ -112,8 +112,3 @@ export { UserMenu } from './layout/UserMenu';
 
 // Theme provider
 export { ThemeProvider } from './theme-provider';
-
-// Future components can be added here:
-// export { Input } from './ui/Input';
-// export { Modal } from './ui/Modal';
-// export { Card } from './ui/Card';

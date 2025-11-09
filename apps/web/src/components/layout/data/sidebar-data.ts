@@ -31,9 +31,11 @@ export const sidebarData: SidebarData = {
       ],
     },
   ],
+  // User data will be populated from NextAuth session
+  // This placeholder is overridden in AppShell.tsx
   user: {
-    name: 'Demo User',
-    email: 'demo@procureflow.com',
+    name: 'User',
+    email: '',
     avatar: '',
   },
 };

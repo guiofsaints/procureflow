@@ -22,14 +22,6 @@ export const API_ROUTES = {
   },
 } as const;
 
-export const AUTH_CONFIG = {
-  sessionMaxAge: 30 * 24 * 60 * 60, // 30 days in seconds
-  demoCredentials: {
-    email: 'demo@procureflow.com',
-    password: 'demo123',
-  },
-} as const;
-
 export const UI_CONSTANTS = {
   pageSize: 10,
   maxFileSize: 5 * 1024 * 1024, // 5MB

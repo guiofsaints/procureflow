@@ -10,6 +10,8 @@
  * The script is idempotent - it can be run multiple times safely.
  */
 
+/* eslint-disable no-console */
+
 import mongoose from 'mongoose';
 
 // MongoDB connection URI from environment

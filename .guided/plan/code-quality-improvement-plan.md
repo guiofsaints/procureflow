@@ -18,8 +18,9 @@ This plan addresses the **technical debt and quality issues** identified in the 
 | **Phase 2** | Type safety & architecture   | Week 2   | 10-16h | 🔴 High     |
 | **Phase 3** | Feature completeness         | Week 3   | 6-10h  | 🟡 Medium   |
 | **Phase 4** | Refinement & testing         | Week 4   | 5-10h  | 🟡 Medium   |
+| **Phase 5** | Config & env cleanup         | Week 4   | 1-2h   | 🟢 Low      |
 
-**Total Effort:** 29-48 hours
+**Total Effort:** 30-50 hours
 
 ### Success Criteria
 
@@ -1143,11 +1144,187 @@ This plan addresses all identified code quality issues in a **systematic, low-ri
 
 ---
 
+---
+
+## Phase 5: Configuration & Environment Cleanup
+
+**Duration:** Week 4 (Friday)  
+**Effort:** 1-2 hours  
+**Priority:** 🟢 **Low** - Housekeeping and optimization
+
+### Scope
+
+Clean up configuration files and environment variables for production readiness.
+
+**See detailed analysis:** [Configuration and Environment Review](../assessment/config-and-env-review.md)
+
+### Tasks
+
+#### Task 5.1: Remove Unused Configuration (Critical)
+
+**Effort:** 5 minutes  
+**Risk:** 🟢 None
+
+**Files to modify:**
+
+- `apps/web/next.config.mjs`
+
+**Actions:**
+
+1. Remove `typescript.ignoreBuildErrors: true` (dangerous in production)
+2. Remove unused `env.CUSTOM_KEY` block
+3. Clean up empty `images.domains` array (or document future use)
+
+**Verification:**
+
+```bash
+pnpm build  # Should fail on TypeScript errors now
+pnpm lint
+```
+
+---
+
+#### Task 5.2: Standardize Environment Variable Naming
+
+**Effort:** 15 minutes  
+**Risk:** 🟡 Low
+
+**Files to modify:**
+
+- `apps/web/tests/setup.ts`
+- `.env.example`
+
+**Actions:**
+
+1. Change `MONGODB_TEST_URI` to `MONGODB_URI_TEST` (consistent with main pattern)
+2. Update `.env.example` to document `MONGODB_URI_TEST`
+3. Remove `@/server` alias from `vitest.config.mts` (directory doesn't exist)
+
+**Changes:**
+
+```typescript
+// tests/setup.ts - BEFORE
+process.env.MONGODB_URI = process.env.MONGODB_TEST_URI || 'mongodb://...';
+
+// tests/setup.ts - AFTER
+process.env.MONGODB_URI = process.env.MONGODB_URI_TEST || 'mongodb://...';
+```
+
+---
+
+#### Task 5.3: Clarify OAuth Provider Status
+
+**Effort:** 10 minutes  
+**Risk:** 🟢 None
+
+**Files to modify:**
+
+- `.env.example`
+
+**Actions:**
+
+1. Add clarifying comment for Google OAuth variables
+2. Mark as "future implementation" or remove if not planned
+
+**Change:**
+
+```bash
+# Google OAuth Configuration (Not yet implemented - future feature)
+# Get these from: https://console.cloud.google.com/apis/credentials
+# GOOGLE_CLIENT_ID=your-google-oauth-client-id
+# GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+```
+
+---
+
+#### Task 5.4: Implement OpenAI Override Environment Variables
+
+**Effort:** 15 minutes  
+**Risk:** 🟢 None
+
+**Files to modify:**
+
+- `apps/web/src/lib/ai/langchainClient.ts`
+
+**Actions:**
+
+1. Read `OPENAI_MODEL` and `OPENAI_TEMPERATURE` from environment
+2. Use defaults if not provided
+
+**Implementation:**
+
+```typescript
+// langchainClient.ts
+const model = new ChatOpenAI({
+  modelName: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.7'),
+  apiKey: OPENAI_API_KEY,
+});
+```
+
+---
+
+#### Task 5.5: Add Docker Security Warnings
+
+**Effort:** 5 minutes  
+**Risk:** 🟢 None
+
+**Files to modify:**
+
+- `docker-compose.yml`
+
+**Actions:**
+
+1. Add warning comment about changing default credentials
+2. Document that docker-compose is for local development only
+
+**Addition:**
+
+```yaml
+# ⚠️ WARNING: Change these secrets before production deployment!
+# This docker-compose.yml is for LOCAL DEVELOPMENT ONLY
+services:
+  web:
+    environment:
+      - NEXTAUTH_SECRET=your-secret-key-change-in-production
+```
+
+---
+
+### Quality Gates
+
+After Phase 5:
+
+```bash
+# 1. Build succeeds (TypeScript errors now block builds)
+pnpm build
+
+# 2. Tests use standardized env var
+pnpm test
+
+# 3. No unused env vars in config
+grep "CUSTOM_KEY" apps/web/next.config.mjs  # Should return nothing
+
+# 4. Linting passes
+pnpm lint
+```
+
+### Success Criteria
+
+- ✅ No unused configuration options
+- ✅ Consistent environment variable naming
+- ✅ TypeScript errors block production builds
+- ✅ All env vars documented in `.env.example`
+- ✅ Docker security warnings added
+
+---
+
 ## Related Documents
 
 - [Code Quality Overview](../assessment/code-quality-overview.md)
 - [Dead Code and Junk Report](../assessment/dead-code-and-junk-report.md)
 - [TODO/FIXME/HACK Review](../assessment/comments-and-todos-review.md)
+- [Configuration and Environment Review](../assessment/config-and-env-review.md) ⭐ NEW
 - [Patterns and Architecture Issues](../assessment/patterns-and-architecture-issues.md)
 - [Code Quality Hotspots](../assessment/code-quality-hotspots.md)
 

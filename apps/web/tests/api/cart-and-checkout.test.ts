@@ -18,12 +18,9 @@ describe('Cart and Checkout Flow', () => {
 
   // Clean up before each test
   beforeEach(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (ItemModel as any).deleteMany({});
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (CartModel as any).deleteMany({});
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (PurchaseRequestModel as any).deleteMany({});
+    await ItemModel.deleteMany({});
+    await CartModel.deleteMany({});
+    await PurchaseRequestModel.deleteMany({});
 
     // Create a test item
     const item = await catalogService.createItem({

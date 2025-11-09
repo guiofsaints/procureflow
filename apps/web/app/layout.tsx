@@ -6,6 +6,8 @@ import { ThemeProvider, Toaster } from '@/components';
 import { AuthProvider } from '@/features/auth';
 import { authConfig } from '@/lib/auth/config';
 
+import { Providers } from './providers';
+
 import '@/styles/globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -27,17 +29,19 @@ export default async function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider session={session}>
-          <ThemeProvider
-            attribute='class'
-            defaultTheme='system'
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster />
-          </ThemeProvider>
-        </AuthProvider>
+        <Providers>
+          <AuthProvider session={session}>
+            <ThemeProvider
+              attribute='class'
+              defaultTheme='system'
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -1,14 +1,17 @@
 /**
- * Migration Script: Seed Office Items
+ * Seed Office Items Script
  *
- * This script populates the database with 200 office supply items
- * across different categories for testing and development.
+ * This script populates the database with a comprehensive catalog of office items.
+ * Items are organized by category with realistic details and pricing.
  *
  * Usage:
  *   pnpm tsx apps/web/scripts/seed-office-items.ts
  *
- * The script is idempotent - it will skip items that already exist.
+ * Environment Variables Required:
+ *   MONGODB_URI - MongoDB connection string
  */
+
+/* eslint-disable no-console */
 
 import mongoose from 'mongoose';
 

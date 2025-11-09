@@ -58,8 +58,7 @@ export async function checkoutCart(
   await connectDB();
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cart: any = await (CartModel as any).findOne({ userId }).exec();
+    const cart = await CartModel.findOne({ userId }).exec();
 
     if (!cart) {
       throw new EmptyCartError();
@@ -78,9 +77,7 @@ export async function checkoutCart(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (cartItem: any) => cartItem.itemId
     );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const items: any[] = await (ItemModel as any)
-      .find({ _id: { $in: itemIds } })
+    const items = await ItemModel.find({ _id: { $in: itemIds } })
       .lean()
       .exec();
 
@@ -110,8 +107,7 @@ export async function checkoutCart(
     );
 
     // Create purchase request
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const purchaseRequest = new (PurchaseRequestModel as any)({
+    const purchaseRequest = new PurchaseRequestModel({
       requestNumber,
       userId,
       items: requestItems,
@@ -121,8 +117,7 @@ export async function checkoutCart(
       status: 'submitted',
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const savedRequest: any = await purchaseRequest.save();
+    const savedRequest = await purchaseRequest.save();
 
     // Clear cart (BR-2.7)
     cart.items = [];
@@ -182,9 +177,7 @@ export async function getPurchaseRequestsForUser(
     }
 
     // Fetch purchase requests
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requests: any[] = await (PurchaseRequestModel as any)
-      .find(query)
+    const requests = await PurchaseRequestModel.find(query)
       .sort({ createdAt: -1 }) // Most recent first
       .lean()
       .exec();
@@ -231,9 +224,10 @@ export async function getPurchaseRequestById(
   await connectDB();
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const request: any = await (PurchaseRequestModel as any)
-      .findOne({ _id: requestId, userId })
+    const request = await PurchaseRequestModel.findOne({
+      _id: requestId,
+      userId,
+    })
       .lean()
       .exec();
 
@@ -281,9 +275,9 @@ async function generateRequestNumber(): Promise<string> {
   const year = new Date().getFullYear();
 
   // Find the last request number for this year
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lastRequest: any = await (PurchaseRequestModel as any)
-    .findOne({ requestNumber: new RegExp(`^PR-${year}-`) })
+  const lastRequest = await PurchaseRequestModel.findOne({
+    requestNumber: new RegExp(`^PR-${year}-`),
+  })
     .sort({ createdAt: -1 })
     .lean()
     .exec();

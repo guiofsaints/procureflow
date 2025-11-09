@@ -110,17 +110,14 @@ export async function searchItems(
   const { q, limit = 50, includeArchived = false } = params;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let items: any[];
+    let items;
 
     if (q && q.trim()) {
       // Use text search index if keyword is provided
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items = await (ItemModel as any)
-        .find({
-          $text: { $search: q.trim() },
-          ...(includeArchived ? {} : { status: 'active' }),
-        })
+      items = await ItemModel.find({
+        $text: { $search: q.trim() },
+        ...(includeArchived ? {} : { status: 'active' }),
+      })
         .select(
           'name category description estimatedPrice unit status preferredSupplier createdByUserId createdAt updatedAt'
         )
@@ -130,9 +127,7 @@ export async function searchItems(
         .exec();
     } else {
       // No keyword: return all items sorted by most recent
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items = await (ItemModel as any)
-        .find(includeArchived ? {} : { status: 'active' })
+      items = await ItemModel.find(includeArchived ? {} : { status: 'active' })
         .sort({ createdAt: -1 })
         .limit(limit)
         .lean()
@@ -186,12 +181,10 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
   try {
     // Check for potential duplicates (BR-1.3)
     // Find items with similar name and category
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const duplicates: any[] = await (ItemModel as any)
-      .find({
-        name: { $regex: new RegExp(normalizedName, 'i') },
-        category: { $regex: new RegExp(normalizedCategory, 'i') },
-      })
+    const duplicates = await ItemModel.find({
+      name: { $regex: new RegExp(normalizedName, 'i') },
+      category: { $regex: new RegExp(normalizedCategory, 'i') },
+    })
       .limit(5)
       .lean()
       .exec();
@@ -219,8 +212,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
     }
 
     // Create item
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const itemData: any = {
+    const itemData = {
       name: normalizedName,
       category: normalizedCategory,
       description: normalizedDescription,
@@ -231,11 +223,9 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
       createdByUserId: input.createdByUserId, // Now accepts any string (demo user "1", UUID, etc.)
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newItem = new (ItemModel as any)(itemData);
+    const newItem = new ItemModel(itemData);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const item: any = await newItem.save();
+    const item = await newItem.save();
 
     // Convert to domain type
     return {
@@ -270,8 +260,7 @@ export async function getItemById(itemId: string): Promise<Item | null> {
   await connectDB();
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const item: any = await (ItemModel as any).findById(itemId).lean().exec();
+    const item = await ItemModel.findById(itemId).lean().exec();
 
     if (!item) {
       return null;

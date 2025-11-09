@@ -17,6 +17,7 @@ import {
   Input,
   Label,
 } from '@/components';
+import Aurora from '@/components/Aurora';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -57,8 +58,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className='min-h-screen flex items-center justify-center px-4'>
-      <div className='w-full max-w-md'>
+    <div className='min-h-screen flex items-center justify-center px-4 relative overflow-hidden'>
+      {/* Aurora Background */}
+      <div className='fixed inset-0 '>
+        <Aurora
+          colorStops={['#8b5cf6', '#3b82f6', '#8b5cf6']}
+          blend={0.4}
+          amplitude={0.5}
+          speed={0.2}
+        />
+      </div>
+
+      <div className='w-full max-w-md relative z-10'>
         {/* Logo and Title */}
         <div className='text-left mb-2'>
           <div className='container mx-auto w-max flex h-16 items-center px-4'>
@@ -87,7 +98,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card className='py-8'>
+        <Card className='py-8 backdrop-blur-sm bg-background/80'>
           <CardHeader>
             <CardTitle className='text-xl'>Sign in to your account</CardTitle>
           </CardHeader>

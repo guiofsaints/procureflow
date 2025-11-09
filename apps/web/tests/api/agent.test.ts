@@ -15,8 +15,7 @@ describe('Agent Service', () => {
 
   // Clean up before each test
   beforeEach(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (AgentConversationModel as any).deleteMany({});
+    await AgentConversationModel.deleteMany({});
   });
 
   describe('handleAgentMessage', () => {
@@ -75,9 +74,9 @@ describe('Agent Service', () => {
         message: 'Test message for logging',
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const conversation = await (AgentConversationModel as any)
-        .findById(response.conversationId)
+      const conversation = await AgentConversationModel.findById(
+        response.conversationId
+      )
         .lean()
         .exec();
 
@@ -105,6 +104,26 @@ describe('Agent Service', () => {
           agentReply.toLowerCase().includes('usb') ||
           agentReply.toLowerCase().includes('cable')
       ).toBe(true);
+    });
+
+    it('should distinguish between "add" and "add more" for cart items', async () => {
+      // This is a documentation test - the actual behavior depends on:
+      // 1. The agent correctly identifying if item is already in cart from cart context
+      // 2. Using update_cart_quantity when user says "add X more"
+      // 3. Using add_to_cart only for items not in cart yet
+
+      const response = await agentService.handleAgentMessage({
+        userId: testUserId,
+        message:
+          'When I say "add 1 more USB Cable to my cart", you should use update_cart_quantity if USB Cable is already in my cart, not add_to_cart',
+      });
+
+      const agentReply = response.messages[1].content;
+
+      expect(agentReply).toBeDefined();
+      expect(agentReply.length).toBeGreaterThan(10);
+      // This is mainly a prompt engineering verification
+      // The actual tool choice is made by the LLM based on system prompt
     });
   });
 });

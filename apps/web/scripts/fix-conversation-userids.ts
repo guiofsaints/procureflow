@@ -9,6 +9,9 @@
  * Note: Make sure MONGODB_URI is set in your environment before running
  */
 
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { AgentConversationModel } from '../src/lib/db/models';
 import connectDB from '../src/lib/db/mongoose';
 

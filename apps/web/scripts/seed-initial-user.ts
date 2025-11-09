@@ -13,6 +13,8 @@
  *   MONGODB_URI - MongoDB connection string (loaded from .env.local)
  */
 
+/* eslint-disable no-console */
+
 import { resolve } from 'path';
 
 import { config } from 'dotenv';
@@ -20,7 +22,8 @@ import { config } from 'dotenv';
 // Load environment variables from .env.local
 config({ path: resolve(__dirname, '../.env.local') });
 
-import { registerUser } from '../src/features/auth';
+import { registerUser } from '@/features/auth';
+import { UserRole } from '@/lib/db/schemas/user.schema';
 
 async function seedInitialUser() {
   console.log('🌱 Seeding initial user...\n');
@@ -31,7 +34,7 @@ async function seedInitialUser() {
       email: 'guilherme@procureflow.com',
       password: 'guigui123',
       name: 'Guilherme Santos',
-      role: 'admin' as any, // Using 'admin' role
+      role: UserRole.Admin, // Using admin role from enum
     });
 
     console.log('✅ Initial user created successfully!');
