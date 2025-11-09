@@ -63,17 +63,46 @@ export function parseUserMessage(message: string): ParsedUserMessage {
 }
 
 /**
+ * Simple word stemming - remove common plural suffix
+ */
+function stemWord(word: string): string {
+  // Remove trailing 's' for basic plural handling
+  // Handle common patterns: cables -> cable, boxes -> box, etc.
+  if (word.endsWith('ies')) {
+    return word.slice(0, -3) + 'y'; // batteries -> battery
+  }
+  if (word.endsWith('es') && word.length > 3) {
+    return word.slice(0, -2); // boxes -> box
+  }
+  if (word.endsWith('s') && word.length > 2) {
+    return word.slice(0, -1); // cables -> cable
+  }
+  return word;
+}
+
+/**
  * Find mock items based on query and price constraints
  */
 export function findMockItems(query: string, maxPrice?: number): AgentItem[] {
-  const lowerQuery = query.toLowerCase();
+  // Normalize and tokenize query into words, then stem them
+  const queryWords = query
+    .toLowerCase()
+    .replace(/[-_]/g, ' ')
+    .split(/\s+/)
+    .filter((word) => word.length > 0)
+    .map(stemWord);
 
   return mockItems.filter((item) => {
-    // Check if query matches name, category, or description
-    const matchesQuery =
-      item.name.toLowerCase().includes(lowerQuery) ||
-      item.category.toLowerCase().includes(lowerQuery) ||
-      item.description.toLowerCase().includes(lowerQuery);
+    // Normalize and stem item fields
+    const searchText = `${item.name} ${item.category} ${item.description}`
+      .toLowerCase()
+      .replace(/[-_]/g, ' ')
+      .split(/\s+/)
+      .map(stemWord)
+      .join(' ');
+
+    // Check if all query words are in the search text
+    const matchesQuery = queryWords.every((word) => searchText.includes(word));
 
     // Check price constraint
     const matchesPrice = maxPrice === undefined || item.price <= maxPrice;
@@ -111,7 +140,7 @@ export async function generateMockAgentResponse(
     if (foundItems.length === 1) {
       content = `I found ${quantityText}${foundItems[0].category.toLowerCase()} that matches your criteria${priceText}. Here's what I have:`;
     } else {
-      content = `I found ${foundItems.length} items that match your request${priceText}. Here are the options:`;
+      content = `I found ${foundItems.length} items that match your request${quantityText ? ` for ${quantityText.trim()} units` : ''}${priceText}. Here are the options:`;
     }
 
     return {
