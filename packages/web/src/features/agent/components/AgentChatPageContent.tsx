@@ -43,16 +43,22 @@ export function AgentChatPageContent({
 
   // Reset state when conversationId changes (including when it becomes undefined)
   useEffect(() => {
-    // If initialConversationId changes, reset the component state
-    setConversationId(initialConversationId);
-
-    // If no conversationId (new conversation), reset all state
+    // If no conversationId (new conversation), reset all state immediately
     if (!initialConversationId) {
+      setConversationId(undefined);
       setMessages([]);
       setHasStarted(false);
       setIsLoading(false);
       setConversationTitle('');
       setIsLoadingConversation(false);
+    } else {
+      // Update conversation ID only if it changed
+      setConversationId((prev) => {
+        if (prev !== initialConversationId) {
+          return initialConversationId;
+        }
+        return prev;
+      });
     }
   }, [initialConversationId]);
 

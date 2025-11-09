@@ -109,14 +109,21 @@ async function chatCompletion(
       if (error.message.includes('API key')) {
         throw new Error('Invalid or missing OpenAI API key');
       }
-      if (error.message.includes('rate limit')) {
+      if (error.message.includes('rate limit') || error.message.includes('429')) {
+        console.error('Rate limit hit. Error details:', error.message);
         throw new Error(
-          'OpenAI API rate limit exceeded. Please try again later.'
+          'OpenAI API rate limit exceeded. Please wait a moment and try again.'
         );
       }
-      if (error.message.includes('quota')) {
+      if (error.message.includes('quota') || error.message.includes('insufficient_quota')) {
+        console.error('Quota exceeded. Error details:', error.message);
         throw new Error(
-          'OpenAI API quota exceeded. Please check your billing.'
+          'OpenAI API quota exceeded. Please check your OpenAI billing and usage limits at https://platform.openai.com/usage'
+        );
+      }
+      if (error.message.includes('timeout')) {
+        throw new Error(
+          'OpenAI API request timed out. Please try again.'
         );
       }
     }
@@ -303,20 +310,27 @@ async function chatCompletionWithTools(
           | 'length') || 'stop',
     };
   } catch (error) {
-    console.error('❌ OpenAI API error:', error);
+    console.error('❌ OpenAI API error in chatCompletionWithTools:', error);
 
     if (error instanceof Error) {
       if (error.message.includes('API key')) {
         throw new Error('Invalid or missing OpenAI API key');
       }
-      if (error.message.includes('rate limit')) {
+      if (error.message.includes('rate limit') || error.message.includes('429')) {
+        console.error('Rate limit hit. Error details:', error.message);
         throw new Error(
-          'OpenAI API rate limit exceeded. Please try again later.'
+          'OpenAI API rate limit exceeded. Please wait a moment and try again.'
         );
       }
-      if (error.message.includes('quota')) {
+      if (error.message.includes('quota') || error.message.includes('insufficient_quota')) {
+        console.error('Quota exceeded. Error details:', error.message);
         throw new Error(
-          'OpenAI API quota exceeded. Please check your billing.'
+          'OpenAI API quota exceeded. Please check your OpenAI billing and usage limits at https://platform.openai.com/usage'
+        );
+      }
+      if (error.message.includes('timeout')) {
+        throw new Error(
+          'OpenAI API request timed out. Please try again.'
         );
       }
     }

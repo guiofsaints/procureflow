@@ -7,9 +7,9 @@
 
 'use client';
 
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,11 +26,26 @@ export function AgentConversationHistoryList({
 }: AgentConversationHistoryListProps) {
   const { conversations, isLoading, error } = useAgentConversations();
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Handler for new conversation button
+  const handleNewConversation = () => {
+    // Always use client-side navigation
+    router.push('/agent');
+  };
 
   // If collapsed, show just an icon
   if (collapsed) {
     return (
-      <div className='flex items-center justify-center p-2'>
+      <div className='space-y-2 p-2'>
+        <Button
+          variant='ghost'
+          size='icon'
+          title='New Conversation'
+          onClick={handleNewConversation}
+        >
+          <Plus className='h-5 w-5' />
+        </Button>
         <Button variant='ghost' size='icon' title='Conversations'>
           <MessageSquare className='h-5 w-5' />
         </Button>
@@ -42,8 +57,19 @@ export function AgentConversationHistoryList({
   if (isLoading) {
     return (
       <div className='space-y-2 p-2'>
-        <div className='px-2 py-1.5 text-xs font-semibold text-sidebar-foreground/70'>
-          Conversations
+        <div className='flex items-center justify-between px-2 py-1.5'>
+          <div className='text-xs font-semibold text-sidebar-foreground/70'>
+            Conversations
+          </div>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-6 w-6'
+            title='New Conversation'
+            onClick={handleNewConversation}
+          >
+            <Plus className='h-4 w-4' />
+          </Button>
         </div>
         {[1, 2, 3].map((i) => (
           <div key={i} className='space-y-2 rounded-lg p-2'>
@@ -59,8 +85,19 @@ export function AgentConversationHistoryList({
   if (error) {
     return (
       <div className='p-2'>
-        <div className='px-2 py-1.5 text-xs font-semibold text-sidebar-foreground/70'>
-          Conversations
+        <div className='flex items-center justify-between px-2 py-1.5'>
+          <div className='text-xs font-semibold text-sidebar-foreground/70'>
+            Conversations
+          </div>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-6 w-6'
+            title='New Conversation'
+            onClick={handleNewConversation}
+          >
+            <Plus className='h-4 w-4' />
+          </Button>
         </div>
         <div className='rounded-lg p-3 text-xs text-muted-foreground'>
           Unable to load conversations
@@ -73,8 +110,19 @@ export function AgentConversationHistoryList({
   if (conversations.length === 0) {
     return (
       <div className='p-2'>
-        <div className='px-2 py-1.5 text-xs font-semibold text-sidebar-foreground/70'>
-          Conversations
+        <div className='flex items-center justify-between px-2 py-1.5'>
+          <div className='text-xs font-semibold text-sidebar-foreground/70'>
+            Conversations
+          </div>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-6 w-6'
+            title='New Conversation'
+            onClick={handleNewConversation}
+          >
+            <Plus className='h-4 w-4' />
+          </Button>
         </div>
         <div className='rounded-lg p-3 text-xs text-muted-foreground'>
           No conversations yet
@@ -85,8 +133,19 @@ export function AgentConversationHistoryList({
 
   return (
     <div className='space-y-2 p-2'>
-      <div className='px-2 py-1.5 text-xs font-semibold text-sidebar-foreground/70'>
-        Conversations
+      <div className='flex items-center justify-between px-2 py-1.5'>
+        <div className='text-xs font-semibold text-sidebar-foreground/70'>
+          Conversations
+        </div>
+        <Button
+          variant='ghost'
+          size='icon'
+          className='h-6 w-6'
+          title='New Conversation'
+          onClick={handleNewConversation}
+        >
+          <Plus className='h-4 w-4' />
+        </Button>
       </div>
       <div className='h-[300px] overflow-y-auto'>
         <div className='space-y-1'>

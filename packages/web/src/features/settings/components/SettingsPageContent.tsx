@@ -1,10 +1,13 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, MessageSquare, Moon, Sun, Trash2, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 import {
   AlertDialog,
@@ -19,11 +22,30 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ConversationSummary } from '@/features/settings';
+
+// Schema matching backend validations from user.schema.ts
+const profileSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Name must be at least 1 character')
+    .max(200, 'Name must not exceed 200 characters')
+    .trim(),
+});
+
+type ProfileForm = z.infer<typeof profileSchema>;
 
 /**
  * SettingsPageContent component
@@ -32,11 +54,25 @@ import type { ConversationSummary } from '@/features/settings';
 export function SettingsPageContent() {
   const { data: session, update: updateSession } = useSession();
   const { theme, setTheme } = useTheme();
-  const [isUpdatingName, setIsUpdatingName] = useState(false);
   const [isDeletingConversations, setIsDeletingConversations] = useState(false);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [conversationsLoaded, setConversationsLoaded] = useState(false);
-  const [name, setName] = useState(session?.user?.name || '');
+
+  const form = useForm<ProfileForm>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: session?.user?.name || '',
+    },
+  });
+
+  // Update form when session changes
+  useEffect(() => {
+    if (session?.user?.name) {
+      form.reset({
+        name: session.user.name,
+      });
+    }
+  }, [session?.user?.name, form]);
 
   // Load conversations when tab is activated
   const handleLoadConversations = async () => {
@@ -59,21 +95,12 @@ export function SettingsPageContent() {
   };
 
   // Update user name
-  const handleUpdateName = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!name.trim()) {
-      toast.error('Name cannot be empty');
-      return;
-    }
-
-    setIsUpdatingName(true);
-
+  async function onSubmit(data: ProfileForm) {
     try {
       const response = await fetch('/api/settings/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ name: data.name }),
       });
 
       if (!response.ok) {
@@ -81,14 +108,14 @@ export function SettingsPageContent() {
         throw new Error(error.error || 'Failed to update name');
       }
 
-      const data = await response.json();
+      const result = await response.json();
 
       // Update session with new user data
       await updateSession({
         ...session,
         user: {
           ...session?.user,
-          name: data.user.name,
+          name: result.user.name,
         },
       });
 
@@ -96,10 +123,8 @@ export function SettingsPageContent() {
     } catch (error) {
       console.error('Error updating name:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update name');
-    } finally {
-      setIsUpdatingName(false);
     }
-  };
+  }
 
   // Delete a single conversation
   const handleDeleteConversation = async (conversationId: string) => {
@@ -193,38 +218,46 @@ export function SettingsPageContent() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <form onSubmit={handleUpdateName} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                    maxLength={100}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name='name'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter your name"
+                            maxLength={200}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    value={session?.user?.email || ''}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Email cannot be changed
-                  </p>
-                </div>
+                  <div className="space-y-2">
+                    <FormLabel>Email</FormLabel>
+                    <Input
+                      value={session?.user?.email || ''}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <FormDescription>
+                      Email cannot be changed
+                    </FormDescription>
+                  </div>
 
-                <Button type="submit" disabled={isUpdatingName}>
-                  {isUpdatingName && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Save Changes
-                </Button>
-              </form>
+                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Save Changes
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </TabsContent>
@@ -240,7 +273,7 @@ export function SettingsPageContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Theme</Label>
+                <FormLabel>Theme</FormLabel>
                 <div className="flex gap-4">
                   <Button
                     variant={theme === 'light' ? 'default' : 'outline'}

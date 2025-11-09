@@ -826,6 +826,31 @@ Provide a natural, conversational answer that directly addresses what the user a
     };
   } catch (error) {
     console.error('Error generating agent response:', error);
+
+    // Provide user-friendly error messages based on error type
+    if (error instanceof Error) {
+      if (error.message.includes('rate limit')) {
+        return {
+          text: '⏳ I apologize, but the AI service is currently experiencing high demand. Please wait a moment and try again in a few seconds.',
+        };
+      }
+      if (error.message.includes('quota')) {
+        return {
+          text: '⚠️ The AI service quota has been exceeded. Please contact the administrator to check the OpenAI billing status.',
+        };
+      }
+      if (error.message.includes('timeout')) {
+        return {
+          text: '⏱️ The request took too long to process. Please try again with a simpler question.',
+        };
+      }
+      if (error.message.includes('API key')) {
+        return {
+          text: '🔑 There is a configuration issue with the AI service. Please contact the administrator.',
+        };
+      }
+    }
+
     return {
       text: 'I apologize, but I encountered a technical issue. Please try again or contact support if the problem persists.',
     };

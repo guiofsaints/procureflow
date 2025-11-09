@@ -46,11 +46,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Handle agent message
-    const response = await agentService.handleAgentMessage({
+    // Handle agent message with timeout (60 seconds - increased for debugging)
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout after 60s')), 60000)
+    );
+
+    const responsePromise = agentService.handleAgentMessage({
       userId: session?.user?.id,
       message: body.message,
       conversationId: body.conversationId,
+    });
+
+    const response = await Promise.race([
+      responsePromise,
+      timeoutPromise,
+    ]).catch((error) => {
+      console.error('Error or timeout in handleAgentMessage:', error);
+      throw error;
     });
 
     return NextResponse.json(response);

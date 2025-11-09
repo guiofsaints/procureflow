@@ -34,11 +34,52 @@ type ItemMutateDialogProps = {
   onSuccess?: () => void;
 };
 
+// Schema matching backend validations from item.schema.ts
 const formSchema = z.object({
-  name: z.string().min(1, 'Name is required.'),
-  category: z.string().min(1, 'Category is required.'),
-  description: z.string().min(1, 'Description is required.'),
-  price: z.string().min(1, 'Price is required.'),
+  name: z
+    .string()
+    .min(2, 'Item name must be at least 2 characters')
+    .max(200, 'Item name must not exceed 200 characters')
+    .trim(),
+  category: z
+    .string()
+    .min(2, 'Category must be at least 2 characters')
+    .max(100, 'Category must not exceed 100 characters')
+    .trim(),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000, 'Description must not exceed 2000 characters')
+    .trim(),
+  estimatedPrice: z
+    .string()
+    .min(1, 'Price is required')
+    .refine(
+      (val) => {
+        const num = parseFloat(val);
+        return !isNaN(num) && num >= 0.01;
+      },
+      { message: 'Price must be greater than 0' }
+    )
+    .refine(
+      (val) => {
+        const num = parseFloat(val);
+        return !isNaN(num) && num <= 1000000;
+      },
+      { message: 'Price must not exceed 1,000,000' }
+    )
+    .refine(
+      (val) => {
+        const num = parseFloat(val);
+        if (isNaN(num)) {
+          return false;
+        }
+        // Check if has at most 2 decimal places
+        return /^\d+(\.\d{1,2})?$/.test(num.toFixed(2));
+      },
+      { message: 'Price must have at most 2 decimal places' }
+    ),
+  unit: z.string().max(50, 'Unit must not exceed 50 characters').optional(),
 });
 
 type ItemForm = z.infer<typeof formSchema>;
@@ -55,17 +96,19 @@ export function ItemMutateDialog({
     resolver: zodResolver(formSchema),
     defaultValues: currentRow
       ? {
-          name: currentRow.name,
-          category: currentRow.category,
-          description: currentRow.description,
-          price: currentRow.price.toString(),
-        }
+        name: currentRow.name,
+        category: currentRow.category,
+        description: currentRow.description,
+        estimatedPrice: currentRow.price.toString(),
+        unit: 'each',
+      }
       : {
-          name: '',
-          category: '',
-          description: '',
-          price: '',
-        },
+        name: '',
+        category: '',
+        description: '',
+        estimatedPrice: '',
+        unit: 'each',
+      },
   });
 
   // Update form when currentRow changes
@@ -75,7 +118,8 @@ export function ItemMutateDialog({
         name: currentRow.name,
         category: currentRow.category,
         description: currentRow.description,
-        price: currentRow.price.toString(),
+        estimatedPrice: currentRow.price.toString(),
+        unit: 'each',
       });
     }
   }, [currentRow, form]);
@@ -100,7 +144,8 @@ export function ItemMutateDialog({
           name: data.name,
           category: data.category,
           description: data.description,
-          estimatedPrice: parseFloat(data.price),
+          estimatedPrice: parseFloat(data.estimatedPrice),
+          unit: data.unit || 'each',
         }),
       });
 
@@ -211,7 +256,7 @@ export function ItemMutateDialog({
 
             <FormField
               control={form.control}
-              name='price'
+              name='estimatedPrice'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Price (USD)</FormLabel>
@@ -220,8 +265,27 @@ export function ItemMutateDialog({
                       {...field}
                       type='number'
                       step='0.01'
-                      min='0'
+                      min='0.01'
+                      max='1000000'
                       placeholder='0.00'
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='unit'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Unit (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder='each'
+                      maxLength={50}
                     />
                   </FormControl>
                   <FormMessage />
