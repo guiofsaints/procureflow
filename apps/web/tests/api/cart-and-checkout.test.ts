@@ -37,7 +37,7 @@ describe('Cart and Checkout Flow', () => {
       const cart = await cartService.getCartForUser(testUserId);
 
       expect(cart).toBeDefined();
-      expect(cart.userId).toBe(testUserId);
+      expect(cart.userId).toBe(testUserId.toString());
       expect(cart.items).toHaveLength(0);
       expect(cart.totalCost).toBe(0);
     });
@@ -120,7 +120,7 @@ describe('Cart and Checkout Flow', () => {
 
       expect(purchaseRequest).toBeDefined();
       expect(purchaseRequest.id).toBeDefined();
-      expect(purchaseRequest.userId).toBe(testUserId);
+      expect(purchaseRequest.userId).toBe(testUserId.toString());
       expect(purchaseRequest.items).toHaveLength(1);
       expect(purchaseRequest.items[0].quantity).toBe(3);
       expect(purchaseRequest.totalCost).toBe(149.97); // 49.99 * 3

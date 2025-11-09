@@ -4,6 +4,7 @@
  * Tests for agent conversation history API endpoints and services.
  */
 
+import { Types } from 'mongoose';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -13,7 +14,7 @@ import {
 } from '@/features/agent';
 
 describe('Agent Conversation Service', () => {
-  const testUserId = 'test-user-123';
+  const testUserId = new Types.ObjectId().toString(); // Valid MongoDB ObjectId string
 
   describe('createConversationForUser', () => {
     it('should create a conversation with title and preview', async () => {
@@ -98,14 +99,17 @@ describe('Agent Conversation Service', () => {
     });
 
     it('should return null if conversation belongs to different user', async () => {
+      const userA = new Types.ObjectId().toString();
+      const userB = new Types.ObjectId().toString();
+
       // Create conversation for user A
-      const conv = await createConversationForUser('user-a', {
+      const conv = await createConversationForUser(userA, {
         title: 'User A Conversation',
         lastMessagePreview: 'Test',
       });
 
       // Try to fetch as user B
-      const result = await getConversationSummaryById('user-b', conv.id);
+      const result = await getConversationSummaryById(userB, conv.id);
 
       expect(result).toBeNull();
     });
