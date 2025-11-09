@@ -285,6 +285,118 @@ export async function getItemById(itemId: string): Promise<Item | null> {
   }
 }
 
+/**
+ * Update an existing catalog item
+ *
+ * Business Rules:
+ * - BR-1.5: Price must be positive
+ * - Only active items can be updated
+ *
+ * @param itemId - Item ID to update
+ * @param updates - Partial item data to update
+ * @returns Updated item
+ * @throws {ValidationError} If item not found or validation fails
+ */
+export async function updateItem(
+  itemId: string,
+  updates: Partial<CreateItemInput>
+): Promise<Item> {
+  await connectDB();
+
+  try {
+    // Validate updates if provided
+    if (updates.estimatedPrice !== undefined) {
+      if (
+        typeof updates.estimatedPrice !== 'number' ||
+        updates.estimatedPrice <= 0
+      ) {
+        throw new ValidationError('Estimated price must be a positive number');
+      }
+    }
+
+    if (updates.name !== undefined) {
+      const trimmedName = updates.name.trim();
+      if (trimmedName.length < 2 || trimmedName.length > 200) {
+        throw new ValidationError('Name must be between 2 and 200 characters');
+      }
+    }
+
+    if (updates.category !== undefined) {
+      const trimmedCategory = updates.category.trim();
+      if (trimmedCategory.length < 2 || trimmedCategory.length > 100) {
+        throw new ValidationError(
+          'Category must be between 2 and 100 characters'
+        );
+      }
+    }
+
+    if (updates.description !== undefined) {
+      const trimmedDesc = updates.description.trim();
+      if (trimmedDesc.length < 10 || trimmedDesc.length > 2000) {
+        throw new ValidationError(
+          'Description must be between 10 and 2000 characters'
+        );
+      }
+    }
+
+    // Build update object with trimmed strings
+    const updateData: Record<string, unknown> = {};
+
+    if (updates.name !== undefined) {
+      updateData.name = updates.name.trim();
+    }
+    if (updates.category !== undefined) {
+      updateData.category = updates.category.trim();
+    }
+    if (updates.description !== undefined) {
+      updateData.description = updates.description.trim();
+    }
+    if (updates.estimatedPrice !== undefined) {
+      updateData.estimatedPrice = updates.estimatedPrice;
+    }
+    if (updates.unit !== undefined) {
+      updateData.unit = updates.unit;
+    }
+    if (updates.preferredSupplier !== undefined) {
+      updateData.preferredSupplier = updates.preferredSupplier;
+    }
+
+    // Update item
+    const item = await ItemModel.findByIdAndUpdate(
+      itemId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    )
+      .lean()
+      .exec();
+
+    if (!item) {
+      throw new ValidationError('Item not found');
+    }
+
+    // Convert to domain type
+    return {
+      id: item._id.toString(),
+      name: item.name,
+      category: item.category,
+      description: item.description,
+      price: item.estimatedPrice,
+      unit: item.unit,
+      status: mapStatusFromDb(item.status),
+      preferredSupplier: item.preferredSupplier,
+      registeredBy: item.createdByUserId?.toString(),
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    };
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw error;
+    }
+    console.error('Error updating item:', error);
+    throw new Error('Failed to update item');
+  }
+}
+
 // ============================================================================
 // Validation Helpers
 // ============================================================================
