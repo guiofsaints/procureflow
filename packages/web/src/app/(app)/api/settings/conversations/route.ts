@@ -9,7 +9,10 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
-import { deleteAllConversations, listUserConversations } from '@/features/settings';
+import {
+  deleteAllConversations,
+  listUserConversations,
+} from '@/features/settings';
 import { authConfig } from '@/lib/auth/config';
 
 export async function GET() {

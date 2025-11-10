@@ -407,6 +407,39 @@ export interface AgentMessage {
     totalCost: number;
     itemCount: number;
   };
+
+  /**
+   * Optional checkout confirmation data
+   * Used to show confirmation UI before executing checkout
+   */
+  checkoutConfirmation?: {
+    items: Array<{
+      itemId: string;
+      itemName: string;
+      itemPrice: number;
+      quantity: number;
+      subtotal: number;
+    }>;
+    totalCost: number;
+    itemCount: number;
+  };
+
+  /**
+   * Optional purchase request data attached to the message
+   * Used for rendering purchase request card after checkout
+   */
+  purchaseRequest?: {
+    id: string;
+    items: Array<{
+      itemName: string;
+      itemCategory: string;
+      quantity: number;
+      unitPrice: number;
+      subtotal: number;
+    }>;
+    totalCost: number;
+    status: string;
+  };
 }
 
 /**

@@ -6,9 +6,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { ZodError } from 'zod';
 
-import * as agentService from '@/features/agent';
+import {
+  handleAgentMessage,
+  ValidationError,
+} from '@/features/agent/lib/agent.service';
 import { authConfig } from '@/lib/auth/config';
+import { logger } from '@/lib/logger/winston.config';
+import { validateWithModeration } from '@/lib/validation/moderation';
+import { validateUserInput } from '@/lib/validation/promptInjection';
+import { validateAgentMessageRequest } from '@/lib/validation/schemas';
 
 /**
  * POST /api/agent/chat
@@ -28,55 +36,100 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json();
 
-    // Validate message
-    if (!body.message || typeof body.message !== 'string') {
+    // Validate request structure with Zod
+    const validatedRequest = validateAgentMessageRequest(body);
+
+    // Check for prompt injection (strict mode for high-severity patterns)
+    let safeMessage: string;
+    try {
+      safeMessage = validateUserInput(validatedRequest.message, {
+        strict: true, // Throw on high-severity injection attempts
+        sanitize: true,
+      });
+    } catch (error) {
+      logger.warn('Prompt injection blocked', {
+        userId: session?.user?.id,
+        messageLength: validatedRequest.message.length,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
       return NextResponse.json(
         {
           error: 'Validation failed',
-          message: 'message is required and must be a string',
+          message:
+            'Your message contains patterns that may violate safety policies. Please rephrase and try again.',
         },
         { status: 400 }
       );
     }
 
-    if (body.message.trim().length === 0) {
+    // Optional: OpenAI moderation (if enabled)
+    try {
+      await validateWithModeration(safeMessage);
+    } catch (error) {
+      logger.warn('Content moderation blocked message', {
+        userId: session?.user?.id,
+        messageLength: safeMessage.length,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
       return NextResponse.json(
-        { error: 'Validation failed', message: 'message cannot be empty' },
+        {
+          error: 'Content policy violation',
+          message:
+            'Your message violates content safety policies. Please revise and try again.',
+        },
         { status: 400 }
       );
     }
 
-    // Handle agent message with timeout (60 seconds - increased for debugging)
+    // Handle agent message with timeout (60 seconds)
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Request timeout after 60s')), 60000)
     );
 
-    const responsePromise = agentService.handleAgentMessage({
+    // Call agent service
+    const responsePromise = handleAgentMessage({
       userId: session?.user?.id,
-      message: body.message,
-      conversationId: body.conversationId,
+      message: safeMessage,
+      conversationId: validatedRequest.conversationId,
     });
 
     const response = await Promise.race([
       responsePromise,
       timeoutPromise,
     ]).catch((error) => {
-      console.error('Error or timeout in handleAgentMessage:', error);
+      logger.error('Error or timeout in handleAgentMessage', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: session?.user?.id,
+      });
       throw error;
     });
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error in POST /api/agent/chat:', error);
+    logger.error('Error in POST /api/agent/chat', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
 
-    // Handle validation errors
-    if (error instanceof agentService.ValidationError) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      const zodError = error as { issues: Array<{ message: string }> };
       return NextResponse.json(
-        { error: 'Validation failed', message: error.message },
+        {
+          error: 'Validation failed',
+          message: zodError.issues[0]?.message || 'Invalid request format',
+          details: zodError.issues,
+        },
         { status: 400 }
       );
     }
 
+    // Handle specific errors
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     // Generic error (don't leak internal details)
     return NextResponse.json(
       {

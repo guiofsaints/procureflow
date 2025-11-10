@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+import { logger } from '@/lib/logger/winston.config';
+
 // Define the connection interface
 interface MongoConnection {
   conn: typeof mongoose | null;
@@ -54,12 +56,12 @@ async function connectDB(): Promise<typeof mongoose> {
 
   try {
     cached.conn = await cached.promise;
-    console.error('Connected to MongoDB');
+    logger.info('Connected to MongoDB');
     return cached.conn;
   } catch (error) {
     cached.promise = null;
     cached.conn = null;
-    console.error('MongoDB connection error:', error);
+    logger.error('MongoDB connection error', { error });
     throw error;
   }
 }
@@ -70,7 +72,7 @@ async function disconnectDB(): Promise<void> {
     await mongoose.disconnect();
     cached.conn = null;
     cached.promise = null;
-    console.error('Disconnected from MongoDB');
+    logger.info('Disconnected from MongoDB');
   }
 }
 
@@ -87,7 +89,7 @@ async function isDBHealthy(): Promise<boolean> {
 
     return mongoose.connection.readyState === 1; // 1 = connected
   } catch (error) {
-    console.error('❌ Database health check failed:', error);
+    logger.error('Database health check failed', { error });
     return false;
   }
 }

@@ -32,8 +32,9 @@ This is a **bootstrap codebase** designed for a tech case study focused on AI-na
 ### AI & Machine Learning
 
 - **LangChain** for AI workflow orchestration
-- **OpenAI GPT** integration
+- **OpenAI GPT** or **Google Gemini** integration (configurable)
 - Structured prompt templates for procurement use cases
+- Function calling support for both providers
 
 ### Infrastructure & DevOps
 
@@ -268,7 +269,11 @@ The `/api/health` endpoint includes database connectivity verification (when unc
 
 ## 🤖 AI Integration
 
-### LangChain & OpenAI Setup
+### LangChain with OpenAI or Google Gemini
+
+O ProcureFlow suporta dois provedores de IA:
+
+#### Option 1: OpenAI (Recomendado para produção)
 
 1. Get an OpenAI API key from https://platform.openai.com/
 2. Add to your `.env`:
@@ -276,12 +281,29 @@ The `/api/health` endpoint includes database connectivity verification (when unc
    OPENAI_API_KEY=sk-your-api-key-here
    ```
 
+#### Option 2: Google Gemini (Gratuito para começar)
+
+1. Get a Google API key from https://aistudio.google.com/app/apikey
+2. Add to your `.env`:
+   ```bash
+   GOOGLE_API_KEY=your-google-api-key-here
+   ```
+
+**Nota**: Se ambas as chaves estiverem configuradas, o sistema usará Google Gemini por padrão. Veja [Gemini Integration Guide](packages/web/docs/GEMINI_INTEGRATION.md) para mais detalhes.
+
 ### Usage Examples
 
 ```typescript
-import { chatCompletion, promptTemplates } from '@/lib/ai/langchainClient';
+import {
+  chatCompletion,
+  promptTemplates,
+  AI_PROVIDER,
+} from '@/lib/ai/langchainClient';
 
-// Simple completion
+// Verificar qual provider está ativo
+console.log('AI Provider:', AI_PROVIDER); // 'openai' ou 'gemini'
+
+// Simple completion (funciona com ambos os providers)
 const response = await chatCompletion('Analyze this procurement request...');
 
 // Using predefined templates
@@ -370,12 +392,13 @@ pnpm pulumi:up
 
 ### Optional Variables
 
-| Variable               | Description                    | Default       |
-| ---------------------- | ------------------------------ | ------------- |
-| `OPENAI_API_KEY`       | OpenAI API key for AI features | -             |
-| `GOOGLE_CLIENT_ID`     | Google OAuth client ID         | -             |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth secret            | -             |
-| `NODE_ENV`             | Environment mode               | `development` |
+| Variable               | Description                         | Default       |
+| ---------------------- | ----------------------------------- | ------------- |
+| `OPENAI_API_KEY`       | OpenAI API key for AI features      | -             |
+| `GOOGLE_API_KEY`       | Google Gemini API key (alternative) | -             |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID              | -             |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth secret                 | -             |
+| `NODE_ENV`             | Environment mode                    | `development` |
 
 ### Example .env.local
 
@@ -387,8 +410,11 @@ MONGODB_URI=mongodb://localhost:27017/procureflow
 NEXTAUTH_SECRET=super-secret-key-change-in-production
 NEXTAUTH_URL=http://localhost:3000
 
-# AI Services (Optional)
+# AI Services (Optional - choose one or both)
 OPENAI_API_KEY=sk-your-openai-api-key
+# or
+GOOGLE_API_KEY=your-google-gemini-api-key
+# If both are set, Gemini will be used
 
 # OAuth Providers (Optional)
 GOOGLE_CLIENT_ID=your-google-client-id

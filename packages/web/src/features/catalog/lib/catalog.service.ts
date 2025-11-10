@@ -19,6 +19,7 @@ import type { Item } from '@/domain/entities';
 import { ItemStatus } from '@/domain/entities';
 import { ItemModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
+import { logger } from '@/lib/logger/winston.config';
 
 // ============================================================================
 // Types
@@ -33,7 +34,7 @@ export interface SearchItemsParams {
 
   /**
    * Maximum number of results to return
-   * Default: 50
+   * Default: 10 (reduced from 50 to minimize token usage)
    */
   limit?: number;
 
@@ -113,7 +114,7 @@ export async function searchItems(
 ): Promise<Item[]> {
   await connectDB();
 
-  const { q, limit = 50, includeArchived = false, maxPrice } = params;
+  const { q, limit = 10, includeArchived = false, maxPrice } = params;
 
   try {
     let items;
@@ -165,7 +166,7 @@ export async function searchItems(
       updatedAt: doc.updatedAt,
     }));
   } catch (error) {
-    console.error('Error searching items:', error);
+    logger.error('Error searching items', { error });
     throw new Error('Failed to search items');
   }
 }

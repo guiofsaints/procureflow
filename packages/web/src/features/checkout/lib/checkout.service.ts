@@ -15,6 +15,7 @@ import type { PurchaseRequest } from '@/domain/entities';
 import { PurchaseRequestStatus } from '@/domain/entities';
 import { CartModel, ItemModel, PurchaseRequestModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
+import { logger } from '@/lib/logger/winston.config';
 
 // ============================================================================
 // Error Classes
@@ -149,7 +150,7 @@ export async function checkoutCart(
     if (error instanceof EmptyCartError || error instanceof ValidationError) {
       throw error;
     }
-    console.error('Error during checkout:', error);
+    logger.error('Error during checkout', { userId, error });
     throw new Error('Failed to complete checkout');
   }
 }
@@ -209,7 +210,7 @@ export async function getPurchaseRequestsForUser(
       updatedAt: request.updatedAt,
     }));
   } catch (error) {
-    console.error('Error fetching purchase requests:', error);
+    logger.error('Error fetching purchase requests', { userId, error });
     throw new Error('Failed to fetch purchase requests');
   }
 }
@@ -266,7 +267,7 @@ export async function getPurchaseRequestById(
       updatedAt: request.updatedAt,
     };
   } catch (error) {
-    console.error('Error fetching purchase request:', error);
+    logger.error('Error fetching purchase request', { userId, requestId, error });
     throw new Error('Failed to fetch purchase request');
   }
 }

@@ -13,7 +13,13 @@
 
 /* eslint-disable no-console */
 
+import path from 'path';
+
+import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+
+// Load environment variables from .env.local
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 // MongoDB connection URI from environment
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGODB_URI_TEST;

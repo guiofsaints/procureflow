@@ -9,6 +9,7 @@ import type { User } from '@/domain/entities';
 import type { UserDocument } from '@/domain/mongo-schemas';
 import { UserModel, AgentConversationModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
+import { logger } from '@/lib/logger/winston.config';
 
 // ============================================================================
 // Types
@@ -57,8 +58,7 @@ function mapToConversationSummary(
   const firstUserMessage = messages.find(
     (m: Record<string, unknown>) => m.role === 'user'
   )?.content as string | undefined;
-  const preview =
-    firstUserMessage?.substring(0, 100) || 'No messages yet...';
+  const preview = firstUserMessage?.substring(0, 100) || 'No messages yet...';
 
   return {
     id: (doc._id as { toString: () => string }).toString(),
@@ -135,7 +135,7 @@ export async function listUserConversations(
 
     return conversations.map(mapToConversationSummary);
   } catch (error) {
-    console.error('Error listing conversations:', error);
+    logger.error('Error listing conversations', { userId, error });
     throw new Error('Failed to list conversations');
   }
 }
@@ -163,7 +163,7 @@ export async function deleteConversation(
       throw new Error('Conversation not found or access denied');
     }
   } catch (error) {
-    console.error('Error deleting conversation:', error);
+    logger.error('Error deleting conversation', { userId, conversationId, error });
     throw new Error('Failed to delete conversation');
   }
 }
@@ -174,9 +174,7 @@ export async function deleteConversation(
  * @param userId - User ID
  * @returns Number of conversations deleted
  */
-export async function deleteAllConversations(
-  userId: string
-): Promise<number> {
+export async function deleteAllConversations(userId: string): Promise<number> {
   await connectDB();
 
   try {
@@ -192,7 +190,7 @@ export async function deleteAllConversations(
 
     return result.deletedCount || 0;
   } catch (error) {
-    console.error('Error deleting all conversations:', error);
+    logger.error('Error deleting all conversations', { userId, error });
     throw new Error('Failed to delete conversations');
   }
 }

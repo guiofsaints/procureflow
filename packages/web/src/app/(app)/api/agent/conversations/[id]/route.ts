@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
-import { getConversationById } from '@/features/agent';
+import { getConversationById } from '@/features/agent/lib/agent.service';
 import { authConfig } from '@/lib/auth/config';
 
 export async function GET(

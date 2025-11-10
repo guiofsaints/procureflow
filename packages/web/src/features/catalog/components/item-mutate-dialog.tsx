@@ -96,19 +96,19 @@ export function ItemMutateDialog({
     resolver: zodResolver(formSchema),
     defaultValues: currentRow
       ? {
-        name: currentRow.name,
-        category: currentRow.category,
-        description: currentRow.description,
-        estimatedPrice: currentRow.price.toString(),
-        unit: 'each',
-      }
+          name: currentRow.name,
+          category: currentRow.category,
+          description: currentRow.description,
+          estimatedPrice: currentRow.price.toString(),
+          unit: 'each',
+        }
       : {
-        name: '',
-        category: '',
-        description: '',
-        estimatedPrice: '',
-        unit: 'each',
-      },
+          name: '',
+          category: '',
+          description: '',
+          estimatedPrice: '',
+          unit: 'each',
+        },
   });
 
   // Update form when currentRow changes
@@ -282,11 +282,7 @@ export function ItemMutateDialog({
                 <FormItem>
                   <FormLabel>Unit (optional)</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      placeholder='each'
-                      maxLength={50}
-                    />
+                    <Input {...field} placeholder='each' maxLength={50} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

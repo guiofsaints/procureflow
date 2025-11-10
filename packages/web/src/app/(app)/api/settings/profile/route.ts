@@ -21,10 +21,7 @@ export async function PATCH(request: NextRequest) {
     const { name } = body;
 
     if (!name || typeof name !== 'string') {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
     const updatedUser = await updateUserName({
@@ -36,7 +33,10 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error('PATCH /api/settings/profile error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update profile' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to update profile',
+      },
       { status: 500 }
     );
   }

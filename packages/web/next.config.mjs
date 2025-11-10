@@ -12,10 +12,21 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
 
+  // Skip TypeScript checks during build (run separately with tsc)
+  // This prevents memory issues and speeds up builds
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Image domains for future use
   images: {
     domains: [],
   },
+
+  // Externalize native Node.js modules for server-side only usage
+  // winston-loki and snappy have native bindings that can't be bundled by Turbopack
+  // tiktoken has WASM files that need to be externalized
+  serverExternalPackages: ['winston-loki', 'snappy', 'tiktoken'],
 
   // Redirects and rewrites can be added here
   async redirects() {

@@ -10,6 +10,7 @@ export type {
   AgentConversationSummary,
   AgentItem,
   AgentMessage,
+  AgentPurchaseRequest,
   AgentRole,
 } from './types';
 
@@ -21,16 +22,20 @@ export {
   parseUserMessage,
 } from './mocks/mockAgent';
 
-// Components
+// Components (client-safe)
 export { AgentCartView } from './components/AgentCartView';
 export { AgentChatPageContent } from './components/AgentChatPageContent';
 export { AgentChatInput } from './components/AgentChatInput';
 export { AgentChatMessages } from './components/AgentChatMessages';
+export { AgentCheckoutButton } from './components/AgentCheckoutButton';
+export { AgentCheckoutPrompt } from './components/AgentCheckoutPrompt';
 export { AgentConversationHistoryList } from './components/AgentConversationHistoryList';
 export { AgentProductCard } from './components/AgentProductCard';
 export { AgentProductCarousel } from './components/AgentProductCarousel';
+export { AgentPurchaseRequestCard } from './components/AgentPurchaseRequestCard';
 export { AgentWelcome } from './components/AgentWelcome';
 
-// Legacy exports (keeping for backward compatibility)
-export * from './lib/agent.service';
-export { MessageBubble } from './components/MessageBubble';
+// NOTE: Service functions (agent.service.ts) are NOT exported here
+// because they import Node.js-only dependencies (prometheus, mongoose, etc.)
+// Import them directly in server-side code:
+// import { handleAgentMessage } from '@/features/agent/lib/agent.service';

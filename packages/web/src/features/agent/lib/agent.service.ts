@@ -26,6 +26,13 @@ import { chatCompletionWithTools } from '@/lib/ai/langchainClient';
 import type { ToolDefinition } from '@/lib/ai/langchainClient';
 import { AgentConversationModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
+import { logger } from '@/lib/logger/winston.config';
+import {
+  agentRequestTotal,
+  agentRequestDuration,
+} from '@/lib/metrics/prometheus.config';
+
+import { orchestrateAgentTurn } from './agent-orchestrator';
 
 // ============================================================================
 // Types
@@ -57,6 +64,18 @@ export interface AgentResponseCart {
     itemName: string;
     itemPrice: number;
     quantity: number;
+  }>;
+  totalCost: number;
+  itemCount: number;
+}
+
+export interface AgentCheckoutConfirmation {
+  items: Array<{
+    itemId: string;
+    itemName: string;
+    itemPrice: number;
+    quantity: number;
+    subtotal: number;
   }>;
   totalCost: number;
   itemCount: number;
@@ -99,14 +118,32 @@ export class ValidationError extends Error {
 export async function handleAgentMessage(
   params: HandleAgentMessageParams
 ): Promise<AgentResponse> {
-  await connectDB();
-
+  const startTime = Date.now();
   const { userId, message, conversationId } = params;
+
+  // Log incoming request
+  logger.info('Agent request received', {
+    conversationId: conversationId || 'new',
+    userId: userId?.toString() || 'anonymous',
+    messageLength: message.length,
+  });
+
+  await connectDB();
 
   // Validate message
   if (!message || message.trim().length === 0) {
+    logger.warn('Empty message validation failed', {
+      conversationId,
+      userId: userId?.toString(),
+    });
     throw new ValidationError('Message cannot be empty');
   }
+
+  // Start metrics timer
+  const endTimer = agentRequestDuration.startTimer({
+    provider: 'unknown', // Will be updated with actual provider
+    status: 'pending',
+  });
 
   try {
     // Find or create conversation
@@ -144,34 +181,60 @@ export async function handleAgentMessage(
     // Update lastMessagePreview with user's message
     conversation.lastMessagePreview = message.trim().substring(0, 100);
 
-    // Generate agent response using LangChain
-    const agentReply = await generateAgentResponse(
-      message,
-      conversation.messages,
-      userId
-    );
-
-    // Add agent message to conversation with metadata for items and cart
-    const metadata: Record<string, unknown> = {};
-    if (agentReply.items) {
-      metadata.items = agentReply.items;
-    }
-    if (agentReply.cart) {
-      metadata.cart = agentReply.cart;
-    }
-
-    conversation.messages.push({
-      sender: 'agent',
-      content: agentReply.text,
-      createdAt: new Date(),
-      metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+    // Use orchestrator for agent turn (Step 8 refactor)
+    const orchestrationResult = await orchestrateAgentTurn({
+      userMessage: message,
+      conversation,
+      userId: userId?.toString() || 'anonymous',
+      conversationId: conversation._id?.toString() || 'new',
+      maxTokens: 3000,
     });
 
-    // Update lastMessagePreview with agent's response
-    conversation.lastMessagePreview = agentReply.text.substring(0, 100);
+    logger.info('Orchestration completed', {
+      conversationId: conversation._id?.toString(),
+      iterations: orchestrationResult.iterations,
+      toolCallsCount: orchestrationResult.toolCallsCount,
+      maxIterationsReached: orchestrationResult.maxIterationsReached,
+    });
+
+    // Add orchestrator messages to conversation
+    // The orchestrator returns BaseMessage[] which we need to convert to conversation messages
+    for (const msg of orchestrationResult.messages) {
+      if (msg._getType() === 'ai') {
+        const content = msg.content as string;
+        // Only add AI messages with non-empty content
+        if (content && content.trim().length > 0) {
+          conversation.messages.push({
+            sender: 'agent',
+            content: content.trim(),
+            createdAt: new Date(),
+          });
+        }
+      } else if (msg._getType() === 'tool') {
+        // Tool messages are internal, don't add to conversation
+        continue;
+      }
+    }
+
+    // Update lastMessagePreview with agent's final response
+    // Ensure it's not empty (fallback to orchestration result content)
+    const previewContent = orchestrationResult.content?.trim() || 'Processing...';
+    conversation.lastMessagePreview = previewContent.substring(0, 100);
 
     // Save conversation
     await conversation.save();
+
+    // Record success metrics
+    const elapsed = Date.now() - startTime;
+    endTimer({ status: 'success' });
+    agentRequestTotal.inc({ status: 'success', provider: 'openai' }); // TODO: Get actual provider
+
+    logger.info('Agent request completed', {
+      conversationId: conversation._id.toString(),
+      userId: userId?.toString() || 'anonymous',
+      latencyMs: elapsed,
+      messageCount: conversation.messages.length,
+    });
 
     // Map to DTO
     return {
@@ -179,8 +242,19 @@ export async function handleAgentMessage(
       messages: conversation.messages.map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (msg: any) => {
+          // Map MongoDB 'sender' to AgentMessageRole
+          // sender: 'agent' → role: 'assistant'
+          // sender: 'user' → role: 'user'
+          // sender: 'system' → role: 'system'
+          const role =
+            msg.sender === 'agent'
+              ? AgentMessageRole.Assistant
+              : msg.sender === 'user'
+                ? AgentMessageRole.User
+                : AgentMessageRole.System;
+
           const message: AgentMessage = {
-            role: msg.sender as AgentMessageRole,
+            role,
             content: msg.content,
             timestamp: msg.createdAt,
           };
@@ -195,15 +269,37 @@ export async function handleAgentMessage(
             message.cart = msg.metadata.cart;
           }
 
+          // Add checkout confirmation if present in metadata
+          if (msg.metadata?.checkoutConfirmation) {
+            message.checkoutConfirmation = msg.metadata.checkoutConfirmation;
+          }
+
+          // Add purchase request if present in metadata
+          if (msg.metadata?.purchaseRequest) {
+            message.purchaseRequest = msg.metadata.purchaseRequest;
+          }
+
           return message;
         }
       ),
     };
   } catch (error) {
+    // Record error metrics
+    const elapsed = Date.now() - startTime;
+    endTimer({ status: 'error' });
+    agentRequestTotal.inc({ status: 'error', provider: 'unknown' });
+
+    logger.error('Agent request failed', {
+      conversationId: conversationId || 'new',
+      userId: userId?.toString() || 'anonymous',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      latencyMs: elapsed,
+    });
+
     if (error instanceof ValidationError) {
       throw error;
     }
-    console.error('Error handling agent message:', error);
     throw new Error('Failed to process agent message');
   }
 }
@@ -219,14 +315,31 @@ interface AgentReplyWithItems {
   text: string;
   items?: AgentResponseItem[];
   cart?: AgentResponseCart;
+  checkoutConfirmation?: AgentCheckoutConfirmation;
+  purchaseRequest?: {
+    id: string;
+    items: Array<{
+      itemId: string;
+      itemName: string;
+      itemCategory: string;
+      unitPrice: number;
+      quantity: number;
+      subtotal: number;
+    }>;
+    totalCost: number;
+    status: string;
+  };
 }
 
 /**
+ * @deprecated This function is replaced by orchestrateAgentTurn (Step 8 refactor)
+ * Kept for reference during migration. Will be removed after testing.
+ * 
  * Generate agent response using LangChain with function calling
  *
  * Uses OpenAI's function calling to let the model decide when to use tools
  */
-async function generateAgentResponse(
+async function _generateAgentResponse_DEPRECATED(
   userMessage: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   conversationHistory: any[],
@@ -238,19 +351,24 @@ async function generateAgentResponse(
       {
         name: 'search_catalog',
         description:
-          'Search for products in the catalog by a SINGLE keyword. Returns product cards that will be displayed to the user. If user asks for multiple products, call this function multiple times with different keywords.',
+          'Search for products in the catalog by a SINGLE keyword IN ENGLISH. Always translate user terms to English before searching. Returns product cards that will be displayed to the user. If user asks for multiple products, call this function multiple times with different keywords. Optimized to return concise results to minimize token usage.',
         parameters: {
           type: 'object',
           properties: {
             keyword: {
               type: 'string',
               description:
-                'A SINGLE product name or category to search for (e.g., "wireless mice", "laptops", "monitors"). Do NOT include multiple items in one keyword - call the function multiple times instead.',
+                'A SINGLE product name or category to search for IN ENGLISH (e.g., "pen", "fruits", "office supplies", "laptop"). If user provides Portuguese terms, translate to English first: "canetas"→"pen", "frutas"→"fruits", "papel"→"paper". Do NOT include multiple items in one keyword - call the function multiple times instead.',
             },
             maxPrice: {
               type: 'number',
               description:
                 'Maximum price filter (optional). Only return items with price <= maxPrice. Extract from user requests like "under $30", "less than $50", "below $100".',
+            },
+            maxResults: {
+              type: 'number',
+              description:
+                'Maximum number of results to return (default: 5, max: 10). Use lower values for exploratory searches to reduce token usage.',
             },
           },
           required: ['keyword'],
@@ -300,7 +418,7 @@ async function generateAgentResponse(
       {
         name: 'view_cart',
         description:
-          'Display the current cart contents and total cost. Use this when user asks to see their cart.',
+          'Display the current cart contents with full item details (names, prices, quantities). Use this when user asks to see their cart OR when user asks questions about specific items in the cart like "which fruits are in my cart?", "what items do I have?", "show me what\'s in my cart". This returns the complete list of items with their names, allowing you to identify and filter specific categories or types.',
         parameters: {
           type: 'object',
           properties: {},
@@ -310,7 +428,7 @@ async function generateAgentResponse(
       {
         name: 'analyze_cart',
         description:
-          'Get analytics and statistics about the cart to answer user questions. Use this when user asks questions about cart data like "what is the most expensive item", "highest unit price", "lowest price", "average price", total items, etc. The tool returns raw data that you should interpret to answer the user\'s specific question.',
+          'Get analytics and statistics about the cart to answer numerical/statistical questions. Use this ONLY when user asks about statistics like "what is the most expensive item", "highest unit price", "lowest price", "average price", "total cost", etc. For questions about WHICH items are in the cart, use view_cart instead.',
         parameters: {
           type: 'object',
           properties: {},
@@ -357,9 +475,31 @@ You have access to these functions:
 - search_catalog: Search for products by keyword with optional price filter
 - add_to_cart: Add NEW items to cart (only for items NOT currently in cart - requires itemId from search results)
 - update_cart_quantity: Change quantity of EXISTING cart items (use when user says "add X more", "remove X", or wants to change quantity of items already in cart)
-- view_cart: Show current cart contents with item IDs and quantities
+- view_cart: Show current cart contents with item names, IDs, prices and quantities (use this to answer questions like "what's in my cart?", "which fruits are in my cart?", "show my cart items")
+- analyze_cart: Get cart statistics like most expensive item, average price, totals (use this for analytical questions like "what's the most expensive item?", "average price?")
 - remove_from_cart: Remove item COMPLETELY from cart (only when user says "remove all" or clicks delete button)
 - checkout: Complete purchase
+
+CRITICAL: LANGUAGE AND TRANSLATION RULES
+1. INTERNAL COMMUNICATION: Always use English internally for tool calls and catalog searches
+2. USER RESPONSE: Respond in the SAME language the user writes to you
+   - If user writes in English → respond in English
+   - If user writes in Portuguese → respond in Portuguese
+   
+3. SEARCH TRANSLATION: Always translate search terms to English before calling search_catalog
+   - User: "show me fruits" → search_catalog(keyword: "fruits")
+   - User: "mostre frutas" → search_catalog(keyword: "fruits") [translate frutas→fruits]
+   - User: "preciso de canetas" → search_catalog(keyword: "pen") [translate canetas→pen]
+   - User: "show me pens" → search_catalog(keyword: "pen")
+   
+Common translations (Portuguese → English) for catalog search:
+- frutas → fruits, banana → banana, laranja → orange, maçã → apple
+- morango → strawberry, abacaxi → pineapple, uva → grape, manga → mango
+- canetas → pen, lápis → pencil, papel → paper
+- escritório → office, computador → computer, mouse → mouse
+- teclado → keyboard, monitor → monitor, notebook → laptop
+
+4. The catalog is primarily in English, so always translate Portuguese terms to English for searching
 
 CRITICAL: PRICE FILTERING
 When user specifies a price constraint, you MUST extract it and pass as maxPrice parameter to search_catalog:
@@ -383,6 +523,17 @@ For example:
 - User: "show me pen, pencil and laptop"
 - You should: Call search_catalog("pen"), search_catalog("pencil"), search_catalog("laptop")
 - Then combine and present all results
+
+CRITICAL: ANSWERING QUESTIONS ABOUT CART CONTENTS
+When user asks "which fruits are in my cart?" or "what fruits do I have?":
+1. Call view_cart to get the full list of items with their names
+2. Look at the item names and identify which ones match the category (e.g., "Banana", "Laranja", "Maçã" are fruits)
+3. List those specific items in your response
+
+Examples:
+- User: "Which fruits are in my cart?" → call view_cart, check item names, respond with fruits found (e.g., "Banana, Laranja")
+- User: "What office supplies do I have?" → call view_cart, check item names, respond with office items
+- User: "Do I have any pens in my cart?" → call view_cart, check for items with "pen" in the name
 
 CRITICAL RULES FOR CART OPERATIONS:
 1. Cart context shows: {itemId: "abc123", itemName: "Laptop", quantity: 5}
@@ -473,6 +624,15 @@ Examples:
       temperature: 0.7,
     });
 
+    logger.debug('LLM Response received', {
+      hasContent: !!response.content,
+      contentLength: response.content?.length,
+      contentPreview: response.content?.substring(0, 100),
+      hasToolCalls: !!response.toolCalls,
+      toolCallsCount: response.toolCalls?.length || 0,
+      finishReason: response.finishReason,
+    });
+
     // Check if model wants to call a tool
     if (response.toolCalls && response.toolCalls.length > 0) {
       // For search_catalog, we can handle multiple calls and combine results
@@ -485,12 +645,19 @@ Examples:
           // Execute all search calls in parallel
           const searchResults = await Promise.all(
             searchCalls.map(async (toolCall) => {
+              const maxResults = Math.min(
+                (toolCall.arguments.maxResults as number) || 3,
+                5
+              ); // Lower default for multiple searches
               const items = await catalogService.searchItems({
                 q: toolCall.arguments.keyword as string,
+                maxPrice: toolCall.arguments.maxPrice as number | undefined,
+                limit: maxResults,
               });
               return {
                 keyword: toolCall.arguments.keyword as string,
                 items,
+                maxResults,
               };
             })
           );
@@ -505,16 +672,17 @@ Examples:
             keywords.push(result.keyword as string);
             totalFound += result.items.length;
 
-            // Map and add items (limit per search)
+            // Map and add items (already limited by maxResults in searchItems call)
             const mappedItems = result.items
-              .slice(0, 5) // Limit to 5 items per keyword to avoid too many results
               .map(
                 (item) =>
                   ({
                     id: item.id,
                     name: item.name,
                     category: item.category,
-                    description: item.description || 'No description available',
+                    description: truncateDescription(
+                      item.description || 'No description available'
+                    ),
                     price: item.price,
                     availability:
                       item.status === ItemStatus.Active
@@ -547,7 +715,7 @@ Examples:
             items: allItems,
           };
         } catch (error) {
-          console.error('Error executing multiple search tools:', error);
+          logger.error('Error executing multiple search tools', { error });
           const errorMsg =
             error instanceof Error ? error.message : 'Unknown error';
           return {
@@ -579,24 +747,21 @@ Examples:
             };
           }
 
-          // Map items to AgentResponseItem format
-          const agentItems: AgentResponseItem[] = items
-            .slice(0, 10)
-            .map((item) => ({
-              id: item.id,
-              name: item.name,
-              category: item.category,
-              description: item.description || 'No description available',
-              price: item.price,
-              availability:
-                item.status === ItemStatus.Active ? 'in_stock' : 'out_of_stock',
-            }));
+          // Map items to AgentResponseItem format (already limited by service)
+          const agentItems: AgentResponseItem[] = items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            category: item.category,
+            description: truncateDescription(
+              item.description || 'No description available'
+            ),
+            price: item.price,
+            availability:
+              item.status === ItemStatus.Active ? 'in_stock' : 'out_of_stock',
+          }));
 
           // Short message with item count only
-          const resultMessage =
-            items.length > 10
-              ? `Found ${items.length} matching products for "${toolCall.arguments.keyword}". Showing top 10 results:`
-              : `Found ${items.length} matching product${items.length === 1 ? '' : 's'} for "${toolCall.arguments.keyword}":`;
+          const resultMessage = `Found ${items.length} matching product${items.length === 1 ? '' : 's'} for "${toolCall.arguments.keyword}":`;
 
           return {
             text: resultMessage,
@@ -705,14 +870,70 @@ Examples:
 
           const itemCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
 
-          return {
-            text: `Your cart contains ${cart.items.length} item type(s) (${itemCount} total items). Total: $${cart.totalCost.toFixed(2)}`,
-            cart: {
-              items: cart.items,
+          // Return cart data as context for LLM to interpret based on user's question
+          // This allows intelligent filtering (e.g., "which fruits are in my cart?")
+          const cartContext = JSON.stringify(
+            {
+              items: cart.items.map((item) => ({
+                itemName: item.itemName,
+                quantity: item.quantity,
+                price: item.itemPrice,
+                subtotal: item.subtotal,
+              })),
               totalCost: cart.totalCost,
               itemCount,
             },
-          };
+            null,
+            2
+          );
+
+          // Make a second LLM call to answer the specific question about cart contents
+          const interpretationPrompt = `Based on the user's question and the following cart data, provide a concise, direct answer:
+
+Cart Contents:
+${cartContext}
+
+User's original question: "${userMessage}"
+
+Instructions:
+- If user asks about specific items/categories (e.g., "which fruits?", "what pens?"), list ONLY those items
+- If user asks to see the whole cart, list all items
+- Format prices with $ and 2 decimals
+- Be conversational and natural
+- Answer in the same language the user asked`;
+
+          try {
+            const interpretation = await chatCompletionWithTools(
+              interpretationPrompt,
+              {
+                model: 'gpt-4o-mini',
+                temperature: 0.3,
+                systemMessage: 'You are a helpful shopping assistant.',
+              }
+            );
+
+            return {
+              text:
+                interpretation.content ||
+                `Your cart contains ${cart.items.length} item type(s). Total: $${cart.totalCost.toFixed(2)}`,
+              cart: {
+                items: cart.items,
+                totalCost: cart.totalCost,
+                itemCount,
+              },
+            };
+          } catch (error) {
+            logger.error('Error interpreting cart question', { error });
+            // Fallback to generic response
+            return {
+              text: `Your cart contains ${cart.items.length} item type(s) (${itemCount} total items). Total: $${cart.totalCost.toFixed(2)}`,
+              cart: {
+                items: cart.items,
+                totalCost: cart.totalCost,
+                itemCount,
+              },
+            };
+          }
         }
 
         // Handle analyze_cart tool result
@@ -806,12 +1027,26 @@ Provide a natural, conversational answer that directly addresses what the user a
           const purchaseRequest = toolResult as Awaited<
             ReturnType<typeof checkoutService.checkoutCart>
           >;
+
           return {
-            text: `✅ Checkout successful! Purchase request #${purchaseRequest.id} created with ${purchaseRequest.items.length} item(s). Total: $${purchaseRequest.totalCost.toFixed(2)}. Status: ${purchaseRequest.status}. ${toolCall.arguments.notes ? `Notes: ${toolCall.arguments.notes}` : ''}`,
+            text: `✅ Purchase request created successfully! Your request #${purchaseRequest.id.slice(0, 8)}... has been submitted for approval with ${purchaseRequest.items.length} item(s) totaling $${purchaseRequest.totalCost.toFixed(2)}.`,
+            purchaseRequest: {
+              id: purchaseRequest.id,
+              items: purchaseRequest.items,
+              totalCost: purchaseRequest.totalCost,
+              status: purchaseRequest.status,
+            },
           };
         }
+
+        // If we reach here, it means a tool was called but not handled above
+        // This should not happen, but provide a fallback
+        logger.warn('Unhandled tool call', { toolName: toolCall.name, toolCall });
+        return {
+          text: `Tool ${toolCall.name} was executed successfully.`,
+        };
       } catch (error) {
-        console.error(`Error executing tool ${toolCall.name}:`, error);
+        logger.error('Error executing tool', { toolName: toolCall.name, error });
         const errorMsg =
           error instanceof Error ? error.message : 'Unknown error';
         return {
@@ -825,7 +1060,7 @@ Provide a natural, conversational answer that directly addresses what the user a
       text: response.content || 'How can I help you today?',
     };
   } catch (error) {
-    console.error('Error generating agent response:', error);
+    logger.error('Error generating agent response', { error });
 
     // Provide user-friendly error messages based on error type
     if (error instanceof Error) {
@@ -888,6 +1123,7 @@ async function executeTool(
       return await catalogService.searchItems({
         q: parameters.keyword,
         maxPrice: parameters.maxPrice,
+        limit: Math.min(parameters.maxResults || 5, 10), // Default 5, max 10
       });
 
     case AgentActionType.RegisterItem:
@@ -987,7 +1223,7 @@ export async function listConversationsForUser(
 
     return conversations.map(mapToConversationSummary);
   } catch (error) {
-    console.error('Error listing conversations:', error);
+    logger.error('Error listing conversations', { userId, error });
     throw new Error('Failed to list conversations');
   }
 }
@@ -1028,7 +1264,7 @@ export async function createConversationForUser(
 
     return mapToConversationSummary(conversation);
   } catch (error) {
-    console.error('Error creating conversation:', error);
+    logger.error('Error creating conversation', { userId, error });
     throw new Error('Failed to create conversation');
   }
 }
@@ -1060,7 +1296,7 @@ export async function getConversationSummaryById(
 
     return mapToConversationSummary(conversation);
   } catch (error) {
-    console.error('Error getting conversation:', error);
+    logger.error('Error getting conversation summary', { userId, id, error });
     return null;
   }
 }
@@ -1100,8 +1336,19 @@ export async function getConversationById(
       messages: conv.messages.map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (msg: any) => {
+          // Map MongoDB 'sender' to AgentMessageRole
+          // sender: 'agent' → role: 'assistant'
+          // sender: 'user' → role: 'user'
+          // sender: 'system' → role: 'system'
+          const role =
+            msg.sender === 'agent'
+              ? AgentMessageRole.Assistant
+              : msg.sender === 'user'
+                ? AgentMessageRole.User
+                : AgentMessageRole.System;
+
           const message: AgentMessage = {
-            role: msg.sender as AgentMessageRole,
+            role,
             content: msg.content,
             timestamp: msg.createdAt,
           };
@@ -1116,12 +1363,22 @@ export async function getConversationById(
             message.cart = msg.metadata.cart;
           }
 
+          // Add checkout confirmation if present in metadata
+          if (msg.metadata?.checkoutConfirmation) {
+            message.checkoutConfirmation = msg.metadata.checkoutConfirmation;
+          }
+
+          // Add purchase request if present in metadata
+          if (msg.metadata?.purchaseRequest) {
+            message.purchaseRequest = msg.metadata.purchaseRequest;
+          }
+
           return message;
         }
       ),
     };
   } catch (error) {
-    console.error('Error getting conversation:', error);
+    logger.error('Error getting full conversation', { userId, id, error });
     return null;
   }
 }
@@ -1149,7 +1406,7 @@ export async function touchConversation(
       }
     ).exec();
   } catch (error) {
-    console.error('Error touching conversation:', error);
+    logger.error('Error touching conversation', { userId, id, error });
     throw new Error('Failed to update conversation');
   }
 }
@@ -1157,6 +1414,17 @@ export async function touchConversation(
 // ============================================================================
 // Helpers
 // ============================================================================
+
+/**
+ * Truncate description to reduce token usage
+ * Limits description to max 150 characters with ellipsis
+ */
+function truncateDescription(description: string, maxLength = 150): string {
+  if (description.length <= maxLength) {
+    return description;
+  }
+  return description.substring(0, maxLength - 3) + '...';
+}
 
 /**
  * Map Mongoose document to AgentConversationSummary

@@ -19,10 +19,13 @@
     "format": "prettier --write .",
     "prepare": "husky",
     "release": "standard-version",
-    "docker:up": "docker-compose up",
-    "docker:down": "docker-compose down",
-    "docker:build": "docker-compose build",
-    "docker:db": "docker-compose up mongo"
+    "docker:build": "pnpm --filter @procureflow/infra docker:build",
+    "docker:up": "pnpm --filter @procureflow/infra docker:up",
+    "docker:up:dev": "pnpm --filter @procureflow/infra docker:up:dev",
+    "docker:down": "pnpm --filter @procureflow/infra docker:down",
+    "docker:db": "pnpm --filter @procureflow/infra docker:db",
+    "docker:logs": "pnpm --filter @procureflow/infra docker:logs",
+    "docker:ps": "pnpm --filter @procureflow/infra docker:ps"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",

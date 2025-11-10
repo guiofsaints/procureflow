@@ -1,0 +1,101 @@
+# ProcureFlow Docker Compose Configuration
+# Supports profiles: prod, dev, debug
+# Requires env files: packages/infra/env/.env.web and .env.mongo
+
+name: procureflow
+
+services:
+  # ============================================================================
+  # Next.js Web Application
+  # ============================================================================
+  web:
+    build:
+      context: ../..
+      dockerfile: packages/infra/docker/Dockerfile.web
+    container_name: procureflow-web
+    ports:
+      - '3000:3000'
+    env_file:
+      - env/.env.web
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - procureflow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - prod
+      - dev
+
+  # ============================================================================
+  # MongoDB Database
+  # ============================================================================
+  mongo:
+    image: mongo:7.0
+    container_name: procureflow-mongo
+    ports:
+      - '27017:27017'
+    env_file:
+      - env/.env.mongo
+    volumes:
+      - mongo_data:/data/db
+      - ../../packages/infra/docker/mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - procureflow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles:
+      - prod
+      - dev
+      - debug
+
+  # ============================================================================
+  # Mongo Express (Database Admin UI - Debug Only)
+  # ============================================================================
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: procureflow-mongo-express
+    ports:
+      - '8081:8081'
+    env_file:
+      - env/.env.mongo
+    environment:
+      # Load credentials from mongo env_file
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      # Explicit authSource for root user authentication
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/?authSource=admin
+      - ME_CONFIG_BASICAUTH=false
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - procureflow-network
+    restart: unless-stopped
+    profiles:
+      - debug
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  mongo_data:
+    driver: local
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  procureflow-network:
+    driver: bridge

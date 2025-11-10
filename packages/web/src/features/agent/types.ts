@@ -28,12 +28,39 @@ export interface AgentCart {
   itemCount: number;
 }
 
+export interface AgentPurchaseRequest {
+  id: string;
+  items: Array<{
+    itemName: string;
+    itemCategory: string;
+    quantity: number;
+    unitPrice: number;
+    subtotal: number;
+  }>;
+  totalCost: number;
+  status: string;
+}
+
+export interface AgentCheckoutConfirmation {
+  items: Array<{
+    itemId: string;
+    itemName: string;
+    itemPrice: number;
+    quantity: number;
+    subtotal: number;
+  }>;
+  totalCost: number;
+  itemCount: number;
+}
+
 export interface AgentMessage {
   id: string;
   role: AgentRole;
   content: string;
   items?: AgentItem[];
   cart?: AgentCart;
+  checkoutConfirmation?: AgentCheckoutConfirmation;
+  purchaseRequest?: AgentPurchaseRequest;
 }
 
 export interface AgentConversationSummary {

@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useCart } from '@/contexts/CartContext';
 
 import type { AgentMessage } from '../types';
 
@@ -39,6 +40,7 @@ export function AgentChatPageContent({
   const [conversationTitle, setConversationTitle] = useState<string>('');
 
   const { setDynamicLabel, clearDynamicLabel } = useBreadcrumb();
+  const { setItemCount } = useCart();
   const pathname = usePathname();
 
   // Reset state when conversationId changes (including when it becomes undefined)
@@ -89,13 +91,18 @@ export function AgentChatPageContent({
       }
 
       // Map API messages to AgentMessage format
+      // Note: API already returns messages with correct 'role' field (not 'sender')
       const loadedMessages: AgentMessage[] = data.conversation.messages.map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (msg: any, index: number) => ({
           id: `${msg.role}-${index}`,
-          role: msg.role,
+          role: msg.role, // Already in correct format from API
           content: msg.content,
           items: msg.items, // Include items if available
+          cart: msg.cart, // Include cart if available
+          checkoutConfirmation: msg.checkoutConfirmation, // Include checkout confirmation if available
+          purchaseRequest: msg.purchaseRequest, // Include purchase request if available
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
         })
       );
 
@@ -136,95 +143,110 @@ export function AgentChatPageContent({
     window.dispatchEvent(new CustomEvent('conversationUpdated'));
   }, []);
 
-  const handleSendMessage = async (content: string) => {
-    // Mark chat as started
-    if (!hasStarted) {
-      setHasStarted(true);
-    }
-
-    // Create user message
-    const userMessage: AgentMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content,
-    };
-
-    // Add user message to chat optimistically
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      // Call API to get agent response
-      const response = await fetch('/api/agent/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: content,
-          conversationId,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get agent response');
+  const handleSendMessage = useCallback(
+    async (content: string) => {
+      // Mark chat as started
+      if (!hasStarted) {
+        setHasStarted(true);
       }
 
-      const data = await response.json();
+      // Create user message
+      const userMessage: AgentMessage = {
+        id: 'user-' + Date.now().toString(),
+        role: 'user',
+        content,
+      };
 
-      // Update conversationId if this is a new conversation
-      if (data.conversationId && !conversationId) {
-        setConversationId(data.conversationId);
+      // Add user message to chat optimistically
+      setMessages((prev) => [...prev, userMessage]);
+      setIsLoading(true);
 
-        // Update URL without reload for new conversations
-        window.history.replaceState(null, '', `/agent/${data.conversationId}`);
-      }
+      try {
+        // Call API to get agent response
+        const response = await fetch('/api/agent/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: content,
+            conversationId,
+          }),
+        });
 
-      // Trigger sidebar update
-      triggerConversationUpdate();
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to get agent response');
+        }
 
-      // Get the latest agent message from the response
-      const apiMessages = data.messages || [];
-      const latestAgentMessage = apiMessages
-        .filter((msg: { role: string }) => msg.role === 'agent')
-        .pop();
+        const data = await response.json();
 
-      if (latestAgentMessage) {
-        const agentMessage: AgentMessage = {
-          id: `agent-${Date.now()}`,
-          role: 'assistant',
-          content: latestAgentMessage.content,
-          items: latestAgentMessage.items, // Include items if present
-          cart: latestAgentMessage.cart, // Include cart if present
-        };
+        // Update conversationId if this is a new conversation
+        if (data.conversationId && !conversationId) {
+          setConversationId(data.conversationId);
 
-        setMessages((prev) => [...prev, agentMessage]);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
+          // Update URL without reload for new conversations
+          window.history.replaceState(
+            null,
+            '',
+            `/agent/${data.conversationId}`
+          );
+        }
 
-      // Remove optimistic user message and add error message
-      setMessages((prev) => {
-        const withoutOptimistic = prev.slice(0, -1);
-        return [
-          ...withoutOptimistic,
-          userMessage, // Re-add user message
-          {
-            id: `error-${Date.now()}`,
+        // Trigger sidebar update
+        triggerConversationUpdate();
+
+        // Get the latest agent message from the response
+        const apiMessages = data.messages || [];
+        const latestAgentMessage = apiMessages
+          .filter((msg: { role: string }) => msg.role === 'agent')
+          .pop();
+
+        if (latestAgentMessage) {
+          const agentMessage: AgentMessage = {
+            id: `agent-${Date.now()}`,
             role: 'assistant',
-            content:
-              'I apologize, but I encountered an error processing your request. Please try again.',
-          },
-        ];
-      });
+            content: latestAgentMessage.content,
+            items: latestAgentMessage.items, // Include items if present
+            cart: latestAgentMessage.cart, // Include cart if present
+            checkoutConfirmation: latestAgentMessage.checkoutConfirmation, // Include checkout confirmation if present
+            purchaseRequest: latestAgentMessage.purchaseRequest, // Include purchase request if present
+          };
 
-      toast.error('Failed to send message', {
-        description:
-          error instanceof Error ? error.message : 'Please try again later.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+          setMessages((prev) => [...prev, agentMessage]);
+
+          // If this message includes a purchaseRequest, checkout was successful
+          // Zero the cart counter to match behavior in CartPageContent
+          if (agentMessage.purchaseRequest) {
+            setItemCount(0);
+          }
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+
+        // Remove optimistic user message and add error message
+        setMessages((prev) => {
+          const withoutOptimistic = prev.slice(0, -1);
+          return [
+            ...withoutOptimistic,
+            userMessage, // Re-add user message
+            {
+              id: `error-${Date.now()}`,
+              role: 'assistant',
+              content:
+                'I apologize, but I encountered an error processing your request. Please try again.',
+            },
+          ];
+        });
+
+        toast.error('Failed to send message', {
+          description:
+            error instanceof Error ? error.message : 'Please try again later.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [conversationId, hasStarted, triggerConversationUpdate, setItemCount]
+  );
 
   return (
     <div className='flex h-full flex-col'>

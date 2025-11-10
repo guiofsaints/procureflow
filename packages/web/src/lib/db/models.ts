@@ -52,6 +52,10 @@ import PurchaseRequestSchema, {
   PurchaseRequestSource,
   PurchaseRequestStatus,
 } from './schemas/purchase-request.schema';
+import type { ITokenUsage } from './schemas/tokenUsage.schema';
+import TokenUsageSchema, {
+  TOKEN_USAGE_COLLECTION_NAME,
+} from './schemas/tokenUsage.schema';
 import UserSchema, {
   USER_COLLECTION_NAME,
   UserRole,
@@ -142,6 +146,17 @@ export const AgentConversationModel =
     AgentConversationSchema
   );
 
+/**
+ * TokenUsage Model
+ *
+ * Represents LLM token usage tracking for cost monitoring.
+ * Used for: cost tracking, usage analytics, token counting.
+ */
+export const TokenUsageModel = getOrCreateModel<ITokenUsage>(
+  TOKEN_USAGE_COLLECTION_NAME,
+  TokenUsageSchema
+);
+
 // ============================================================================
 // Re-export Constants and Enums for Convenience
 // ============================================================================
@@ -153,6 +168,7 @@ export {
   CART_COLLECTION_NAME,
   PURCHASE_REQUEST_COLLECTION_NAME,
   AGENT_CONVERSATION_COLLECTION_NAME,
+  TOKEN_USAGE_COLLECTION_NAME,
 };
 
 // User enums and constants
@@ -226,6 +242,7 @@ const models = {
   Cart: CartModel,
   PurchaseRequest: PurchaseRequestModel,
   AgentConversation: AgentConversationModel,
+  TokenUsage: TokenUsageModel,
 };
 
 export default models;

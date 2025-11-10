@@ -304,13 +304,22 @@ export async function removeCartItem(
     }
 
     const initialLength = cart.items.length;
+
+    // Filter out the item - compare both as strings for consistency
     cart.items = cart.items.filter(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (cartItem: any) => cartItem.itemId?.toString() !== itemId
+      (cartItem: any) => {
+        const cartItemId = cartItem.itemId?.toString();
+        return cartItemId !== itemId && cartItemId !== itemId.toString();
+      }
     );
 
     if (cart.items.length === initialLength) {
-      throw new ValidationError('Item not found in cart');
+      console.error('[removeCartItem] Item not found in cart:', {
+        requestedItemId: itemId,
+        cartItemIds: cart.items.map((item) => item.itemId?.toString()),
+      });
+      throw new ValidationError(`Item ${itemId} not found in cart`);
     }
 
     const updatedCart = await cart.save();
@@ -319,7 +328,11 @@ export async function removeCartItem(
     if (error instanceof ValidationError) {
       throw error;
     }
-    console.error('Error removing cart item:', error);
+    console.error('[removeCartItem] Error removing cart item:', {
+      userId,
+      itemId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     throw new Error('Failed to remove cart item');
   }
 }

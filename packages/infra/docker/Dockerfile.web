@@ -1,84 +1,82 @@
-# Multi-stage Dockerfile for Next.js production build
-# Stage 1: Dependencies and build
-FROM node:18-alpine AS builder
+# Multi-stage Dockerfile for Next.js production build in pnpm monorepo
+# Optimized for ProcureFlow with corepack, cache mounts, and security best practices
 
-# Set the working directory
+# ============================================================================
+# Base Stage: Set up Node.js with corepack and pnpm
+# ============================================================================
+FROM node:20-alpine AS base
+
+# Install curl for healthchecks (Alpine minimal)
+RUN apk add --no-cache curl
+
+# Enable corepack for pnpm (built-in package manager)
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Set working directory
 WORKDIR /app
 
-# Install pnpm globally
-RUN npm install -g pnpm
+# ============================================================================
+# Builder Stage: Install dependencies and build application
+# ============================================================================
+FROM base AS builder
 
-# Copy package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-COPY apps/web/package.json ./apps/web/
-
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Copy source code
-COPY apps/web ./apps/web
+# Copy monorepo manifests for dependency installation
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/web/package.json ./packages/web/
 COPY tsconfig.json ./
 
-# Build the application
-WORKDIR /app/apps/web
+# Install dependencies with pnpm cache mount for faster rebuilds
+# Cache location: /root/.local/share/pnpm/store
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+  pnpm install --frozen-lockfile
+
+# Copy root node_modules to make packages resolvable for Turbopack
+# This is required for Next.js 16 Turbopack in monorepo setups
+RUN ln -s /app/node_modules /app/packages/web/node_modules
+
+# Copy application source code
+COPY packages/web ./packages/web
+
+# Build Next.js application (outputs to .next/standalone)
+# Build from packages/web directory with node_modules accessible from root
+# Set Turbopack root to /app for monorepo support
+WORKDIR /app/packages/web
+ENV NEXT_PRIVATE_TURBOPACK_ROOT=/app
 RUN pnpm build
 
-# Stage 2: Production runtime
-FROM node:18-alpine AS runner
+# ============================================================================
+# Runner Stage: Minimal production runtime
+# ============================================================================
+FROM node:20-alpine AS runner
+
+# Install curl for healthcheck (compose-based)
+RUN apk add --no-cache curl
 
 # Set production environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create system user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+  adduser --system --uid 1001 nextjs
 
-# Set the working directory
 WORKDIR /app
 
-# Copy built application from builder stage
-COPY --from=builder /app/apps/web/public ./public
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./.next/static
+# Copy Next.js standalone output from builder
+# Standalone includes minimal dependencies and server.js entry point
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./public
 
-# Change ownership to nextjs user
-RUN chown -R nextjs:nodejs /app
+# Switch to non-root user
 USER nextjs
 
-# Expose the port the app runs on
+# Expose application port
 EXPOSE 3000
 
-# Set the hostname to bind to (0.0.0.0 allows external connections)
+# Configure server binding
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node healthcheck.js || exit 1
-
-# Create a simple healthcheck script
-USER root
-RUN echo 'const http = require("http"); \
-  const options = { \
-  hostname: "localhost", \
-  port: 3000, \
-  path: "/api/health", \
-  method: "GET" \
-  }; \
-  const req = http.request(options, (res) => { \
-  if (res.statusCode === 200) { \
-  process.exit(0); \
-  } else { \
-  process.exit(1); \
-  } \
-  }); \
-  req.on("error", () => { \
-  process.exit(1); \
-  }); \
-  req.end();' > healthcheck.js
-
-USER nextjs
-
-# Start the application
+# Start application (standalone server.js)
 CMD ["node", "server.js"]

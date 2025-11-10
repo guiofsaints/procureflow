@@ -1,0 +1,25 @@
+{
+  "name": "@procureflow/infra",
+  "version": "0.1.0",
+  "description": "Infrastructure and deployment configuration for ProcureFlow",
+  "private": true,
+  "scripts": {
+    "docker:build": "docker compose -f compose.yaml --profile prod build",
+    "docker:up": "docker compose -f compose.yaml --profile prod up -d",
+    "docker:up:dev": "docker compose -f compose.yaml --profile dev up -d",
+    "docker:down": "docker compose -f compose.yaml down -v",
+    "docker:db": "docker compose -f compose.yaml exec mongo mongosh --eval \"db.adminCommand('ping')\"",
+    "docker:logs": "docker compose -f compose.yaml logs -f",
+    "docker:logs:web": "docker compose -f compose.yaml logs -f web",
+    "docker:logs:mongo": "docker compose -f compose.yaml logs -f mongo",
+    "docker:ps": "docker compose -f compose.yaml ps",
+    "docker:config": "docker compose -f compose.yaml config"
+  },
+  "keywords": [
+    "docker",
+    "infrastructure",
+    "deployment",
+    "compose"
+  ],
+  "author": "Gui Santos"
+}

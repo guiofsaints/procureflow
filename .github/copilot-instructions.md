@@ -1,369 +1,266 @@
-# GitHub Copilot Instructions for ProcureFlow
+# ProcureFlow AI Agent Instructions
 
-**ProcureFlow** is an AI-native procurement platform built as a production-ready bootstrap codebase. This provides a full-stack foundation with Next.js 15, MongoDB, LangChain, and modern tooling - ready for business logic implementation.
+## Project Overview
 
-## Tech Stack
+**ProcureFlow** is an AI-native procurement platform bootstrap codebase. This is a **foundation project** with plumbing and infrastructure ready—business logic implementation is the primary development focus.
 
-- **Next.js 15.1.3** App Router + React 19 Server Components
-- **MongoDB 8.x** with Mongoose ODM (cached connections for hot reload)
-- **NextAuth.js v5** (Credentials provider, JWT sessions)
-- **LangChain 0.3.12** + OpenAI GPT (gpt-4o-mini)
-- **Tailwind CSS 3.4** with shadcn/ui patterns
-- **pnpm** workspace monorepo, **Docker** multi-stage builds, **Vitest** testing
+**Tech Stack**: Next.js 15 (App Router) • TypeScript • MongoDB/Mongoose • NextAuth.js • LangChain/OpenAI • Tailwind CSS • pnpm monorepo
 
-## Critical Architecture Patterns
+## Architecture & Code Organization
 
-### 1. Route Groups & Server Components
+### Feature-Based Structure
 
-````typescript
-// app/(public)/ - No auth required (landing, docs)
-// app/(app)/    - Authenticated routes (API, pages)
-
-// ✅ Server Component by default
-export default async function CatalogPage() {
-  const session = await getServerSession(authOptions);
-  const items = await getItems();
-  return <ItemList items={items} />;
-}
-
-// ✅ Client Component only when needed
-'use client';
-export function InteractiveCart() {
-  const [items, setItems] = useState([]);
-  return <CartUI items={items} />;
-}
-
-### 2. Service Layer Pattern (Business Logic Isolation)
-
-API routes are **thin controllers** - delegate to services in `src/features/{feature}/lib/*.service.ts`:
-
-```typescript
-// ✅ API Route - Thin controller
-// app/(app)/api/items/route.ts
-import { searchItems } from '@/features/catalog';
-
-export async function GET(request: NextRequest) {
-  try {
-    const q = request.nextUrl.searchParams.get('q') || undefined;
-    const items = await searchItems({ q });
-    return NextResponse.json({ items });
-  } catch (error) {
-    console.error('GET /api/items error:', error);
-    return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
-  }
-}
-
-// ✅ Service - Pure business logic
-// src/features/catalog/lib/catalog.service.ts
-export async function searchItems({ q }: { q?: string }): Promise<Item[]> {
-  await connectDB(); // Cached connection
-
-  const query = q ? { $text: { $search: q } } : {};
-  const docs = await ItemModel.find(query).lean().exec();
-
-  return docs.map(mapToEntity); // Map to domain entity
-}
-
-// ❌ DON'T: Business logic in route handlers
-export async function GET(request: NextRequest) {
-  const items = await ItemModel.find(); // Direct DB access
-  // Validation, mapping logic here - should be in service
-}
-````
-
-### 3. Database Connection Pattern (Hot Reload Safe)
-
-Always use the cached `connectDB()` helper from `@/lib/db/mongoose`:
-
-```typescript
-import connectDB from '@/lib/db/mongoose';
-
-export async function createItem(input: CreateItemInput): Promise<Item> {
-  await connectDB(); // ✅ Cached - reuses connection during hot reload
-
-  const item = await ItemModel.create(input);
-  return mapToEntity(item);
-}
-
-// ❌ DON'T: Create new connections directly
-mongoose.connect(process.env.MONGODB_URI); // Causes connection leak
-```
-
-**Key Pattern**: Connection is cached in `globalThis.mongoose` - critical for Next.js dev mode.
-
-### 4. Feature-Based Organization
-
-Each feature exports services from `index.ts`:
+All business logic lives in `packages/web/src/features/` with isolated, self-contained features:
 
 ```
-src/features/catalog/
-├── components/       # UI (CatalogPageContent.tsx)
-├── lib/             # catalog.service.ts (business logic)
-├── mock.ts          # Mock data for development
-└── index.ts         # export * from './lib/catalog.service'
+features/
+  <feature-name>/
+    components/        # React UI components
+    lib/              # Service layer (*.service.ts)
+    index.ts          # Public API exports
+    types.ts          # Feature-specific types
+    mock.ts           # Test fixtures (optional)
 ```
 
-Import pattern: `import { createItem, searchItems } from '@/features/catalog'`
+**Pattern**: Features export services and components through `index.ts` barrel files. Import from feature root: `import { searchItems } from '@/features/catalog'`
 
-### 5. Domain-Driven Types
+### Service Layer Pattern
 
-Domain entities in `src/domain/entities.ts` are framework-agnostic:
+Business logic is **always** in `*.service.ts` files, never in route handlers. Services are:
 
-```typescript
-// ✅ Domain entity (pure TypeScript)
-export interface Item {
-  id: string;
-  name: string;
-  category: string;
-  estimatedPrice: number;
-  status: ItemStatus;
-  createdAt: Date;
-}
+- Database-agnostic at the interface level (domain entities in, domain entities out)
+- Framework-agnostic (can be used in API routes, server components, or background jobs)
+- Validated with custom error classes (`ValidationError`, `DuplicateItemError`)
 
-// Mongoose schema is separate in src/lib/db/schemas/item.schema.ts
-// Services map between Mongoose docs and domain entities
+**Example**: `features/catalog/lib/catalog.service.ts` exports `searchItems()`, `createItem()`, `getItemById()`
+
+Route handlers in `app/**/route.ts` are thin wrappers:
+
+1. Extract/validate request data
+2. Get authenticated user from session
+3. Call service function
+4. Return formatted response
+
+### Database Layer
+
+**MongoDB connection**: Cached singleton pattern in `lib/db/mongoose.ts` handles Next.js hot reloads. Always use `await connectDB()` before DB operations.
+
+**Mongoose schemas**: Located in `lib/db/schemas/`. Models exported from `lib/db/models.ts`.
+
+**Domain entities**: TypeScript interfaces in `domain/entities.ts` represent business concepts (framework-agnostic). Services return domain entities, not Mongoose documents.
+
+**Critical**: MongoDB text search requires index creation. Run `pnpm --filter web db:create-text-index` before testing catalog search.
+
+### Authentication Pattern
+
+**NextAuth.js** with JWT strategy. Session available in:
+
+- API routes: `const session = await getServerSession(authConfig)`
+- Server components: Same pattern
+- Client: `useSession()` hook
+
+**Demo credentials**: `demo@procureflow.com` / `demo123` (credentials provider in `lib/auth/config.ts`)
+
+User IDs flow through services as `string | Types.ObjectId` to support both authenticated users and demo scenarios.
+
+### AI Agent Architecture
+
+**LangChain integration** with OpenAI function calling:
+
+1. **Entry point**: `features/agent/lib/agent.service.ts` → `handleAgentMessage()`
+2. **LLM wrapper**: `lib/ai/langchainClient.ts` → `chatCompletionWithTools()`
+3. **Tool definitions**: Agent service defines tools (search_catalog, add_to_cart, checkout, etc.) as JSON schemas
+4. **Execution flow**: User message → LLM decides tool calls → Execute via service layer → Return formatted response
+5. **Conversation persistence**: `AgentConversationModel` stores messages with metadata (items, cart) for UI rendering
+
+**Critical pattern**: When agent wants to modify data (add to cart, checkout), it calls the same service functions as API routes. No duplicate logic.
+
+## Development Workflows
+
+### Running the App
+
+```powershell
+# Development (from root)
+pnpm dev              # Starts Next.js at http://localhost:3000
+
+# With Docker (includes MongoDB)
+pnpm docker:up        # Full stack with mongo-express at :8081
+pnpm docker:down
+
+# Database operations (from root)
+pnpm --filter web db:create-text-index   # Required for catalog search
+pnpm --filter web db:seed-office-items   # Seed 200 test items
+pnpm --filter web db:seed-initial-user   # Create admin user
 ```
 
-### 6. Error Handling Pattern
+### Code Quality
 
-Custom errors for specific business rules:
-
-```typescript
-// ✅ Service layer - throw custom errors
-export class DuplicateItemError extends Error {
-  constructor(public duplicates: Item[]) {
-    super('Potential duplicate detected');
-  }
-}
-
-export async function createItem(input: CreateItemInput): Promise<Item> {
-  const duplicates = await checkDuplicates(input);
-  if (duplicates.length > 0) {
-    throw new DuplicateItemError(duplicates);
-  }
-  // ...
-}
-
-// ✅ API route - handle errors with proper status codes
-export async function POST(request: NextRequest) {
-  try {
-    const item = await createItem(body);
-    return NextResponse.json(item, { status: 201 });
-  } catch (error) {
-    if (error instanceof DuplicateItemError) {
-      return NextResponse.json(
-        { error: error.message, duplicates: error.duplicates },
-        { status: 409 }
-      );
-    }
-    // Generic error handling
-  }
-}
+```powershell
+pnpm lint           # ESLint + Prettier check
+pnpm lint:fix       # Auto-fix issues
+pnpm format         # Prettier format
+pnpm build          # TypeScript + Next.js build (validates types)
 ```
 
-## Critical Workflows
+**Commit conventions**: Use conventional commits (enforced by commitlint). Examples: `feat: add cart analytics`, `fix: resolve duplicate item detection`
 
-### Development Commands
+### Key Scripts Location
 
-```bash
-pnpm dev              # Start Next.js dev server (localhost:3000)
-pnpm lint             # ESLint + Prettier check (must pass before commit)
-pnpm lint:fix         # Auto-fix linting issues
-pnpm type-check       # TypeScript validation (strict mode)
-pnpm test             # Run Vitest API tests
-pnpm test:watch       # Watch mode for TDD
-pnpm docker:up        # Start MongoDB + web app in Docker
-```
+Database migration scripts in `packages/web/scripts/` (run with `tsx`):
 
-### Testing Pattern (Vitest)
-
-Tests use **sequential execution** to avoid DB conflicts (`fileParallelism: false`):
-
-```typescript
-// tests/api/items.test.ts
-import { describe, it, expect, beforeAll } from 'vitest';
-import { ItemModel } from '@/lib/db/models';
-
-describe('Catalog API', () => {
-  beforeAll(async () => {
-    await ItemModel.deleteMany({}); // Clean slate
-  });
-
-  it('should create item', async () => {
-    const item = await createItem({ name: 'Laptop' /* ... */ });
-    expect(item.id).toBeDefined();
-  });
-});
-```
-
-**Test DB**: Uses `MONGODB_URI_TEST` env var (separate from dev DB).
-
-### Git Workflow (Conventional Commits)
-
-Commitlint enforces [Conventional Commits](https://www.conventionalcommits.org/):
-
-```bash
-feat(catalog): add duplicate detection logic
-fix(cart): resolve quantity validation bug
-docs(readme): update setup instructions
-refactor(db): extract connection caching logic
-test(checkout): add purchase request tests
-```
-
-**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`, `revert`
+- `create-text-index.ts`: MongoDB text index for catalog search
+- `seed-office-items.ts`: Populate catalog with 200 items
+- `seed-initial-user.ts`: Create admin user
 
 ## Project-Specific Conventions
 
-### 1. Import Aliases (tsconfig.json)
+### Import Aliases
 
-```typescript
-import { Button } from '@/components/ui/button'; // UI components
-import { createItem } from '@/features/catalog'; // Feature services
-import type { Item } from '@/domain/entities'; // Domain types
-import connectDB from '@/lib/db/mongoose'; // Shared libs
-import { authOptions } from '@/lib/auth/config'; // Auth config
+Use TypeScript path aliases consistently:
+
+- `@/features/<name>`: Feature modules
+- `@/lib/<module>`: Shared libraries (db, auth, ai, utils)
+- `@/domain`: Domain entities and types
+- `@/components`: Shared UI components
+
+### Route Organization (Next.js App Router)
+
+```
+app/
+  (public)/          # Unauthenticated routes (landing, docs)
+    layout.tsx       # Public layout (no auth check)
+    page.tsx         # Login/landing page
+  (app)/             # Authenticated routes
+    layout.tsx       # App layout with AppShell, requires session
+    api/             # API routes
+    catalog/         # Feature pages
+    cart/
+    agent/
 ```
 
-### 2. Mongoose Query Pattern
+**Pattern**: Route groups `(public)` and `(app)` organize layouts without affecting URL structure.
+
+### Error Handling
+
+Services throw typed errors:
+
+- `ValidationError`: Input validation failures (400-level)
+- `DuplicateItemError`: Detected duplicates (includes duplicates array)
+- Generic `Error`: Unexpected failures (500-level)
+
+Route handlers catch and map to HTTP status codes:
 
 ```typescript
-// ✅ Always use .lean().exec() for read queries
-const items = await ItemModel.find(query)
-  .lean() // Returns plain JS objects (not Mongoose docs)
-  .exec(); // Returns proper Promise<T>
-
-// ✅ Map to domain entities before returning
-return items.map((doc) => ({
-  id: doc._id.toString(),
-  name: doc.name,
-  // ...
-}));
-
-// ❌ DON'T return Mongoose documents directly
-return await ItemModel.find(); // Exposes Mongoose internals
-```
-
-### 3. Authentication Check
-
-```typescript
-// ✅ In API routes requiring auth
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const userId = session.user.id;
-  // Proceed with authenticated logic
-}
-```
-
-### 4. Client Context Pattern
-
-Global state uses React Context + Provider pattern:
-
-```typescript
-// ✅ src/contexts/CartContext.tsx
-'use client';
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [itemCount, setItemCount] = useState(0);
-  return <CartContext.Provider value={{ itemCount }}>{children}</CartContext.Provider>;
-}
-
-export function useCart() {
-  const context = useContext(CartContext);
-  if (!context) throw new Error('useCart must be used within CartProvider');
-  return context;
-}
-
-// Usage in layout.tsx
-<CartProvider>
-  <AppShell>{children}</AppShell>
-</CartProvider>
-```
-
-### 5. AI Integration (LangChain)
-
-```typescript
-import { chatCompletion, promptTemplates } from '@/lib/ai/langchainClient';
-
-// ✅ Use predefined templates
-const analysis = await chatCompletion(
-  promptTemplates.analyzeRequest(userInput).prompt,
-  { systemMessage: promptTemplates.analyzeRequest('').systemMessage }
-);
-
-// ✅ Custom prompts with system message
-const response = await chatCompletion('Analyze this request...', {
-  systemMessage: 'You are a procurement expert...',
-});
-```
-
-## Critical Don'ts
-
-### ❌ Never Do These
-
-1. **DON'T use `console.log` for errors** - use `console.error` (production logs)
-2. **DON'T create Client Components unnecessarily** - default to Server Components
-3. **DON'T put business logic in API routes** - delegate to services
-4. **DON'T create new Mongoose connections** - always use `connectDB()`
-5. **DON'T skip `.lean()` on read queries** - prevents Mongoose document overhead
-6. **DON'T bypass conventional commits** - commitlint will reject invalid messages
-7. **DON'T introduce new dependencies** without documenting rationale
-8. **DON'T return Mongoose documents from services** - map to domain entities
-
-### ⚠️ Common Pitfalls
-
-**Hot Reload Issues**: If MongoDB connection fails during dev, check that `connectDB()` is using the cached pattern (see `src/lib/db/mongoose.ts`).
-
-**TypeScript Errors**: Run `pnpm type-check` before committing - CI will fail on type errors even if Next.js builds.
-
-**Test Failures**: Tests run sequentially - if parallelism is enabled, database conflicts occur.
-
-## Coding Standards
-
-### Quick Reference
-
-```typescript
-// ✅ TypeScript - Strict types with proper imports
-import type { Item, Cart } from '@/domain/entities';
-
-// ✅ Tailwind - Use cn() for conditional classes
-import { cn } from '@/lib/utils';
-const classes = cn('px-4 py-2', isActive && 'bg-blue-500');
-
-// ✅ Error handling - console.error + specific error types
 try {
-  const item = await createItem(input);
+  const result = await someService.doThing(params);
+  return NextResponse.json(result);
 } catch (error) {
-  console.error('Failed to create item:', error);
   if (error instanceof ValidationError) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
-  throw error;
+  // ... handle other error types
 }
-
-// ✅ Mongoose queries - Always .lean() for reads
-const items = await ItemModel.find(query).lean().exec();
-
-// ✅ Feature exports - Clean barrel pattern
-// src/features/catalog/index.ts
-export * from './lib/catalog.service';
-export { CatalogPageContent } from './components/CatalogPageContent';
 ```
 
-## When in Doubt
+### Component Patterns
 
-1. **Check existing code** for similar patterns (e.g., look at `src/features/catalog` for new features)
-2. **Review `.guided/assessment/`** for recent fixes and standards
-3. **Follow Next.js 15** best practices (App Router, Server Components)
-4. **Maintain consistency** - if you see a pattern used 3+ times, follow it
-5. **Ask for clarification** rather than assuming requirements
+**Server Components by default** (Next.js 15). Use `'use client'` only when needed (hooks, interactivity).
 
----
+**UI components**: Radix UI primitives in `components/ui/` (shadcn-style). Use these instead of building from scratch.
 
-_These instructions ensure GitHub Copilot suggestions align with ProcureFlow's architecture, conventions, and quality standards._
+**Layout system**: `AppShell` in `components/layout/` provides sidebar navigation, header, and responsive container.
+
+## Common Pitfalls & Solutions
+
+### MongoDB Connection Issues
+
+**Symptom**: `Error: ECONNREFUSED` or `MongooseServerSelectionError`  
+**Fix**: Ensure MongoDB is running. With Docker: `pnpm docker:db`. Check `MONGODB_URI` in `.env.local`.
+
+### Text Search Not Working
+
+**Symptom**: Catalog search returns empty or `IndexNotFound` error  
+**Fix**: Run `pnpm --filter web db:create-text-index` to create required text index on items collection.
+
+### Agent Search Returns No Results
+
+**Symptom**: Agent says "No items found" for valid queries  
+**Fix**:
+
+1. Verify items exist: check MongoDB or run seed script
+2. Verify text index exists
+3. Check OpenAI API key is set (`OPENAI_API_KEY`)
+
+### TypeScript Path Resolution
+
+**Symptom**: Import errors like `Cannot find module '@/features/...'`  
+**Fix**: Use imports from barrel files (`@/features/catalog`, not `@/features/catalog/lib/catalog.service`)
+
+### Session/Auth Issues
+
+**Symptom**: `User must be authenticated` errors  
+**Fix**:
+
+1. Verify `NEXTAUTH_SECRET` and `NEXTAUTH_URL` in `.env.local`
+2. Sign in at http://localhost:3000 with demo credentials
+3. Check session in route handler: `const session = await getServerSession(authConfig)`
+
+## Critical Integration Points
+
+### Adding a New Feature
+
+1. Create feature directory: `features/<name>/`
+2. Add service layer: `lib/<name>.service.ts` with exported functions
+3. Define types in domain: `domain/entities.ts` (if new entity)
+4. Create Mongoose schema: `lib/db/schemas/<name>.schema.ts`
+5. Add to models: Export from `lib/db/models.ts`
+6. Create API routes: `app/(app)/api/<name>/route.ts`
+7. Create UI components: `features/<name>/components/`
+8. Export via barrel: `features/<name>/index.ts`
+
+### Agent Tool Integration
+
+To add new agent capability:
+
+1. Add tool definition in `features/agent/lib/agent.service.ts` → `tools` array
+2. Add case in `executeTool()` function to call appropriate service
+3. Update prompt to instruct agent when to use tool
+4. Test with agent chat UI at `/agent`
+
+### Database Schema Changes
+
+1. Update Mongoose schema in `lib/db/schemas/`
+2. Update domain entity in `domain/entities.ts`
+3. Create migration script in `packages/web/scripts/` if needed
+4. Document in `packages/web/scripts/README.md`
+
+## Environment Variables Reference
+
+**Required**:
+
+- `MONGODB_URI`: MongoDB connection string (Docker: `mongodb://localhost:27017/procureflow`)
+- `NEXTAUTH_SECRET`: Secret key for session encryption (generate with `openssl rand -base64 32`)
+- `NEXTAUTH_URL`: App URL (dev: `http://localhost:3000`)
+
+**Optional (for AI features)**:
+
+- `OPENAI_API_KEY`: OpenAI API key for agent functionality
+
+## What NOT to Do
+
+❌ Don't implement business logic in route handlers—always use service layer  
+❌ Don't import directly from `*.service.ts`—use barrel exports from `features/<name>/index.ts`  
+❌ Don't use Mongoose models directly in components—services return domain entities  
+❌ Don't forget to run `connectDB()` before database operations  
+❌ Don't mix client and server code—respect Next.js boundaries  
+❌ Don't commit `.env.local`—use `.env.example` as template  
+❌ Don't skip the text index creation—catalog search requires it
+
+## Quick Reference
+
+**Find a service function**: Check `features/<name>/lib/*.service.ts`  
+**Add API endpoint**: Create `app/(app)/api/<path>/route.ts`  
+**Database schema**: Look in `lib/db/schemas/`  
+**Domain types**: Defined in `domain/entities.ts`  
+**Seeding data**: Scripts in `packages/web/scripts/`  
+**Component library**: UI primitives in `components/ui/`

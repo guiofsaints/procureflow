@@ -18,6 +18,10 @@ dist/
 .env.test.local
 .env.production.local
 
+# Infrastructure environment files (keep .env.example)
+packages/infra/env/.env.web
+packages/infra/env/.env.mongo
+
 # Runtime data
 pids
 *.pid

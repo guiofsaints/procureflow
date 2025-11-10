@@ -33,6 +33,14 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const { setItemCount } = useCart();
 
+  // Validate item data and provide defaults
+  const safeItem = {
+    ...item,
+    price: typeof item.price === 'number' ? item.price : 0,
+    availability: item.availability || 'in_stock',
+    description: item.description || 'No description available',
+  };
+
   const handleAddToCart = async () => {
     setIsAdding(true);
 
@@ -44,7 +52,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          itemId: item.id,
+          itemId: safeItem.id,
           quantity,
         }),
       });
@@ -56,12 +64,12 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
 
       const data = await response.json();
 
-      // Update cart context counter with actual number of distinct items
+      // Update cart context with number of distinct items
       const itemCount = data.cart.items?.length || 0;
       setItemCount(itemCount);
 
       toast.success(
-        `Added ${quantity} ${quantity === 1 ? 'unit' : 'units'} of "${item.name}" to cart`,
+        `Added ${quantity} ${quantity === 1 ? 'unit' : 'units'} of "${safeItem.name}" to cart`,
         {
           description: `Cart total: $${data.cart.totalCost.toFixed(2)}`,
         }
@@ -89,13 +97,9 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
   };
 
   const getAvailabilityBadge = () => {
-    switch (item.availability) {
+    switch (safeItem.availability) {
       case 'in_stock':
-        return (
-          <Badge variant='default' className='bg-green-500'>
-            In Stock
-          </Badge>
-        );
+        return <Badge variant='default'>In Stock</Badge>;
       case 'limited':
         return <Badge variant='secondary'>Limited Stock</Badge>;
       case 'out_of_stock':
@@ -110,21 +114,23 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
       <CardHeader>
         <div className='flex items-start justify-between gap-2'>
           <div className='flex-1'>
-            <CardTitle className='text-lg'>{item.name}</CardTitle>
+            <CardTitle className='text-lg'>{safeItem.name}</CardTitle>
             <CardDescription className='mt-1'>
               <Badge variant='outline' className='font-normal'>
-                {item.category}
+                {safeItem.category}
               </Badge>
             </CardDescription>
           </div>
           <div className='flex flex-col items-end gap-1'>
-            <div className='text-xl font-bold'>${item.price.toFixed(2)}</div>
+            <div className='text-xl font-bold'>
+              ${safeItem.price.toFixed(2)}
+            </div>
             {getAvailabilityBadge()}
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <p className='text-sm text-muted-foreground'>{item.description}</p>
+        <p className='text-sm text-muted-foreground'>{safeItem.description}</p>
       </CardContent>
       <CardFooter className='flex flex-col gap-3'>
         {/* Quantity Selector */}
@@ -136,7 +142,9 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
               size='icon'
               className='h-8 w-8'
               onClick={decrementQuantity}
-              disabled={quantity <= 1 || item.availability === 'out_of_stock'}
+              disabled={
+                quantity <= 1 || safeItem.availability === 'out_of_stock'
+              }
             >
               <Minus className='h-4 w-4' />
             </Button>
@@ -148,7 +156,9 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
               size='icon'
               className='h-8 w-8'
               onClick={incrementQuantity}
-              disabled={quantity >= 99 || item.availability === 'out_of_stock'}
+              disabled={
+                quantity >= 99 || safeItem.availability === 'out_of_stock'
+              }
             >
               <Plus className='h-4 w-4' />
             </Button>
@@ -160,7 +170,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
           <div className='flex w-full items-center justify-between text-sm'>
             <span className='text-muted-foreground'>Total:</span>
             <span className='font-bold text-primary'>
-              ${(item.price * quantity).toFixed(2)}
+              ${(safeItem.price * quantity).toFixed(2)}
             </span>
           </div>
         )}
@@ -168,7 +178,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
         {/* Add to Cart Button */}
         <Button
           onClick={handleAddToCart}
-          disabled={item.availability === 'out_of_stock' || isAdding}
+          disabled={safeItem.availability === 'out_of_stock' || isAdding}
           className='w-full'
           size='sm'
         >

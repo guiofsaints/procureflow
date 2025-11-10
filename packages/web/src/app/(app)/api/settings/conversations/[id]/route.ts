@@ -15,10 +15,7 @@ interface RouteParams {
   }>;
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authConfig);
 
@@ -34,7 +31,12 @@ export async function DELETE(
   } catch (error) {
     console.error('DELETE /api/settings/conversations/[id] error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to delete conversation' },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to delete conversation',
+      },
       { status: 500 }
     );
   }

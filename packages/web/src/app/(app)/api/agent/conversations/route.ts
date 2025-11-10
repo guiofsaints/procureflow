@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
-import { listConversationsForUser } from '@/features/agent';
+import { listConversationsForUser } from '@/features/agent/lib/agent.service';
 import { authConfig } from '@/lib/auth/config';
 
 export async function GET(request: NextRequest) {
