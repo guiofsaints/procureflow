@@ -85,7 +85,7 @@ export function CartPageContent() {
           return {
             ...item,
             quantity: newQuantity,
-            subtotal: item.itemPrice * newQuantity,
+            subtotal: item.unitPrice * newQuantity,
           };
         }
         return item;
@@ -144,7 +144,7 @@ export function CartPageContent() {
 
       if (removedItem) {
         toast.info('Item removed', {
-          description: `${removedItem.itemName} has been removed from your cart.`,
+          description: `${removedItem.name} has been removed from your cart.`,
         });
       }
 
@@ -265,10 +265,10 @@ export function CartPageContent() {
                   {/* Item Info */}
                   <div className='flex-1 min-w-0'>
                     <h3 className='text-base sm:text-lg font-medium text-foreground truncate'>
-                      {item.itemName}
+                      {item.name}
                     </h3>
                     <p className='text-sm text-muted-foreground mt-1'>
-                      ${item.itemPrice.toFixed(2)} per unit
+                      ${item.unitPrice.toFixed(2)} per unit
                     </p>
                   </div>
 

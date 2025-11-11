@@ -235,7 +235,7 @@ export function ProductDetailPageContent() {
               <div className='text-right'>
                 <div className='text-sm text-muted-foreground mb-1'>Price</div>
                 <div className='text-3xl font-bold text-primary'>
-                  ${item.price.toFixed(2)}
+                  ${(item.estimatedPrice ?? 0).toFixed(2)}
                 </div>
               </div>
             </div>
@@ -344,7 +344,7 @@ export function ProductDetailPageContent() {
                     Subtotal ({quantity} {quantity === 1 ? 'item' : 'items'}):
                   </span>
                   <span className='text-xl font-bold text-primary'>
-                    ${(item.price * quantity).toFixed(2)}
+                    ${(item.estimatedPrice * quantity).toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -61,9 +61,9 @@ export type AgentConversationId = string;
  * [Future]: Inactive - item removed from active catalog
  */
 export enum ItemStatus {
-  Active = 'Active',
-  PendingReview = 'PendingReview', // [Future]
-  Inactive = 'Inactive', // [Future]
+  Active = 'active',
+  PendingReview = 'pending_review', // [Future]
+  Inactive = 'inactive', // [Future]
 }
 
 /**
@@ -72,10 +72,10 @@ export enum ItemStatus {
  * [Future]: PendingApproval, Approved, Rejected - for approval workflows
  */
 export enum PurchaseRequestStatus {
-  Submitted = 'Submitted', // [MVP]
-  PendingApproval = 'PendingApproval', // [Future]
-  Approved = 'Approved', // [Future]
-  Rejected = 'Rejected', // [Future]
+  Submitted = 'submitted', // [MVP]
+  PendingApproval = 'pending_approval', // [Future]
+  Approved = 'approved', // [Future]
+  Rejected = 'rejected', // [Future]
 }
 
 /**
@@ -170,7 +170,7 @@ export interface Item {
    * Must be a positive number.
    * [MVP]
    */
-  price: number;
+  estimatedPrice: number;
 
   /**
    * Unit of measure (e.g., "each", "box", "pack")
@@ -195,7 +195,7 @@ export interface Item {
    * User ID of the person who registered this item (if user-registered)
    * [MVP]
    */
-  registeredBy?: UserId;
+  createdByUserId?: UserId;
 
   /** Item creation timestamp */
   createdAt: Date;
@@ -217,10 +217,10 @@ export interface CartItem {
   itemId: ItemId;
 
   /** Snapshot of item name at the time of adding to cart */
-  itemName: string;
+  name: string;
 
   /** Snapshot of item price at the time of adding to cart */
-  itemPrice: number;
+  unitPrice: number;
 
   /**
    * Quantity of this item in the cart
@@ -230,7 +230,7 @@ export interface CartItem {
   quantity: number;
 
   /**
-   * Subtotal for this line item (itemPrice * quantity)
+   * Subtotal for this line item (unitPrice * quantity)
    * Calculated field, not persisted separately in some implementations
    */
   subtotal: number;
@@ -331,7 +331,7 @@ export interface PurchaseRequest {
    * Sum of all item subtotals
    * [MVP]
    */
-  totalCost: number;
+  total: number;
 
   /**
    * Optional notes or justification for the purchase

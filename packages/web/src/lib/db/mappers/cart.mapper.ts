@@ -14,8 +14,8 @@ import type { Cart, CartItem } from '@/domain/entities';
 export function mapCartItemToEntity(item: CartItemDocument): CartItem {
   return {
     itemId: item.itemId?.toString() || '',
-    itemName: item.name,
-    itemPrice: item.unitPrice,
+    name: item.name,
+    unitPrice: item.unitPrice,
     quantity: item.quantity,
     subtotal: item.subtotal || item.unitPrice * item.quantity,
     addedAt: item.addedAt,
@@ -27,13 +27,13 @@ export function mapCartItemToEntity(item: CartItemDocument): CartItem {
  */
 export function mapCartToEntity(cart: CartDocument): Cart {
   const items = cart.items.map(mapCartItemToEntity);
-  const totalCost = items.reduce((sum, item) => sum + item.subtotal, 0);
+  const total = items.reduce((sum, item) => sum + item.subtotal, 0);
 
   return {
     id: cart._id.toString(),
     userId: cart.userId.toString(),
     items,
-    totalCost,
+    totalCost: total,
     createdAt: cart.createdAt,
     updatedAt: cart.updatedAt,
   };

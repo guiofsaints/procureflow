@@ -30,12 +30,12 @@ export const ITEM_COLLECTION_NAME = 'items';
 /**
  * Item status in the catalog
  * [MVP]: active - item is available for selection
- * [MVP]: archived - item removed from active catalog (soft delete)
+ * [MVP]: inactive - item removed from active catalog (soft delete)
  * [Future]: pending_review - awaiting buyer approval for user-registered items
  */
 export enum ItemStatus {
   Active = 'active',
-  Archived = 'archived',
+  Inactive = 'inactive',
   PendingReview = 'pending_review', // [Future]
 }
 
@@ -185,7 +185,7 @@ export const ItemSchema = new Schema(
 
     // Optimize JSON output
     toJSON: {
-      transform: function (_doc, ret) {
+      transform: function (_doc, ret: Record<string, unknown>) {
         delete ret.__v;
         return ret;
       },
@@ -244,7 +244,7 @@ ItemSchema.methods.isAvailable = function (): boolean {
  * Archive this item (soft delete)
  */
 ItemSchema.methods.archive = function () {
-  this.status = ItemStatus.Archived;
+  this.status = ItemStatus.Inactive;
   return this.save();
 };
 

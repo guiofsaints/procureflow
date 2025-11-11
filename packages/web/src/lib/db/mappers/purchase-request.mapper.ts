@@ -40,7 +40,7 @@ export function mapPurchaseRequestToEntity(
     userId: request.userId.toString(),
     requestNumber: request.requestNumber,
     items: request.items.map(mapPurchaseRequestItemToEntity),
-    totalCost: request.total,
+    total: request.total,
     notes: request.notes || '',
     source: request.source,
     status: request.status as PurchaseRequestStatus,

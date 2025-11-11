@@ -108,7 +108,7 @@ export interface ItemDocument {
    * Must be a positive number.
    * [MVP]
    */
-  price: number;
+  estimatedPrice: number;
 
   /**
    * Unit of measure (e.g., "each", "box", "pack")
@@ -133,7 +133,7 @@ export interface ItemDocument {
    * Stored as ObjectId reference to User collection
    * [MVP]
    */
-  registeredBy?: Types.ObjectId | UserId;
+  createdByUserId?: Types.ObjectId | UserId;
 
   /** Item creation timestamp */
   createdAt: Date;

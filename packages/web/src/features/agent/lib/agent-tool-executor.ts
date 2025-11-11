@@ -218,8 +218,8 @@ async function executeToolInternal(
           name: item.name,
           category: item.category,
           description: item.description,
-          price: item.price,
-          availability: item.status === 'Active' ? 'in_stock' : 'out_of_stock',
+          price: item.estimatedPrice,
+          availability: item.status === 'active' ? 'in_stock' : 'out_of_stock',
         })),
         count: items.length,
       };
@@ -246,8 +246,8 @@ async function executeToolInternal(
         cart: {
           items: result.items.map((item) => ({
             itemId: item.itemId,
-            itemName: item.itemName,
-            itemPrice: item.itemPrice,
+            itemName: item.name,
+            itemPrice: item.unitPrice,
             quantity: item.quantity,
           })),
           totalCost: result.totalCost,
@@ -273,8 +273,8 @@ async function executeToolInternal(
         cart: {
           items: result.items.map((item) => ({
             itemId: item.itemId,
-            itemName: item.itemName,
-            itemPrice: item.itemPrice,
+            itemName: item.name,
+            itemPrice: item.unitPrice,
             quantity: item.quantity,
           })),
           totalCost: result.totalCost,
@@ -307,8 +307,8 @@ async function executeToolInternal(
       return {
         items: cart.items.map((item) => ({
           itemId: item.itemId,
-          itemName: item.itemName,
-          itemPrice: item.itemPrice,
+          itemName: item.name,
+          itemPrice: item.unitPrice,
           quantity: item.quantity,
         })),
         totalCost: cart.totalCost,

@@ -10,15 +10,6 @@ import { ItemStatus } from '@/domain/entities';
 import type { Item } from '@/domain/entities';
 
 /**
- * Map database status to domain ItemStatus enum
- * ItemDocument.status is already an ItemStatus enum, but we handle it safely
- */
-function mapStatusFromDb(status: ItemStatus): ItemStatus {
-  // Status is already correctly typed, just return it
-  return status || ItemStatus.Active;
-}
-
-/**
  * Maps an ItemDocument from Mongoose to an Item domain entity
  */
 export function mapItemToEntity(doc: ItemDocument): Item {
@@ -27,11 +18,11 @@ export function mapItemToEntity(doc: ItemDocument): Item {
     name: doc.name,
     category: doc.category,
     description: doc.description,
-    price: doc.price,
+    estimatedPrice: doc.estimatedPrice,
     unit: doc.unit,
-    status: mapStatusFromDb(doc.status),
+    status: doc.status || ItemStatus.Active,
     preferredSupplier: doc.preferredSupplier,
-    registeredBy: doc.registeredBy?.toString(),
+    createdByUserId: doc.createdByUserId?.toString(),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };

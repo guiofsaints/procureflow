@@ -16,6 +16,7 @@
 import type { Types } from 'mongoose';
 
 import type { Item } from '@/domain/entities';
+import { ItemStatus } from '@/domain/entities';
 import { mapItemToEntity } from '@/lib/db/mappers';
 import { ItemModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
@@ -122,7 +123,7 @@ export async function searchItems(
     // Build base query
     const baseQuery: Record<string, unknown> = includeArchived
       ? {}
-      : { status: 'active' };
+      : { status: ItemStatus.Active };
 
     // Add price filter if provided
     if (maxPrice !== undefined && maxPrice > 0) {
@@ -211,7 +212,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
       description: normalizedDescription,
       estimatedPrice: input.estimatedPrice,
       unit: input.unit,
-      status: 'active',
+      status: ItemStatus.Active,
       preferredSupplier: input.preferredSupplier,
       createdByUserId: input.createdByUserId, // Now accepts any string (demo user "1", UUID, etc.)
     };
