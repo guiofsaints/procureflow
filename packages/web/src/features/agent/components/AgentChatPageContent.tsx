@@ -179,16 +179,6 @@ export function AgentChatPageContent({
 
         const data = await response.json();
 
-        // Debug logging (can be removed in production)
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('[AgentChatPageContent] API Response:', {
-            conversationId: data.conversationId,
-            messageCount: data.messages?.length,
-            messages: data.messages,
-            lastMessage: data.messages?.[data.messages.length - 1],
-          });
-        }
-
         // Update conversationId if this is a new conversation
         if (data.conversationId && !conversationId) {
           setConversationId(data.conversationId);
@@ -210,10 +200,6 @@ export function AgentChatPageContent({
           .filter((msg: { role: string }) => msg.role === 'assistant')
           .pop();
 
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('[AgentChatPageContent] Latest agent message:', latestAgentMessage);
-        }
-
         if (latestAgentMessage) {
           const agentMessage: AgentMessage = {
             id: `agent-${Date.now()}`,
@@ -232,10 +218,6 @@ export function AgentChatPageContent({
               ? latestAgentMessage.purchaseRequest 
               : undefined, // Validate purchase request
           };
-
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('[AgentChatPageContent] Agent message to add:', agentMessage);
-          }
 
           setMessages((prev) => [...prev, agentMessage]);
 
