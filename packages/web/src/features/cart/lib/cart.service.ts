@@ -13,8 +13,8 @@
 import type { Types } from 'mongoose';
 import { Types as MongooseTypes } from 'mongoose';
 
-import type { CartDocument, CartItemDocument } from '@/domain/documents';
 import type { Cart } from '@/domain/entities';
+import { mapCartToEntity } from '@/lib/db/mappers';
 import {
   CartModel,
   ItemModel,
@@ -109,7 +109,7 @@ export async function getCartForUser(
       cart = await newCart.save();
     }
 
-    return mapCartToDto(cart);
+    return mapCartToEntity(cart);
   } catch (error) {
     console.error('Error fetching cart for user:', userId, error);
     throw new Error('Failed to fetch cart');
@@ -200,7 +200,7 @@ export async function addItemToCart(
     }
 
     const updatedCart = await cart.save();
-    return mapCartToDto(updatedCart);
+    return mapCartToEntity(updatedCart);
   } catch (error) {
     if (
       error instanceof ItemNotFoundError ||
@@ -267,7 +267,7 @@ export async function updateCartItemQuantity(
     cart.items[itemIndex].quantity = quantity;
     const updatedCart = await cart.save();
 
-    return mapCartToDto(updatedCart);
+    return mapCartToEntity(updatedCart);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;
@@ -320,7 +320,7 @@ export async function removeCartItem(
     }
 
     const updatedCart = await cart.save();
-    return mapCartToDto(updatedCart);
+    return mapCartToEntity(updatedCart);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;
@@ -360,12 +360,12 @@ export async function clearCart(
         items: [],
       });
       const savedCart = await newCart.save();
-      return mapCartToDto(savedCart);
+      return mapCartToEntity(savedCart);
     }
 
     cart.items = [];
     const updatedCart = await cart.save();
-    return mapCartToDto(updatedCart);
+    return mapCartToEntity(updatedCart);
   } catch (error) {
     console.error('Error clearing cart:', error);
     throw new Error('Failed to clear cart');
@@ -459,29 +459,4 @@ export async function analyzeCart(userId: string | Types.ObjectId): Promise<{
 // ============================================================================
 // Mapping Helpers
 // ============================================================================
-
-/**
- * Maps a CartDocument from Mongoose to a Cart domain entity
- * This function is fully type-safe and eliminates the need for `any` types
- */
-function mapCartToDto(cart: CartDocument): Cart {
-  const items = cart.items.map((item: CartItemDocument) => ({
-    itemId: item.itemId?.toString() || '',
-    itemName: item.name,
-    itemPrice: item.unitPrice,
-    quantity: item.quantity,
-    subtotal: item.subtotal || item.unitPrice * item.quantity,
-    addedAt: item.addedAt,
-  }));
-
-  const totalCost = items.reduce((sum: number, item) => sum + item.subtotal, 0);
-
-  return {
-    id: cart._id.toString(),
-    userId: cart.userId.toString(),
-    items,
-    totalCost,
-    createdAt: cart.createdAt,
-    updatedAt: cart.updatedAt,
-  };
-}
+// Moved to @/lib/db/mappers/cart.mapper.ts for reusability

@@ -11,13 +11,10 @@
 
 import { Types } from 'mongoose';
 
-import type {
-  CartItemDocument,
-  PurchaseRequestDocument,
-  PurchaseRequestItemDocument,
-} from '@/domain/documents';
+import type { CartItemDocument } from '@/domain/documents';
 import type { PurchaseRequest } from '@/domain/entities';
 import { PurchaseRequestStatus } from '@/domain/entities';
+import { mapPurchaseRequestToEntity } from '@/lib/db/mappers';
 import { CartModel, ItemModel, PurchaseRequestModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
 import { logger } from '@/lib/logger/winston.config';
@@ -124,27 +121,8 @@ export async function checkoutCart(
     cart.items = [];
     await cart.save();
 
-    // Map to DTO
-    return {
-      id: savedRequest._id.toString(),
-      userId: savedRequest.userId.toString(),
-      requestNumber: savedRequest.requestNumber,
-      items: savedRequest.items.map((item: PurchaseRequestItemDocument) => ({
-        itemId: item.itemId?.toString() || '',
-        itemName: item.name,
-        itemCategory: item.category,
-        itemDescription: item.description,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
-      })),
-      totalCost: savedRequest.total,
-      notes: savedRequest.notes,
-      source: savedRequest.source,
-      status: PurchaseRequestStatus.Submitted,
-      createdAt: savedRequest.createdAt,
-      updatedAt: savedRequest.updatedAt,
-    };
+    // Map to domain entity
+    return mapPurchaseRequestToEntity(savedRequest);
   } catch (error) {
     if (error instanceof EmptyCartError || error instanceof ValidationError) {
       throw error;
@@ -187,27 +165,8 @@ export async function getPurchaseRequestsForUser(
       .lean()
       .exec();
 
-    // Map to DTOs
-    return requests.map((request: PurchaseRequestDocument) => ({
-      id: request._id.toString(),
-      userId: request.userId.toString(),
-      requestNumber: request.requestNumber,
-      items: request.items.map((item: PurchaseRequestItemDocument) => ({
-        itemId: item.itemId?.toString() || '',
-        itemName: item.name,
-        itemCategory: item.category,
-        itemDescription: item.description,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
-      })),
-      totalCost: request.total,
-      notes: request.notes || '',
-      source: request.source,
-      status: request.status as PurchaseRequestStatus,
-      createdAt: request.createdAt,
-      updatedAt: request.updatedAt,
-    }));
+    // Map to domain entities
+    return requests.map(mapPurchaseRequestToEntity);
   } catch (error) {
     logger.error('Error fetching purchase requests', { userId, error });
     throw new Error('Failed to fetch purchase requests');
@@ -243,27 +202,8 @@ export async function getPurchaseRequestById(
       return null;
     }
 
-    // Map to DTO
-    return {
-      id: request._id.toString(),
-      userId: request.userId.toString(),
-      requestNumber: request.requestNumber,
-      items: request.items.map((item: PurchaseRequestItemDocument) => ({
-        itemId: item.itemId?.toString() || '',
-        itemName: item.name,
-        itemCategory: item.category,
-        itemDescription: item.description,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
-      })),
-      totalCost: request.total,
-      notes: request.notes || '',
-      source: request.source,
-      status: request.status as PurchaseRequestStatus,
-      createdAt: request.createdAt,
-      updatedAt: request.updatedAt,
-    };
+    // Map to domain entity
+    return mapPurchaseRequestToEntity(request);
   } catch (error) {
     logger.error('Error fetching purchase request', {
       userId,

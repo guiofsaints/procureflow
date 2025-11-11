@@ -50,7 +50,7 @@ function mapUserToEntity(doc: Partial<UserDocument>): User {
 /**
  * Map conversation document to summary
  */
-function mapToConversationSummary(
+function mapConversationToSummary(
   doc: Record<string, unknown>
 ): ConversationSummary {
   // Extract first user message as preview if available
@@ -133,7 +133,7 @@ export async function listUserConversations(
       .lean()
       .exec();
 
-    return conversations.map(mapToConversationSummary);
+    return conversations.map(mapConversationToSummary);
   } catch (error) {
     logger.error('Error listing conversations', { userId, error });
     throw new Error('Failed to list conversations');

@@ -16,7 +16,7 @@
 import type { Types } from 'mongoose';
 
 import type { Item } from '@/domain/entities';
-import { ItemStatus } from '@/domain/entities';
+import { mapItemToEntity } from '@/lib/db/mappers';
 import { ItemModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
 import { logger } from '@/lib/logger/winston.config';
@@ -152,19 +152,7 @@ export async function searchItems(
     }
 
     // Convert MongoDB documents to domain Item type
-    return items.map((doc) => ({
-      id: doc._id.toString(),
-      name: doc.name,
-      category: doc.category,
-      description: doc.description,
-      price: doc.estimatedPrice,
-      unit: doc.unit,
-      status: mapStatusFromDb(doc.status),
-      preferredSupplier: doc.preferredSupplier,
-      registeredBy: doc.createdByUserId?.toString(),
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt,
-    }));
+    return items.map(mapItemToEntity);
   } catch (error) {
     logger.error('Error searching items', { error });
     throw new Error('Failed to search items');
@@ -208,19 +196,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
 
     if (duplicates.length > 0) {
       // Convert to domain items for error
-      const duplicateItems: Item[] = duplicates.map((doc) => ({
-        id: doc._id.toString(),
-        name: doc.name,
-        category: doc.category,
-        description: doc.description,
-        price: doc.estimatedPrice,
-        unit: doc.unit,
-        status: mapStatusFromDb(doc.status),
-        preferredSupplier: doc.preferredSupplier,
-        registeredBy: doc.createdByUserId?.toString(),
-        createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt,
-      }));
+      const duplicateItems: Item[] = duplicates.map(mapItemToEntity);
 
       throw new DuplicateItemError(
         `Potential duplicate items found with similar name and category`,
@@ -245,19 +221,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
     const item = await newItem.save();
 
     // Convert to domain type
-    return {
-      id: item._id.toString(),
-      name: item.name,
-      category: item.category,
-      description: item.description,
-      price: item.estimatedPrice,
-      unit: item.unit,
-      status: mapStatusFromDb(item.status),
-      preferredSupplier: item.preferredSupplier,
-      registeredBy: item.createdByUserId?.toString(),
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
-    };
+    return mapItemToEntity(item);
   } catch (error) {
     if (error instanceof DuplicateItemError) {
       throw error;
@@ -283,19 +247,7 @@ export async function getItemById(itemId: string): Promise<Item | null> {
       return null;
     }
 
-    return {
-      id: item._id.toString(),
-      name: item.name,
-      category: item.category,
-      description: item.description,
-      price: item.estimatedPrice,
-      unit: item.unit,
-      status: mapStatusFromDb(item.status),
-      preferredSupplier: item.preferredSupplier,
-      registeredBy: item.createdByUserId?.toString(),
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
-    };
+    return mapItemToEntity(item);
   } catch (error) {
     console.error('Error fetching item by ID:', error);
     throw new Error('Failed to fetch item');
@@ -392,19 +344,7 @@ export async function updateItem(
     }
 
     // Convert to domain type
-    return {
-      id: item._id.toString(),
-      name: item.name,
-      category: item.category,
-      description: item.description,
-      price: item.estimatedPrice,
-      unit: item.unit,
-      status: mapStatusFromDb(item.status),
-      preferredSupplier: item.preferredSupplier,
-      registeredBy: item.createdByUserId?.toString(),
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
-    };
+    return mapItemToEntity(item);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;
@@ -461,16 +401,4 @@ function validateCreateItemInput(input: CreateItemInput): void {
 // ============================================================================
 // Mapping Helpers
 // ============================================================================
-
-function mapStatusFromDb(status: string): ItemStatus {
-  switch (status) {
-    case 'active':
-      return ItemStatus.Active;
-    case 'pending_review':
-      return ItemStatus.PendingReview;
-    case 'archived':
-      return ItemStatus.Inactive;
-    default:
-      return ItemStatus.Active;
-  }
-}
+// Moved to @/lib/db/mappers/item.mapper.ts for reusability

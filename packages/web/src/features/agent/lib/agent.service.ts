@@ -12,7 +12,7 @@
 
 import type { Types } from 'mongoose';
 
-import type { AgentConversationDocument, AgentMessageDocument } from '@/domain/documents';
+import type { AgentMessageDocument } from '@/domain/documents';
 import type { AgentMessage } from '@/domain/entities';
 import { AgentMessageRole } from '@/domain/entities';
 import type {
@@ -22,6 +22,7 @@ import type {
   AgentItem,
   AgentPurchaseRequest,
 } from '@/features/agent/types';
+import { mapConversationToSummary } from '@/lib/db/mappers';
 import { AgentConversationModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
 import { logger } from '@/lib/logger/winston.config';
@@ -379,7 +380,7 @@ export async function listConversationsForUser(
       .lean()
       .exec();
 
-    return conversations.map(mapToConversationSummary);
+    return conversations.map(mapConversationToSummary);
   } catch (error) {
     logger.error('Error listing conversations', { userId, error });
     throw new Error('Failed to list conversations');
@@ -420,7 +421,7 @@ export async function createConversationForUser(
 
     await conversation.save();
 
-    return mapToConversationSummary(conversation);
+    return mapConversationToSummary(conversation);
   } catch (error) {
     logger.error('Error creating conversation', { userId, error });
     throw new Error('Failed to create conversation');
@@ -452,7 +453,7 @@ export async function getConversationSummaryById(
       return null;
     }
 
-    return mapToConversationSummary(conversation);
+    return mapConversationToSummary(conversation);
   } catch (error) {
     logger.error('Error getting conversation summary', { userId, id, error });
     return null;
@@ -571,15 +572,4 @@ export async function touchConversation(
 // ============================================================================
 // Helpers
 // ============================================================================
-
-/**
- * Map Mongoose document to AgentConversationSummary
- */
-function mapToConversationSummary(doc: AgentConversationDocument): AgentConversationSummary {
-  return {
-    id: doc._id.toString(),
-    title: doc.title || 'Untitled conversation',
-    lastMessagePreview: doc.lastMessagePreview || 'No messages yet',
-    updatedAt: doc.updatedAt?.toISOString() || new Date().toISOString(),
-  };
-}
+// Moved to @/lib/db/mappers/conversation.mapper.ts for reusability
