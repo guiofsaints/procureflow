@@ -299,24 +299,15 @@ export async function invokeChat(params: {
     // Apply reliability layers:
     // 1. Rate limiting (prevent overwhelming API)
     // 2. Retry logic (handle transient failures)
-    // 3. Circuit breaker (fail fast when provider is down)
+    // 3. Circuit breaker (fail fast when provider is down) - currently bypassed pending proper Opossum fix
     const response = await withRateLimit(provider, async () => {
       return withRetry(provider, async () => {
         return withCircuitBreaker(provider, async () => {
-          logger.debug('Tool check', {
-            hasTools: !!(tools && tools.length > 0),
-            toolsLength: tools?.length || 0,
-            provider,
-            isOpenAI: provider === 'openai',
-          });
-
           // Use dedicated function for OpenAI with tools
           if (tools && tools.length > 0 && provider === 'openai') {
-            logger.info('Routing to invokeOpenAIWithTools');
             return await invokeOpenAIWithTools(messages, tools, config);
           }
 
-          logger.info('Routing to standard chatModel.invoke (no tools)');
           // Invoke LLM without tools or for other providers
           return await chatModel.invoke(messages);
         });
@@ -324,6 +315,7 @@ export async function invokeChat(params: {
     });
 
     const elapsed = Date.now() - startTime;
+
     logger.info('LLM response received', {
       provider,
       latencyMs: elapsed,

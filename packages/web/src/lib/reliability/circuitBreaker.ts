@@ -159,6 +159,8 @@ function createBreaker<T>(provider: AIProvider): CircuitBreaker<T[], T> {
  * @param provider - AI provider name
  * @returns CircuitBreaker instance
  */
+// 🔴 TEMPORARY: Disabled until proper Opossum integration
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getBreaker<T>(provider: AIProvider): CircuitBreaker<T[], T> {
   let breaker = breakers.get(provider) as CircuitBreaker<T[], T> | undefined;
 
@@ -192,11 +194,16 @@ export async function withCircuitBreaker<T>(
   provider: AIProvider,
   fn: () => Promise<T>
 ): Promise<T> {
-  const breaker = getBreaker<T>(provider);
-
-  // Fire the function through the circuit breaker
-  // Circuit breaker will handle timeout, error counting, etc.
-  return breaker.fire(fn as unknown as T);
+  // 🔴 TEMPORARY FIX: Bypass circuit breaker until proper fix
+  // The Opossum integration is broken - it was not executing the function
+  console.warn('🔴 [withCircuitBreaker] BYPASSED - executing function directly');
+  return await fn();
+  
+  /* ORIGINAL BROKEN CODE:
+  const breaker = getBreaker<() => Promise<T>>(provider);
+  // 🔴 PROBLEM: This cast and fire() usage is incorrect
+  return breaker.fire(fn);
+  */
 }
 
 /**

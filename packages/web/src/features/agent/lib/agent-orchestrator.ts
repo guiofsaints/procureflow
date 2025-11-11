@@ -266,17 +266,28 @@ export async function orchestrateAgentTurn(
         };
       }
 
-      // 2c. If there are tool calls, add minimal AIMessage to history for LLM context
-      // (content may be empty when tool calls are present)
-      const aiMessageWithTools = new AIMessage(
-        aiResponse.content || '(executing tools...)'
-      );
+      // 2c. Extract tool calls from response
+      const toolCalls = aiResponse.toolCalls;
+      toolCallsCount += toolCalls.length;
+
+      // 2d. Add AIMessage with tool_calls to history
+      // CRITICAL: LangChain expects tool_calls directly in constructor (not in additional_kwargs)
+      const aiMessageWithTools = new AIMessage({
+        content: aiResponse.content || '',
+        tool_calls: toolCalls.map((tc) => ({
+          id: tc.id,
+          name: tc.name,
+          args:
+            typeof tc.arguments === 'string'
+              ? JSON.parse(tc.arguments)
+              : tc.arguments,
+        })),
+      });
+
       messageHistory.push(aiMessageWithTools);
       // Don't add to newMessages - tool messages are not saved to conversation
 
-      // 2d. Execute tool calls
-      const toolCalls = aiResponse.toolCalls;
-      toolCallsCount += toolCalls.length;
+      // 2e. Execute tool calls
 
       // Safety check: prevent excessive tool calls
       if (toolCallsCount > MAX_TOOL_CALLS_PER_TURN) {
