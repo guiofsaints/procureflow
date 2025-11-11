@@ -98,10 +98,10 @@ export function AgentChatPageContent({
           id: `${msg.role}-${index}`,
           role: msg.role, // Already in correct format from API
           content: msg.content,
-          items: msg.items, // Include items if available
-          cart: msg.cart, // Include cart if available
-          checkoutConfirmation: msg.checkoutConfirmation, // Include checkout confirmation if available
-          purchaseRequest: msg.purchaseRequest, // Include purchase request if available
+          items: Array.isArray(msg.items) && msg.items.length > 0 ? msg.items : undefined, // Validate items array
+          cart: msg.cart && typeof msg.cart === 'object' ? msg.cart : undefined, // Validate cart object
+          checkoutConfirmation: msg.checkoutConfirmation && typeof msg.checkoutConfirmation === 'object' ? msg.checkoutConfirmation : undefined, // Validate checkout
+          purchaseRequest: msg.purchaseRequest && typeof msg.purchaseRequest === 'object' ? msg.purchaseRequest : undefined, // Validate purchase request
           timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
         })
       );
@@ -179,13 +179,15 @@ export function AgentChatPageContent({
 
         const data = await response.json();
 
-        // Debug: Log API response to console
-        console.warn('[AgentChatPageContent] API Response:', {
-          conversationId: data.conversationId,
-          messageCount: data.messages?.length,
-          messages: data.messages,
-          lastMessage: data.messages?.[data.messages.length - 1],
-        });
+        // Debug logging (can be removed in production)
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[AgentChatPageContent] API Response:', {
+            conversationId: data.conversationId,
+            messageCount: data.messages?.length,
+            messages: data.messages,
+            lastMessage: data.messages?.[data.messages.length - 1],
+          });
+        }
 
         // Update conversationId if this is a new conversation
         if (data.conversationId && !conversationId) {
@@ -205,23 +207,35 @@ export function AgentChatPageContent({
         // Get the latest agent message from the response
         const apiMessages = data.messages || [];
         const latestAgentMessage = apiMessages
-          .filter((msg: { role: string }) => msg.role === 'agent')
+          .filter((msg: { role: string }) => msg.role === 'assistant')
           .pop();
 
-        console.warn('[AgentChatPageContent] Latest agent message:', latestAgentMessage);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[AgentChatPageContent] Latest agent message:', latestAgentMessage);
+        }
 
         if (latestAgentMessage) {
           const agentMessage: AgentMessage = {
             id: `agent-${Date.now()}`,
             role: 'assistant',
             content: latestAgentMessage.content,
-            items: latestAgentMessage.items, // Include items if present
-            cart: latestAgentMessage.cart, // Include cart if present
-            checkoutConfirmation: latestAgentMessage.checkoutConfirmation, // Include checkout confirmation if present
-            purchaseRequest: latestAgentMessage.purchaseRequest, // Include purchase request if present
+            items: Array.isArray(latestAgentMessage.items) && latestAgentMessage.items.length > 0 
+              ? latestAgentMessage.items 
+              : undefined, // Validate items array
+            cart: latestAgentMessage.cart && typeof latestAgentMessage.cart === 'object' 
+              ? latestAgentMessage.cart 
+              : undefined, // Validate cart object
+            checkoutConfirmation: latestAgentMessage.checkoutConfirmation && typeof latestAgentMessage.checkoutConfirmation === 'object' 
+              ? latestAgentMessage.checkoutConfirmation 
+              : undefined, // Validate checkout
+            purchaseRequest: latestAgentMessage.purchaseRequest && typeof latestAgentMessage.purchaseRequest === 'object' 
+              ? latestAgentMessage.purchaseRequest 
+              : undefined, // Validate purchase request
           };
 
-          console.warn('[AgentChatPageContent] Agent message to add:', agentMessage);
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[AgentChatPageContent] Agent message to add:', agentMessage);
+          }
 
           setMessages((prev) => [...prev, agentMessage]);
 
