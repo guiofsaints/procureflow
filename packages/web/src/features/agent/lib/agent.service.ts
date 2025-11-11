@@ -12,13 +12,20 @@
 
 import type { Types } from 'mongoose';
 
+import type { AgentConversationDocument, AgentMessageDocument } from '@/domain/documents';
 import type { AgentMessage } from '@/domain/entities';
 import {
   AgentActionType,
   AgentMessageRole,
   ItemStatus,
 } from '@/domain/entities';
-import type { AgentConversationSummary } from '@/features/agent/types';
+import type {
+  AgentCart,
+  AgentCheckoutConfirmation,
+  AgentConversationSummary,
+  AgentItem,
+  AgentPurchaseRequest,
+} from '@/features/agent/types';
 import * as cartService from '@/features/cart';
 import * as catalogService from '@/features/catalog';
 import * as checkoutService from '@/features/checkout';
@@ -64,18 +71,6 @@ export interface AgentResponseCart {
     itemName: string;
     itemPrice: number;
     quantity: number;
-  }>;
-  totalCost: number;
-  itemCount: number;
-}
-
-export interface AgentCheckoutConfirmation {
-  items: Array<{
-    itemId: string;
-    itemName: string;
-    itemPrice: number;
-    quantity: number;
-    subtotal: number;
   }>;
   totalCost: number;
   itemCount: number;
@@ -297,8 +292,7 @@ export async function handleAgentMessage(
     return {
       conversationId: conversation._id.toString(),
       messages: conversation.messages.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (msg: any) => {
+        (msg: AgentMessageDocument) => {
           // Map MongoDB 'sender' to AgentMessageRole
           // sender: 'agent' → role: 'agent'
           // sender: 'user' → role: 'user'
@@ -318,22 +312,22 @@ export async function handleAgentMessage(
 
           // Add items if present in metadata
           if (msg.metadata?.items) {
-            message.items = msg.metadata.items;
+            message.items = msg.metadata.items as AgentItem[];
           }
 
           // Add cart if present in metadata
           if (msg.metadata?.cart) {
-            message.cart = msg.metadata.cart;
+            message.cart = msg.metadata.cart as AgentCart;
           }
 
           // Add checkout confirmation if present in metadata
           if (msg.metadata?.checkoutConfirmation) {
-            message.checkoutConfirmation = msg.metadata.checkoutConfirmation;
+            message.checkoutConfirmation = msg.metadata.checkoutConfirmation as AgentCheckoutConfirmation;
           }
 
           // Add purchase request if present in metadata
           if (msg.metadata?.purchaseRequest) {
-            message.purchaseRequest = msg.metadata.purchaseRequest;
+            message.purchaseRequest = msg.metadata.purchaseRequest as AgentPurchaseRequest;
           }
 
           return message;
@@ -396,10 +390,9 @@ interface AgentReplyWithItems {
  *
  * Uses OpenAI's function calling to let the model decide when to use tools
  */
-async function _generateAgentResponse_DEPRECATED(
+async function _orchestrateAgentReply(
   userMessage: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  conversationHistory: any[],
+  conversationHistory: AgentMessageDocument[],
   userId?: string | Types.ObjectId
 ): Promise<AgentReplyWithItems> {
   try {
@@ -1397,8 +1390,7 @@ export async function getConversationById(
       conversationId: conv._id.toString(),
       title: conv.title || 'Untitled conversation',
       messages: conv.messages.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (msg: any) => {
+        (msg: AgentMessageDocument) => {
           // Map MongoDB 'sender' to AgentMessageRole
           // sender: 'agent' → role: 'agent'
           // sender: 'user' → role: 'user'
@@ -1418,22 +1410,22 @@ export async function getConversationById(
 
           // Add items if present in metadata
           if (msg.metadata?.items) {
-            message.items = msg.metadata.items;
+            message.items = msg.metadata.items as AgentItem[];
           }
 
           // Add cart if present in metadata
           if (msg.metadata?.cart) {
-            message.cart = msg.metadata.cart;
+            message.cart = msg.metadata.cart as AgentCart;
           }
 
           // Add checkout confirmation if present in metadata
           if (msg.metadata?.checkoutConfirmation) {
-            message.checkoutConfirmation = msg.metadata.checkoutConfirmation;
+            message.checkoutConfirmation = msg.metadata.checkoutConfirmation as AgentCheckoutConfirmation;
           }
 
           // Add purchase request if present in metadata
           if (msg.metadata?.purchaseRequest) {
-            message.purchaseRequest = msg.metadata.purchaseRequest;
+            message.purchaseRequest = msg.metadata.purchaseRequest as AgentPurchaseRequest;
           }
 
           return message;
@@ -1492,8 +1484,7 @@ function truncateDescription(description: string, maxLength = 150): string {
 /**
  * Map Mongoose document to AgentConversationSummary
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapToConversationSummary(doc: any): AgentConversationSummary {
+function mapToConversationSummary(doc: AgentConversationDocument): AgentConversationSummary {
   return {
     id: doc._id.toString(),
     title: doc.title || 'Untitled conversation',

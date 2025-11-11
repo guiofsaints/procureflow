@@ -30,7 +30,6 @@ import type {
   AgentConversationId,
   ItemStatus,
   PurchaseRequestStatus,
-  AgentMessageRole,
   AgentActionType,
 } from './entities';
 
@@ -372,6 +371,18 @@ export interface AgentConversationDocument {
   userId: Types.ObjectId | UserId;
 
   /**
+   * Conversation title
+   * Generated from first user message or explicitly set
+   */
+  title: string;
+
+  /**
+   * Preview of last message
+   * Used for quick context in conversation list
+   */
+  lastMessagePreview: string;
+
+  /**
    * Chronological list of messages in the conversation
    * Embedded sub-documents
    */
@@ -410,14 +421,17 @@ export interface AgentConversationDocument {
  * [MVP]
  */
 export interface AgentMessageDocument {
-  /** Message role (user, assistant, system) */
-  role: AgentMessageRole;
+  /** Message sender (user, agent, system) - matches Mongoose schema field name */
+  sender: 'user' | 'agent' | 'system';
 
   /** Message content (text) */
   content: string;
 
   /** Timestamp when this message was created */
-  timestamp: Date;
+  createdAt: Date;
+
+  /** Optional metadata (items, cart, checkoutConfirmation, purchaseRequest, etc.) */
+  metadata?: Record<string, unknown>;
 
   /** Mongoose sub-document _id (auto-generated) */
   _id?: Types.ObjectId | string;
