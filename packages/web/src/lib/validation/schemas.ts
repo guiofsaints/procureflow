@@ -166,29 +166,17 @@ export const UpdateCartQuantityArgsSchema = z.object({
 });
 
 /**
- * view_cart tool arguments
+ * get_cart tool arguments
  */
-export const ViewCartArgsSchema = z.object({
-  cartId: z.string().optional(),
+export const GetCartArgsSchema = z.object({
+  // No arguments required - gets cart for authenticated user
 });
 
 /**
  * checkout tool arguments
  */
 export const CheckoutArgsSchema = z.object({
-  cartId: z.string().optional(),
-  shippingAddress: z
-    .object({
-      street: z.string().min(1).max(200),
-      city: z.string().min(1).max(100),
-      state: z.string().min(2).max(50),
-      zipCode: z.string().min(5).max(10),
-      country: z.string().min(2).max(50),
-    })
-    .optional(),
-  paymentMethod: z
-    .enum(['credit_card', 'purchase_order', 'invoice'])
-    .optional(),
+  notes: z.string().max(500).optional(),
 });
 
 /**
@@ -200,7 +188,7 @@ export const ToolArgsSchemas = {
   add_to_cart: AddToCartArgsSchema,
   remove_from_cart: RemoveFromCartArgsSchema,
   update_cart_quantity: UpdateCartQuantityArgsSchema,
-  view_cart: ViewCartArgsSchema,
+  get_cart: GetCartArgsSchema,
   checkout: CheckoutArgsSchema,
 } as const;
 
