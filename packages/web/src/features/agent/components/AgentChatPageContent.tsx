@@ -43,6 +43,19 @@ export function AgentChatPageContent({
   const { setItemCount } = useCart();
   const pathname = usePathname();
 
+  // Function to reset all conversation state
+  const resetConversationState = useCallback(() => {
+    setConversationId(undefined);
+    setMessages([]);
+    setHasStarted(false);
+    setIsLoading(false);
+    setConversationTitle('');
+    setIsLoadingConversation(false);
+    if (pathname) {
+      clearDynamicLabel(pathname);
+    }
+  }, [pathname, clearDynamicLabel]);
+
   // Reset state when conversationId changes (including when it becomes undefined)
   useEffect(() => {
     // If no conversationId (new conversation), reset all state immediately
@@ -137,6 +150,19 @@ export function AgentChatPageContent({
       loadConversation(initialConversationId);
     }
   }, [initialConversationId, loadConversation]);
+
+  // Listen for reset conversation event (triggered by breadcrumb or New Conversation button)
+  useEffect(() => {
+    const handleResetConversation = () => {
+      resetConversationState();
+    };
+
+    window.addEventListener('resetAgentConversation', handleResetConversation);
+
+    return () => {
+      window.removeEventListener('resetAgentConversation', handleResetConversation);
+    };
+  }, [resetConversationState]);
 
   // Trigger custom event when conversation is updated (for sidebar refresh)
   const triggerConversationUpdate = useCallback(() => {

@@ -70,6 +70,14 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
     return breadcrumbs;
   }, [pathname, dynamicLabels]);
 
+  // Handle breadcrumb click - reset agent state when clicking on /agent breadcrumb
+  const handleBreadcrumbClick = (href: string) => {
+    if (href === '/agent') {
+      // Dispatch custom event to reset agent conversation state
+      window.dispatchEvent(new CustomEvent('resetAgentConversation'));
+    }
+  };
+
   return (
     <header
       className={cn(
@@ -101,7 +109,12 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
                   <BreadcrumbItem>
                     {!isLast ? (
                       <BreadcrumbLink asChild>
-                        <Link href={crumb.href}>{crumb.label}</Link>
+                        <Link 
+                          href={crumb.href}
+                          onClick={() => handleBreadcrumbClick(crumb.href)}
+                        >
+                          {crumb.label}
+                        </Link>
                       </BreadcrumbLink>
                     ) : isLoading ? (
                       <Skeleton className='h-5 w-32' />

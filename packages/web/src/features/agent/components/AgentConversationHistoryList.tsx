@@ -30,7 +30,9 @@ export function AgentConversationHistoryList({
 
   // Handler for new conversation button
   const handleNewConversation = () => {
-    // Always use client-side navigation
+    // Dispatch custom event to reset agent conversation state
+    window.dispatchEvent(new CustomEvent('resetAgentConversation'));
+    // Navigate to agent page
     router.push('/agent');
   };
 
