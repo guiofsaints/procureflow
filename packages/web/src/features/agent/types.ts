@@ -49,7 +49,7 @@ export interface AgentCheckoutConfirmation {
     quantity: number;
     subtotal: number;
   }>;
-  total: number;
+  totalCost: number;
   itemCount: number;
 }
 
