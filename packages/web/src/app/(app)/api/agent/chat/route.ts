@@ -106,6 +106,22 @@ export async function POST(request: NextRequest) {
       throw error;
     });
 
+    // Type assertion for logging
+    const typedResponse = response as {
+      conversationId?: string;
+      messages?: Array<{ metadata?: Record<string, unknown> }>;
+    };
+
+    logger.debug('[API] Agent response ready', {
+      conversationId: typedResponse.conversationId,
+      messageCount: typedResponse.messages?.length || 0,
+      hasMessages: !!typedResponse.messages,
+      lastMessageHasMetadata: typedResponse.messages?.[typedResponse.messages.length - 1]?.metadata ? true : false,
+      lastMessageMetadataKeys: typedResponse.messages?.[typedResponse.messages.length - 1]?.metadata 
+        ? Object.keys(typedResponse.messages[typedResponse.messages.length - 1].metadata!) 
+        : [],
+    });
+
     return NextResponse.json(response);
   } catch (error) {
     logger.error('Error in POST /api/agent/chat', {

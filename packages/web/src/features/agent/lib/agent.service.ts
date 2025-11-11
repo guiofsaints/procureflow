@@ -195,6 +195,8 @@ export async function handleAgentMessage(
       iterations: orchestrationResult.iterations,
       toolCallsCount: orchestrationResult.toolCallsCount,
       maxIterationsReached: orchestrationResult.maxIterationsReached,
+      hasMetadata: !!orchestrationResult.metadata,
+      metadataKeys: orchestrationResult.metadata ? Object.keys(orchestrationResult.metadata) : [],
     });
 
     // Add orchestrator messages to conversation
@@ -220,6 +222,15 @@ export async function handleAgentMessage(
     if (orchestrationResult.metadata && conversation.messages.length > 0) {
       const lastMessage = conversation.messages[conversation.messages.length - 1];
       if (lastMessage.sender === 'agent') {
+        logger.debug('Adding metadata to last agent message', {
+          conversationId: conversation._id?.toString(),
+          metadataKeys: Object.keys(orchestrationResult.metadata),
+          hasItems: !!orchestrationResult.metadata.items,
+          hasCart: !!orchestrationResult.metadata.cart,
+          hasCheckout: !!orchestrationResult.metadata.checkoutConfirmation,
+          hasPurchaseRequest: !!orchestrationResult.metadata.purchaseRequest,
+        });
+        
         // Initialize metadata object if not present
         if (!lastMessage.metadata) {
           lastMessage.metadata = {};
@@ -244,6 +255,15 @@ export async function handleAgentMessage(
         if (orchestrationResult.metadata.purchaseRequest) {
           lastMessage.metadata.purchaseRequest = orchestrationResult.metadata.purchaseRequest;
         }
+        
+        logger.debug('Metadata added to message', {
+          conversationId: conversation._id?.toString(),
+          messageMetadataKeys: Object.keys(lastMessage.metadata || {}),
+        });
+        
+        // Mark the messages array as modified for Mongoose to detect changes
+        // This is critical for Schema.Types.Mixed fields in subdocuments
+        conversation.markModified('messages');
       }
     }
 

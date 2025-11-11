@@ -368,19 +368,54 @@ export async function orchestrateAgentTurn(
             try {
               const toolOutput = JSON.parse(result.message.content as string);
               
+              logger.debug('[Orchestrator] Parsed tool output', {
+                conversationId,
+                toolName: toolCall.name,
+                outputType: Array.isArray(toolOutput) ? 'array' : typeof toolOutput,
+                isArray: Array.isArray(toolOutput),
+                hasItems: !!toolOutput.items,
+                hasTotalCost: toolOutput.totalCost !== undefined,
+                hasId: !!toolOutput.id,
+              });
+              
               // Handle search_catalog results
-              if (toolCall.name === 'search_catalog' && Array.isArray(toolOutput)) {
-                accumulatedMetadata.items = toolOutput;
+              if (toolCall.name === 'search_catalog') {
+                // search_catalog returns { items: [...], count: number }
+                if (toolOutput.items && Array.isArray(toolOutput.items)) {
+                  accumulatedMetadata.items = toolOutput.items;
+                  logger.debug('[Orchestrator] Added items to metadata', {
+                    conversationId,
+                    itemCount: toolOutput.items.length,
+                  });
+                }
               }
               
               // Handle add_to_cart/remove_from_cart/get_cart results
               if (['add_to_cart', 'remove_from_cart', 'get_cart'].includes(toolCall.name)) {
-                if (toolOutput.items && toolOutput.totalCost !== undefined) {
+                // These return { success: true, cart: { items: [...], totalCost: number } }
+                if (toolOutput.cart?.items && toolOutput.cart.totalCost !== undefined) {
+                  accumulatedMetadata.cart = {
+                    items: toolOutput.cart.items,
+                    totalCost: toolOutput.cart.totalCost,
+                    itemCount: toolOutput.cart.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0),
+                  };
+                  logger.debug('[Orchestrator] Added cart to metadata', {
+                    conversationId,
+                    cartItemCount: (accumulatedMetadata.cart as { itemCount?: number }).itemCount,
+                    totalCost: (accumulatedMetadata.cart as { totalCost?: number }).totalCost,
+                  });
+                } else if (toolOutput.items && toolOutput.totalCost !== undefined) {
+                  // Fallback for direct cart format
                   accumulatedMetadata.cart = {
                     items: toolOutput.items,
                     totalCost: toolOutput.totalCost,
                     itemCount: toolOutput.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0),
                   };
+                  logger.debug('[Orchestrator] Added cart to metadata (fallback)', {
+                    conversationId,
+                    cartItemCount: (accumulatedMetadata.cart as { itemCount?: number }).itemCount,
+                    totalCost: (accumulatedMetadata.cart as { totalCost?: number }).totalCost,
+                  });
                 }
               }
               
@@ -389,9 +424,17 @@ export async function orchestrateAgentTurn(
                 if (toolOutput.id) {
                   // Purchase request created
                   accumulatedMetadata.purchaseRequest = toolOutput;
+                  logger.debug('[Orchestrator] Added purchase request to metadata', {
+                    conversationId,
+                    purchaseId: toolOutput.id,
+                  });
                 } else if (toolOutput.items && toolOutput.totalCost !== undefined) {
                   // Checkout confirmation (before creating purchase request)
                   accumulatedMetadata.checkoutConfirmation = toolOutput;
+                  logger.debug('[Orchestrator] Added checkout confirmation to metadata', {
+                    conversationId,
+                    itemCount: toolOutput.items.length,
+                  });
                 }
               }
             } catch (parseError) {
