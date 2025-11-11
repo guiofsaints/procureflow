@@ -245,6 +245,9 @@ export async function orchestrateAgentTurn(
       const aiResponse: AIResponse = await invokeChat({
         messages: messageHistory,
         tools: AGENT_TOOLS,
+        userId,
+        conversationId,
+        endpoint: '/agent',
       });
 
       logger.debug('[Orchestrator] LLM response received', {

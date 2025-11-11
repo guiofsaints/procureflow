@@ -1,7 +1,15 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, MessageSquare, Moon, Sun, Trash2, User } from 'lucide-react';
+import {
+  Loader2,
+  MessageSquare,
+  Moon,
+  Sun,
+  Trash2,
+  User,
+  BarChart,
+} from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -41,6 +49,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ConversationSummary } from '@/features/settings';
+import { TokenUsageCharts } from '@/features/settings/components/TokenUsageCharts';
 
 // Schema matching backend validations from user.schema.ts
 const profileSchema = z.object({
@@ -219,6 +228,10 @@ export function SettingsPageContent() {
             <MessageSquare className='h-4 w-4 mr-2' />
             Conversations
           </TabsTrigger>
+          <TabsTrigger value='analytics'>
+            <BarChart className='h-4 w-4 mr-2' />
+            Analytics
+          </TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -272,6 +285,23 @@ export function SettingsPageContent() {
                   </Button>
                 </form>
               </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value='analytics' className='space-y-4'>
+          <Card className='py-6'>
+            <CardHeader>
+              <CardTitle>Analytics</CardTitle>
+              <CardDescription>
+                Usage and cost analytics for AI tokens
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* TokenUsageCharts is a client component that fetches analytics */}
+              {/* lazy import to reduce initial bundle could be added later */}
+              <TokenUsageCharts />
             </CardContent>
           </Card>
         </TabsContent>

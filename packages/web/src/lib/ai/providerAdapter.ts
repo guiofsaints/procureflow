@@ -280,8 +280,11 @@ export async function invokeChat(params: {
   messages: BaseMessage[];
   tools?: unknown[];
   config?: Partial<ProviderConfig>;
+  userId?: string;
+  conversationId?: string;
+  endpoint?: string;
 }): Promise<AIResponse> {
-  const { messages, tools, config } = params;
+  const { messages, tools, config, userId, conversationId, endpoint } = params;
   const chatModel = createChatModel(config);
 
   const startTime = Date.now();
@@ -394,6 +397,9 @@ export async function invokeChat(params: {
         totalTokens: usage.totalTokens,
         costUSD: cost,
         toolCalls: toolCalls.length,
+        userId,
+        conversationId,
+        endpoint,
       }).catch((err) => {
         logger.error('Failed to save token usage', {
           error: err instanceof Error ? err.message : String(err),

@@ -547,3 +547,63 @@ export interface AgentActionLog {
   executionTimeMs?: number;
   timestamp: Date;
 }
+
+// ============================================================================
+// Token Usage Analytics Types
+// ============================================================================
+
+/**
+ * Time series point for token usage (daily/week/month depending on query)
+ */
+export interface TimeSeriesDataPoint {
+  date: string; // ISO date string or label (e.g., '2025-11-01')
+  cost: number;
+  tokens: number;
+  requests: number;
+}
+
+export interface ProviderBreakdown {
+  provider: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+  percentage: number; // percent of total cost
+}
+
+export interface ModelBreakdown {
+  provider: string;
+  model: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+}
+
+export interface ConversationCost {
+  conversationId: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+}
+
+export interface TokenUsageAnalytics {
+  summary: {
+    totalCost: number;
+    totalTokens: number;
+    totalPromptTokens: number;
+    totalCompletionTokens: number;
+    requestCount: number;
+    averageCostPerRequest: number;
+    averageTokensPerRequest: number;
+  };
+  timeSeries: TimeSeriesDataPoint[];
+  byProvider: ProviderBreakdown[];
+  byModel: ModelBreakdown[];
+  topConversations: ConversationCost[];
+}
+
+export interface GetTokenUsageAnalyticsInput {
+  userId: string;
+  startDate?: Date;
+  endDate?: Date;
+  period?: 'day' | 'week' | 'month';
+}

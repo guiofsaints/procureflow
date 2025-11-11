@@ -2,12 +2,16 @@
  * Settings Service
  *
  * Handles user settings operations including profile updates,
- * conversation history management
+ * conversation history management, and token usage analytics
  */
 
 import type { UserDocument } from '@/domain/documents';
 import type { User } from '@/domain/entities';
-import { UserModel, AgentConversationModel } from '@/lib/db/models';
+import {
+  UserModel,
+  AgentConversationModel,
+  TokenUsageModel,
+} from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
 import { logger } from '@/lib/logger/winston.config';
 
@@ -196,5 +200,223 @@ export async function deleteAllConversations(userId: string): Promise<number> {
   } catch (error) {
     logger.error('Error deleting all conversations', { userId, error });
     throw new Error('Failed to delete conversations');
+  }
+}
+
+// ============================================================================
+// Token Usage Analytics
+// ============================================================================
+
+export interface TimeSeriesDataPoint {
+  date: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+}
+
+export interface ProviderBreakdown {
+  provider: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+  percentage: number;
+}
+
+export interface ModelBreakdown {
+  provider: string;
+  model: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+}
+
+export interface ConversationCost {
+  conversationId: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+}
+
+export interface TokenUsageAnalytics {
+  summary: {
+    totalCost: number;
+    totalTokens: number;
+    totalPromptTokens: number;
+    totalCompletionTokens: number;
+    requestCount: number;
+    averageCostPerRequest: number;
+    averageTokensPerRequest: number;
+  };
+  timeSeries: TimeSeriesDataPoint[];
+  byProvider: ProviderBreakdown[];
+  byModel: ModelBreakdown[];
+  topConversations: ConversationCost[];
+}
+
+export interface GetTokenUsageAnalyticsInput {
+  userId: string;
+  startDate?: Date;
+  endDate?: Date;
+  period?: 'day' | 'week' | 'month';
+}
+
+/**
+ * Get comprehensive token usage analytics for a user
+ *
+ * @param input - User ID and date range
+ * @returns Analytics data with summaries, time series, and breakdowns
+ */
+export async function getTokenUsageAnalytics(
+  input: GetTokenUsageAnalyticsInput
+): Promise<TokenUsageAnalytics> {
+  await connectDB();
+
+  const { userId, startDate, endDate } = input;
+
+  // Build date filter
+  const dateFilter: { $gte?: Date; $lte?: Date } = {};
+  if (startDate) {
+    dateFilter.$gte = startDate;
+  }
+  if (endDate) {
+    dateFilter.$lte = endDate;
+  }
+
+  const filter: Record<string, unknown> = { userId };
+  if (Object.keys(dateFilter).length > 0) {
+    filter.createdAt = dateFilter;
+  }
+
+  try {
+    // Summary aggregation
+    const summaryResult = await TokenUsageModel.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          totalCost: { $sum: '$costUSD' },
+          totalTokens: { $sum: '$totalTokens' },
+          totalPromptTokens: { $sum: '$promptTokens' },
+          totalCompletionTokens: { $sum: '$completionTokens' },
+          requestCount: { $sum: 1 },
+        },
+      },
+    ]).exec();
+
+    const summary = summaryResult[0] || {
+      totalCost: 0,
+      totalTokens: 0,
+      totalPromptTokens: 0,
+      totalCompletionTokens: 0,
+      requestCount: 0,
+    };
+
+    summary.averageCostPerRequest =
+      summary.requestCount > 0 ? summary.totalCost / summary.requestCount : 0;
+    summary.averageTokensPerRequest =
+      summary.requestCount > 0 ? summary.totalTokens / summary.requestCount : 0;
+
+    // Time series data (group by day)
+    const timeSeriesResult = await TokenUsageModel.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+          },
+          cost: { $sum: '$costUSD' },
+          tokens: { $sum: '$totalTokens' },
+          requests: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]).exec();
+
+    const timeSeries = timeSeriesResult.map((item) => ({
+      date: item._id,
+      cost: item.cost,
+      tokens: item.tokens,
+      requests: item.requests,
+    }));
+
+    // Provider breakdown
+    const providerResult = await TokenUsageModel.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: '$provider',
+          cost: { $sum: '$costUSD' },
+          tokens: { $sum: '$totalTokens' },
+          requests: { $sum: 1 },
+        },
+      },
+    ]).exec();
+
+    const byProvider = providerResult.map((item) => ({
+      provider: item._id,
+      cost: item.cost,
+      tokens: item.tokens,
+      requests: item.requests,
+      percentage:
+        summary.totalCost > 0 ? (item.cost / summary.totalCost) * 100 : 0,
+    }));
+
+    // Model breakdown
+    const modelResult = await TokenUsageModel.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: { provider: '$provider', model: '$modelName' },
+          cost: { $sum: '$costUSD' },
+          tokens: { $sum: '$totalTokens' },
+          requests: { $sum: 1 },
+        },
+      },
+      { $sort: { cost: -1 } },
+    ]).exec();
+
+    const byModel = modelResult.map((item) => ({
+      provider: item._id.provider,
+      model: item._id.model,
+      cost: item.cost,
+      tokens: item.tokens,
+      requests: item.requests,
+    }));
+
+    // Top conversations by cost
+    const conversationsResult = await TokenUsageModel.aggregate([
+      { $match: { ...filter, conversationId: { $exists: true, $ne: null } } },
+      {
+        $group: {
+          _id: '$conversationId',
+          cost: { $sum: '$costUSD' },
+          tokens: { $sum: '$totalTokens' },
+          requests: { $sum: 1 },
+        },
+      },
+      { $sort: { cost: -1 } },
+      { $limit: 10 },
+    ]).exec();
+
+    const topConversations = conversationsResult.map((item) => ({
+      conversationId: item._id,
+      cost: item.cost,
+      tokens: item.tokens,
+      requests: item.requests,
+    }));
+
+    return {
+      summary,
+      timeSeries,
+      byProvider,
+      byModel,
+      topConversations,
+    };
+  } catch (error) {
+    logger.error('Error fetching token usage analytics', {
+      userId,
+      error,
+    });
+    throw new Error('Failed to fetch token usage analytics');
   }
 }
