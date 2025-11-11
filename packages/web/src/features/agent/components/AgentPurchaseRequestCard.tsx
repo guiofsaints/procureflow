@@ -66,7 +66,7 @@ export function AgentPurchaseRequestCard({
             <div className='flex justify-between border-t pt-2 mt-2'>
               <span className='font-semibold'>Total:</span>
               <span className='text-lg font-bold'>
-                ${purchaseRequest.totalCost.toFixed(2)}
+                ${purchaseRequest.total.toFixed(2)}
               </span>
             </div>
           </div>

@@ -24,7 +24,7 @@ export interface AgentCartItem {
 
 export interface AgentCart {
   items: AgentCartItem[];
-  totalCost: number;
+  total: number;
   itemCount: number;
 }
 
@@ -37,7 +37,7 @@ export interface AgentPurchaseRequest {
     unitPrice: number;
     subtotal: number;
   }>;
-  totalCost: number;
+  total: number;
   status: string;
 }
 
@@ -49,7 +49,7 @@ export interface AgentCheckoutConfirmation {
     quantity: number;
     subtotal: number;
   }>;
-  totalCost: number;
+  total: number;
   itemCount: number;
 }
 

@@ -212,7 +212,7 @@ export function PurchaseHistoryPageContent() {
                         </span>
                       </TableCell>
                       <TableCell className='font-semibold'>
-                        ${request.totalCost.toFixed(2)}
+                        ${request.total.toFixed(2)}
                       </TableCell>
                       <TableCell>{getStatusBadge(request.status)}</TableCell>
                       <TableCell className='text-right'>

@@ -261,7 +261,7 @@ export function PurchaseRequestDetailPageContent({
                       Total
                     </TableCell>
                     <TableCell className='text-right text-lg font-bold'>
-                      ${purchaseRequest.totalCost.toFixed(2)}
+                      ${purchaseRequest.total.toFixed(2)}
                     </TableCell>
                   </TableRow>
                 </TableBody>

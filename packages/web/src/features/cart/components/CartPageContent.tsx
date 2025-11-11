@@ -189,7 +189,7 @@ export function CartPageContent() {
 
       // Show success toast with purchase request details
       toast.success('Checkout successful!', {
-        description: `Purchase request ${purchaseRequest.requestNumber} created with ${cartItems.length} ${cartItems.length === 1 ? 'item' : 'items'}. Total: $${purchaseRequest.totalCost.toFixed(2)}`,
+        description: `Purchase request ${purchaseRequest.requestNumber} created with ${cartItems.length} ${cartItems.length === 1 ? 'item' : 'items'}. Total: $${purchaseRequest.total.toFixed(2)}`,
         duration: 5000,
       });
 

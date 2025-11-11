@@ -250,7 +250,7 @@ async function executeToolInternal(
             itemPrice: item.unitPrice,
             quantity: item.quantity,
           })),
-          totalCost: result.totalCost,
+          total: result.totalCost,
           itemCount: result.items.length,
         },
       };
@@ -277,7 +277,7 @@ async function executeToolInternal(
             itemPrice: item.unitPrice,
             quantity: item.quantity,
           })),
-          totalCost: result.totalCost,
+          total: result.totalCost,
           itemCount: result.items.length,
         },
       };
@@ -298,7 +298,7 @@ async function executeToolInternal(
       if (!cart || cart.items.length === 0) {
         return {
           items: [],
-          totalCost: 0,
+          total: 0,
           itemCount: 0,
           message: 'Your cart is empty',
         };
@@ -311,7 +311,7 @@ async function executeToolInternal(
           itemPrice: item.unitPrice,
           quantity: item.quantity,
         })),
-        totalCost: cart.totalCost,
+        total: cart.totalCost,
         itemCount: cart.items.length,
       };
     }
@@ -329,7 +329,7 @@ async function executeToolInternal(
       logger.info('Purchase request created', {
         userId,
         purchaseRequestId: purchaseRequest.id,
-        totalCost: purchaseRequest.totalCost,
+        totalCost: purchaseRequest.total,
       });
 
       return {
@@ -343,7 +343,7 @@ async function executeToolInternal(
             unitPrice: item.unitPrice,
             subtotal: item.subtotal,
           })),
-          totalCost: purchaseRequest.totalCost,
+          total: purchaseRequest.total,
           status: purchaseRequest.status,
           createdAt: purchaseRequest.createdAt,
         },
