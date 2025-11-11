@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -24,6 +24,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Memoize Aurora props to prevent re-creation on every render
+  const auroraProps = useMemo(
+    () => ({
+      colorStops: ['#8b5cf6', '#3b82f6', '#8b5cf6'],
+      blend: 0.4,
+      amplitude: 0.5,
+      speed: 0.2,
+    }),
+    []
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,14 +70,14 @@ export default function LoginPage() {
 
   return (
     <div className='min-h-screen flex items-center justify-center px-4 relative overflow-hidden'>
-      {/* Aurora Background */}
-      <div className='fixed inset-0 '>
-        <Aurora
-          colorStops={['#8b5cf6', '#3b82f6', '#8b5cf6']}
-          blend={0.4}
-          amplitude={0.5}
-          speed={0.2}
-        />
+      {/* Background - Gradient for light mode, Aurora for dark mode */}
+      <div className='fixed inset-0'>
+        {/* Aurora for dark mode - hidden in light mode */}
+        <div className='hidden dark:block w-full h-full'>
+          <Aurora {...auroraProps} />
+        </div>
+        {/* Gradient for light mode - hidden in dark mode */}
+        <div className='block dark:hidden hero-gradient-bg w-full h-full' />
       </div>
 
       <div className='w-full max-w-md relative z-10'>
@@ -86,10 +97,10 @@ export default function LoginPage() {
                 priority
               />
               <div className='flex flex-col'>
-                <span className='text-lg font-semibold leading-tight text-foreground text-left'>
+                <span className='text-lg font-semibold leading-tight text-white dark:text-foreground text-left'>
                   ProcureFlow
                 </span>
-                <span className='text-xs text-muted-foreground'>
+                <span className='text-xs text-white dark:text-muted-foreground'>
                   AI-Native Procurement Platform
                 </span>
               </div>
@@ -98,7 +109,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card className='py-8 backdrop-blur-sm bg-background/80'>
+        <Card className='py-8 dark:backdrop-blur-sm bg-card/80 dark:bg-background/80'>
           <CardHeader>
             <CardTitle className='text-xl'>Sign in to your account</CardTitle>
           </CardHeader>
