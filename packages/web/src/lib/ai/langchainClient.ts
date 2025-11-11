@@ -393,8 +393,8 @@ async function chatCompletionWithTools(
       for (const msg of options.conversationHistory) {
         if (msg.role === 'user') {
           messages.push(new HumanMessage(msg.content));
-        } else if (msg.role === 'assistant' || msg.role === 'agent') {
-          // Use AIMessage for assistant responses, not SystemMessage
+        } else if (msg.role === 'agent') {
+          // Use AIMessage for agent responses, not SystemMessage
           messages.push(new AIMessage(msg.content));
         }
       }

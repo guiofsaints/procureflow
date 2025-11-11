@@ -4,7 +4,7 @@
  * Types for the Agent chat feature, including messages, items, and roles.
  */
 
-export type AgentRole = 'user' | 'assistant' | 'system';
+export type AgentRole = 'user' | 'agent' | 'system';
 
 export interface AgentItem {
   id: string;

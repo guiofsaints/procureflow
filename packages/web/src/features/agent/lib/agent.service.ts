@@ -294,12 +294,12 @@ export async function handleAgentMessage(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (msg: any) => {
           // Map MongoDB 'sender' to AgentMessageRole
-          // sender: 'agent' → role: 'assistant'
+          // sender: 'agent' → role: 'agent'
           // sender: 'user' → role: 'user'
           // sender: 'system' → role: 'system'
           const role =
             msg.sender === 'agent'
-              ? AgentMessageRole.Assistant
+              ? AgentMessageRole.Agent
               : msg.sender === 'user'
                 ? AgentMessageRole.User
                 : AgentMessageRole.System;
@@ -661,7 +661,7 @@ Examples:
           }
 
           return {
-            role: msg.sender === 'user' ? 'user' : 'assistant',
+            role: msg.sender === 'user' ? 'user' : 'agent',
             content,
           };
         }
@@ -1388,12 +1388,12 @@ export async function getConversationById(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (msg: any) => {
           // Map MongoDB 'sender' to AgentMessageRole
-          // sender: 'agent' → role: 'assistant'
+          // sender: 'agent' → role: 'agent'
           // sender: 'user' → role: 'user'
           // sender: 'system' → role: 'system'
           const role =
             msg.sender === 'agent'
-              ? AgentMessageRole.Assistant
+              ? AgentMessageRole.Agent
               : msg.sender === 'user'
                 ? AgentMessageRole.User
                 : AgentMessageRole.System;

@@ -223,13 +223,13 @@ export function AgentChatPageContent({
         // Get the latest agent message from the response
         const apiMessages = data.messages || [];
         const latestAgentMessage = apiMessages
-          .filter((msg: { role: string }) => msg.role === 'assistant')
+          .filter((msg: { role: string }) => msg.role === 'agent')
           .pop();
 
         if (latestAgentMessage) {
           const agentMessage: AgentMessage = {
             id: `agent-${Date.now()}`,
-            role: 'assistant',
+            role: 'agent',
             content: latestAgentMessage.content,
             items: Array.isArray(latestAgentMessage.items) && latestAgentMessage.items.length > 0 
               ? latestAgentMessage.items 
@@ -264,7 +264,7 @@ export function AgentChatPageContent({
             userMessage, // Re-add user message
             {
               id: `error-${Date.now()}`,
-              role: 'assistant',
+              role: 'agent',
               content:
                 'I apologize, but I encountered an error processing your request. Please try again.',
             },

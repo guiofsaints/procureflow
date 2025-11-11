@@ -12,7 +12,7 @@ interface AgentMessageWithCheckoutProps {
   message: {
     id: string;
     content: string;
-    role: 'user' | 'agent';
+    role: 'user' | 'assistant';
     metadata?: {
       cart?: {
         items: Array<{
@@ -33,9 +33,9 @@ export function AgentMessageWithCheckoutExample({
   message,
   conversationId,
 }: AgentMessageWithCheckoutProps) {
-  // Only show checkout for agent messages that suggest it
+  // Only show checkout for assistant messages that suggest it
   const shouldShowCheckout =
-    message.role === 'agent' &&
+    message.role === 'assistant' &&
     message.metadata?.suggestCheckout &&
     message.metadata?.cart &&
     message.metadata.cart.items.length > 0;

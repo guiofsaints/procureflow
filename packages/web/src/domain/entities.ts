@@ -84,7 +84,7 @@ export enum PurchaseRequestStatus {
  */
 export enum AgentMessageRole {
   User = 'user',
-  Assistant = 'assistant',
+  Agent = 'agent',
   System = 'system',
 }
 
