@@ -56,7 +56,7 @@ function mapToConversationSummary(
   // Extract first user message as preview if available
   const messages = (doc.messages as Array<Record<string, unknown>>) || [];
   const firstUserMessage = messages.find(
-    (m: Record<string, unknown>) => m.role === 'user'
+    (m: Record<string, unknown>) => m.sender === 'user'
   )?.content as string | undefined;
   const preview = firstUserMessage?.substring(0, 100) || 'No messages yet...';
 
