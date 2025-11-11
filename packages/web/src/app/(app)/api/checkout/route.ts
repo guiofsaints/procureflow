@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
 import * as checkoutService from '@/features/checkout';
+import { handleApiError, unauthorized } from '@/lib/api';
 import { authConfig } from '@/lib/auth/config';
 
 /**
@@ -24,11 +25,8 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const session = await getServerSession(authConfig);
 
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!session || !session.user?.id) {
+      return unauthorized();
     }
 
     // Parse request body
@@ -49,31 +47,9 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error in POST /api/checkout:', error);
-
-    // Handle empty cart
-    if (error instanceof checkoutService.EmptyCartError) {
-      return NextResponse.json(
-        { error: 'Empty cart', message: error.message },
-        { status: 400 }
-      );
-    }
-
-    // Handle validation errors
-    if (error instanceof checkoutService.ValidationError) {
-      return NextResponse.json(
-        { error: 'Validation failed', message: error.message },
-        { status: 400 }
-      );
-    }
-
-    // Generic error
-    return NextResponse.json(
-      {
-        error: 'Failed to complete checkout',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'POST /api/checkout',
+      userId: undefined, // session not available in catch block
+    });
   }
 }

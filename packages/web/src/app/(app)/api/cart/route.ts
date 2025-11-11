@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
 import * as cartService from '@/features/cart';
+import { handleApiError, unauthorized } from '@/lib/api';
 import { authConfig } from '@/lib/auth/config';
 
 /**
@@ -22,18 +23,11 @@ export async function GET(_request: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'Authentication required' },
-        { status: 401 }
-      );
+      return unauthorized();
     }
 
     if (!session.user.id) {
-      console.error('[GET /api/cart] User ID is undefined in session');
-      return NextResponse.json(
-        { error: 'Invalid session', message: 'User ID not found in session' },
-        { status: 500 }
-      );
+      return unauthorized('User ID not found in session');
     }
 
     // Get cart for user
@@ -41,13 +35,9 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ cart });
   } catch (error) {
-    console.error('Error in GET /api/cart:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch cart',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'GET /api/cart',
+      userId: undefined, // session not available in catch block
+    });
   }
 }

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
 import * as cartService from '@/features/cart';
+import { badRequest, handleApiError, unauthorized } from '@/lib/api';
 import { authConfig } from '@/lib/auth/config';
 
 /**
@@ -25,11 +26,8 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const session = await getServerSession(authConfig);
 
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!session || !session.user?.id) {
+      return unauthorized();
     }
 
     // Parse request body
@@ -37,10 +35,10 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!body.itemId) {
-      return NextResponse.json(
-        { error: 'Validation failed', message: 'itemId is required' },
-        { status: 400 }
-      );
+      return badRequest('itemId is required', {
+        route: 'POST /api/cart/items',
+        userId: session.user.id,
+      });
     }
 
     // Validate quantity if provided
@@ -50,13 +48,10 @@ export async function POST(request: NextRequest) {
         body.quantity < 1 ||
         body.quantity > 999
       ) {
-        return NextResponse.json(
-          {
-            error: 'Validation failed',
-            message: 'quantity must be between 1 and 999',
-          },
-          { status: 400 }
-        );
+        return badRequest('quantity must be between 1 and 999', {
+          route: 'POST /api/cart/items',
+          userId: session.user.id,
+        });
       }
     }
 
@@ -68,34 +63,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ cart });
   } catch (error) {
-    console.error('Error in POST /api/cart/items:', error);
-
-    // Handle item not found
-    if (error instanceof cartService.ItemNotFoundError) {
-      return NextResponse.json(
-        { error: 'Item not found', message: error.message },
-        { status: 404 }
-      );
-    }
-
-    // Handle validation errors
-    if (
-      error instanceof cartService.ValidationError ||
-      error instanceof cartService.CartLimitError
-    ) {
-      return NextResponse.json(
-        { error: 'Validation failed', message: error.message },
-        { status: 400 }
-      );
-    }
-
-    // Generic error
-    return NextResponse.json(
-      {
-        error: 'Failed to add item to cart',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'POST /api/cart/items',
+      userId: undefined, // session not available in catch block
+    });
   }
 }

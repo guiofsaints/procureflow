@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
 import * as catalogService from '@/features/catalog';
+import { badRequest, handleApiError, unauthorized } from '@/lib/api';
 import { authConfig } from '@/lib/auth/config';
 
 /**
@@ -34,14 +35,9 @@ export async function GET(request: NextRequest) {
       count: items.length,
     });
   } catch (error) {
-    console.error('Error in GET /api/items:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to search items',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'GET /api/items',
+    });
   }
 }
 
@@ -64,11 +60,8 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const session = await getServerSession(authConfig);
 
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!session || !session.user?.id) {
+      return unauthorized();
     }
 
     // Parse request body
@@ -76,23 +69,17 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!body.name || !body.category || !body.description) {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          message: 'Missing required fields: name, category, description',
-        },
-        { status: 400 }
-      );
+      return badRequest('Missing required fields: name, category, description', {
+        route: 'POST /api/items',
+        userId: session.user.id,
+      });
     }
 
     if (typeof body.estimatedPrice !== 'number' || body.estimatedPrice <= 0) {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          message: 'estimatedPrice must be a positive number',
-        },
-        { status: 400 }
-      );
+      return badRequest('estimatedPrice must be a positive number', {
+        route: 'POST /api/items',
+        userId: session.user.id,
+      });
     }
 
     // Create item via service
@@ -108,35 +95,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/items:', error);
-
-    // Handle validation errors
-    if (error instanceof catalogService.ValidationError) {
-      return NextResponse.json(
-        { error: 'Validation failed', message: error.message },
-        { status: 400 }
-      );
-    }
-
-    // Handle duplicate item warnings
-    if (error instanceof catalogService.DuplicateItemError) {
-      return NextResponse.json(
-        {
-          error: 'Potential duplicate detected',
-          message: error.message,
-          duplicates: error.duplicates,
-        },
-        { status: 409 }
-      );
-    }
-
-    // Generic error
-    return NextResponse.json(
-      {
-        error: 'Failed to create item',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'POST /api/items',
+      userId: undefined, // session not available in catch block
+    });
   }
 }

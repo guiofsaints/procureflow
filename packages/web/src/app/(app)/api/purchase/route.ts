@@ -9,6 +9,7 @@ import { getServerSession } from 'next-auth';
 
 import { PurchaseRequestStatus } from '@/domain/entities';
 import * as checkoutService from '@/features/checkout';
+import { badRequest, handleApiError, unauthorized } from '@/lib/api';
 import { authConfig } from '@/lib/auth/config';
 
 /**
@@ -26,10 +27,7 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'You must be logged in' },
-        { status: 401 }
-      );
+      return unauthorized('You must be logged in');
     }
 
     const userId = session.user.id;
@@ -47,12 +45,9 @@ export async function GET(request: NextRequest) {
       if (validStatuses.includes(statusParam as PurchaseRequestStatus)) {
         filters.status = statusParam as PurchaseRequestStatus;
       } else {
-        return NextResponse.json(
-          {
-            error: 'Validation failed',
-            message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
-          },
-          { status: 400 }
+        return badRequest(
+          `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+          { route: 'GET /api/purchase', userId }
         );
       }
     }
@@ -69,14 +64,9 @@ export async function GET(request: NextRequest) {
       count: purchaseRequests.length,
     });
   } catch (error) {
-    console.error('Error in GET /api/purchase:', error);
-
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: 'Failed to fetch purchase requests',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'GET /api/purchase',
+      userId: undefined, // session not available in catch block
+    });
   }
 }
