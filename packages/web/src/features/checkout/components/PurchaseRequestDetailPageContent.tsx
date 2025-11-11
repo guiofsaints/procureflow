@@ -8,7 +8,7 @@
 
 import { ArrowLeft, CheckCircle2, Clock, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
-import { use, useEffect, useState } from 'react';
+import { use, useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -45,12 +45,7 @@ export function PurchaseRequestDetailPageContent({
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  useEffect(() => {
-    loadPurchaseRequest();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  const loadPurchaseRequest = async () => {
+  const loadPurchaseRequest = useCallback(async () => {
     setIsLoading(true);
     setNotFound(false);
 
@@ -77,7 +72,11 @@ export function PurchaseRequestDetailPageContent({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadPurchaseRequest();
+  }, [loadPurchaseRequest]);
 
   const getStatusBadge = (status: PurchaseRequestStatus) => {
     switch (status) {
@@ -230,8 +229,8 @@ export function PurchaseRequestDetailPageContent({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {purchaseRequest.items.map((item, index) => (
-                    <TableRow key={index}>
+                  {purchaseRequest.items.map((item) => (
+                    <TableRow key={item.itemId || item.itemName}>
                       <TableCell>
                         <div>
                           <p className='font-medium'>{item.itemName}</p>

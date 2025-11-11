@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type { AgentConversationSummary } from '../types';
 
@@ -25,7 +25,7 @@ export function useAgentConversations(): UseAgentConversationsReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -64,7 +64,7 @@ export function useAgentConversations(): UseAgentConversationsReturn {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchConversations();
@@ -82,7 +82,7 @@ export function useAgentConversations(): UseAgentConversationsReturn {
         handleConversationUpdate
       );
     };
-  }, []);
+  }, [fetchConversations]);
 
   return {
     conversations,

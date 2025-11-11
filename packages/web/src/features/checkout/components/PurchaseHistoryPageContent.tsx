@@ -8,7 +8,7 @@
 
 import { CheckCircle2, Clock, FileText, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +38,7 @@ export function PurchaseHistoryPageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<PurchaseRequestStatus | 'all'>('all');
 
-  const loadPurchaseRequests = async () => {
+  const loadPurchaseRequests = useCallback(async () => {
     setIsLoading(true);
 
     try {
@@ -62,12 +62,11 @@ export function PurchaseHistoryPageContent() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filter]);
 
   useEffect(() => {
     loadPurchaseRequests();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  }, [loadPurchaseRequests]);
 
   const getStatusBadge = (status: PurchaseRequestStatus) => {
     switch (status) {
