@@ -32,8 +32,8 @@ describe('cart.mapper', () => {
       // Assert
       expect(result).toEqual({
         itemId: itemId.toString(),
-        itemName: 'Office Chair',
-        itemPrice: 299.99,
+        name: 'Office Chair',
+        unitPrice: 299.99,
         quantity: 2,
         subtotal: 599.98,
         addedAt: mockItem.addedAt,
@@ -110,7 +110,7 @@ describe('cart.mapper', () => {
       expect(result.userId).toBe(userId.toString());
       expect(result.items).toHaveLength(1);
       expect(result.items[0].itemId).toBe(itemId.toString());
-      expect(result.items[0].itemName).toBe('Office Chair');
+      expect(result.items[0].name).toBe('Office Chair');
       expect(result.totalCost).toBe(599.98);
       expect(result.createdAt).toEqual(mockCartDoc.createdAt);
     });
@@ -207,9 +207,9 @@ describe('cart.mapper', () => {
 
       // Assert
       expect(result.items).toHaveLength(3);
-      expect(result.items[0].itemName).toBe('Item 1');
-      expect(result.items[1].itemName).toBe('Item 2');
-      expect(result.items[2].itemName).toBe('Item 3');
+      expect(result.items[0].name).toBe('Item 1');
+      expect(result.items[1].name).toBe('Item 2');
+      expect(result.items[2].name).toBe('Item 3');
     });
 
     it('should convert all ObjectIds to strings', () => {

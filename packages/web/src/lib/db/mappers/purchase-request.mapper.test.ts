@@ -130,7 +130,7 @@ describe('purchase-request.mapper', () => {
             subtotal: 59.98,
           },
         ],
-        totalCost: 59.98,
+        total: 59.98,
         notes: 'Urgent purchase request for new employee',
         source: 'ui',
         status: PurchaseRequestStatus.Submitted,
@@ -216,7 +216,7 @@ describe('purchase-request.mapper', () => {
       const result = mapPurchaseRequestToEntity(mockRequest);
 
       expect(result.items).toHaveLength(3);
-      expect(result.totalCost).toBe(99.83);
+      expect(result.total).toBe(99.83);
       expect(result.items[0].itemName).toBe('Notebook');
       expect(result.items[1].itemName).toBe('Pen Pack');
       expect(result.items[2].itemName).toBe('Stapler');
@@ -332,8 +332,8 @@ describe('purchase-request.mapper', () => {
 
       const result = mapPurchaseRequestToEntity(mockRequest);
 
-      expect(result.totalCost).toBe(100.0);
-      expect(result).not.toHaveProperty('total');
+      expect(result.total).toBe(100.0);
+      expect(result).not.toHaveProperty('totalCost');
     });
 
     it('should handle items with null itemId (deleted catalog items)', () => {
