@@ -99,7 +99,7 @@ export function CheckoutConfirmationDialog({
               <div className='flex items-center justify-between'>
                 <span className='font-semibold'>Total</span>
                 <span className='text-lg font-bold'>
-                  ${cart.total.toFixed(2)}
+                  ${cart.totalCost.toFixed(2)}
                 </span>
               </div>
             </div>

@@ -235,12 +235,6 @@ async function executeToolInternal(
         quantity: args.quantity,
       });
 
-      logger.info('Item added to cart', {
-        userId,
-        itemId: args.itemId,
-        quantity: args.quantity,
-      });
-
       return {
         success: true,
         cart: {
@@ -250,7 +244,7 @@ async function executeToolInternal(
             itemPrice: item.unitPrice,
             quantity: item.quantity,
           })),
-          total: result.totalCost,
+          totalCost: result.totalCost,
           itemCount: result.items.length,
         },
       };
@@ -277,7 +271,7 @@ async function executeToolInternal(
             itemPrice: item.unitPrice,
             quantity: item.quantity,
           })),
-          total: result.totalCost,
+          totalCost: result.totalCost,
           itemCount: result.items.length,
         },
       };
@@ -298,7 +292,7 @@ async function executeToolInternal(
       if (!cart || cart.items.length === 0) {
         return {
           items: [],
-          total: 0,
+          totalCost: 0,
           itemCount: 0,
           message: 'Your cart is empty',
         };
@@ -311,7 +305,7 @@ async function executeToolInternal(
           itemPrice: item.unitPrice,
           quantity: item.quantity,
         })),
-        total: cart.totalCost,
+        totalCost: cart.totalCost,
         itemCount: cart.items.length,
       };
     }

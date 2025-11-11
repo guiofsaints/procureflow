@@ -23,7 +23,7 @@ type CheckoutResult = {
     unitPrice: number;
     subtotal: number;
   }>;
-  total: number;
+  totalCost: number;
   status: string;
 };
 

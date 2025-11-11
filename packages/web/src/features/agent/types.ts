@@ -24,7 +24,7 @@ export interface AgentCartItem {
 
 export interface AgentCart {
   items: AgentCartItem[];
-  total: number;
+  totalCost: number;
   itemCount: number;
 }
 

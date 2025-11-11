@@ -71,7 +71,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
       toast.success(
         `Added ${quantity} ${quantity === 1 ? 'unit' : 'units'} of "${safeItem.name}" to cart`,
         {
-          description: `Cart total: $${data.cart.total.toFixed(2)}`,
+          description: `Cart total: $${data.cart.totalCost.toFixed(2)}`,
         }
       );
 

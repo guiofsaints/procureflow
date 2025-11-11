@@ -30,7 +30,7 @@ interface CheckoutResult {
     unitPrice: number;
     subtotal: number;
   }>;
-  total: number;
+  totalCost: number;
   status: string;
 }
 
@@ -241,7 +241,7 @@ export function AgentCheckoutButton({
                   <div className='flex items-center justify-between'>
                     <span className='font-semibold'>Total</span>
                     <span className='text-lg font-bold'>
-                      ${checkoutResult.total.toFixed(2)}
+                      ${checkoutResult.totalCost.toFixed(2)}
                     </span>
                   </div>
                 </div>
