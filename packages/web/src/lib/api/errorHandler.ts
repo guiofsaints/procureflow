@@ -189,13 +189,18 @@ export function handleApiError(
     message,
     route: context.route,
     userId: context.userId,
-    error: error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    } : error,
+    error:
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          }
+        : error,
     context: Object.fromEntries(
-      Object.entries(context).filter(([key]) => key !== 'route' && key !== 'userId')
+      Object.entries(context).filter(
+        ([key]) => key !== 'route' && key !== 'userId'
+      )
     ),
   });
 
@@ -215,7 +220,9 @@ export function handleApiError(
  * Create an unauthorized (401) response
  * Use this for authentication failures
  */
-export function unauthorized(message = 'Authentication required'): NextResponse<ApiErrorResponse> {
+export function unauthorized(
+  message = 'Authentication required'
+): NextResponse<ApiErrorResponse> {
   const correlationId = randomUUID();
 
   logger.warn('Unauthorized API access', {
@@ -238,7 +245,10 @@ export function unauthorized(message = 'Authentication required'): NextResponse<
  * Create a bad request (400) response for validation errors
  * Use this for input validation failures
  */
-export function badRequest(message: string, context?: ErrorContext): NextResponse<ApiErrorResponse> {
+export function badRequest(
+  message: string,
+  context?: ErrorContext
+): NextResponse<ApiErrorResponse> {
   const correlationId = randomUUID();
 
   logger.warn('Bad request', {

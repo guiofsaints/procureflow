@@ -11,7 +11,10 @@ export default function AgentLoading() {
 
         <div className='flex-1 space-y-4 p-4 border rounded-lg'>
           {[...Array(3)].map((_, i) => (
-            <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+            <div
+              key={i}
+              className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}
+            >
               <div className='max-w-[80%] space-y-2'>
                 <Skeleton className='h-4 w-20' />
                 <Skeleton className='h-24 w-full' />

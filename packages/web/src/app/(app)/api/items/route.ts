@@ -69,10 +69,13 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!body.name || !body.category || !body.description) {
-      return badRequest('Missing required fields: name, category, description', {
-        route: 'POST /api/items',
-        userId: session.user.id,
-      });
+      return badRequest(
+        'Missing required fields: name, category, description',
+        {
+          route: 'POST /api/items',
+          userId: session.user.id,
+        }
+      );
     }
 
     if (typeof body.estimatedPrice !== 'number' || body.estimatedPrice <= 0) {

@@ -283,48 +283,48 @@ export async function handleAgentMessage(
     // Map to DTO
     return {
       conversationId: conversation._id.toString(),
-      messages: conversation.messages.map(
-        (msg: AgentMessageDocument) => {
-          // Map MongoDB 'sender' to AgentMessageRole
-          // sender: 'agent' → role: 'agent'
-          // sender: 'user' → role: 'user'
-          // sender: 'system' → role: 'system'
-          const role =
-            msg.sender === 'agent'
-              ? AgentMessageRole.Agent
-              : msg.sender === 'user'
-                ? AgentMessageRole.User
-                : AgentMessageRole.System;
+      messages: conversation.messages.map((msg: AgentMessageDocument) => {
+        // Map MongoDB 'sender' to AgentMessageRole
+        // sender: 'agent' → role: 'agent'
+        // sender: 'user' → role: 'user'
+        // sender: 'system' → role: 'system'
+        const role =
+          msg.sender === 'agent'
+            ? AgentMessageRole.Agent
+            : msg.sender === 'user'
+              ? AgentMessageRole.User
+              : AgentMessageRole.System;
 
-          const message: AgentMessage = {
-            role,
-            content: msg.content,
-            timestamp: msg.createdAt,
-          };
+        const message: AgentMessage = {
+          role,
+          content: msg.content,
+          timestamp: msg.createdAt,
+        };
 
-          // Add items if present in metadata
-          if (msg.metadata?.items) {
-            message.items = msg.metadata.items as AgentItem[];
-          }
-
-          // Add cart if present in metadata
-          if (msg.metadata?.cart) {
-            message.cart = msg.metadata.cart as AgentCart;
-          }
-
-          // Add checkout confirmation if present in metadata
-          if (msg.metadata?.checkoutConfirmation) {
-            message.checkoutConfirmation = msg.metadata.checkoutConfirmation as AgentCheckoutConfirmation;
-          }
-
-          // Add purchase request if present in metadata
-          if (msg.metadata?.purchaseRequest) {
-            message.purchaseRequest = msg.metadata.purchaseRequest as AgentPurchaseRequest;
-          }
-
-          return message;
+        // Add items if present in metadata
+        if (msg.metadata?.items) {
+          message.items = msg.metadata.items as AgentItem[];
         }
-      ),
+
+        // Add cart if present in metadata
+        if (msg.metadata?.cart) {
+          message.cart = msg.metadata.cart as AgentCart;
+        }
+
+        // Add checkout confirmation if present in metadata
+        if (msg.metadata?.checkoutConfirmation) {
+          message.checkoutConfirmation = msg.metadata
+            .checkoutConfirmation as AgentCheckoutConfirmation;
+        }
+
+        // Add purchase request if present in metadata
+        if (msg.metadata?.purchaseRequest) {
+          message.purchaseRequest = msg.metadata
+            .purchaseRequest as AgentPurchaseRequest;
+        }
+
+        return message;
+      }),
     };
   } catch (error) {
     // Record error metrics
@@ -492,48 +492,48 @@ export async function getConversationById(
     return {
       conversationId: conv._id.toString(),
       title: conv.title || 'Untitled conversation',
-      messages: conv.messages.map(
-        (msg: AgentMessageDocument) => {
-          // Map MongoDB 'sender' to AgentMessageRole
-          // sender: 'agent' → role: 'agent'
-          // sender: 'user' → role: 'user'
-          // sender: 'system' → role: 'system'
-          const role =
-            msg.sender === 'agent'
-              ? AgentMessageRole.Agent
-              : msg.sender === 'user'
-                ? AgentMessageRole.User
-                : AgentMessageRole.System;
+      messages: conv.messages.map((msg: AgentMessageDocument) => {
+        // Map MongoDB 'sender' to AgentMessageRole
+        // sender: 'agent' → role: 'agent'
+        // sender: 'user' → role: 'user'
+        // sender: 'system' → role: 'system'
+        const role =
+          msg.sender === 'agent'
+            ? AgentMessageRole.Agent
+            : msg.sender === 'user'
+              ? AgentMessageRole.User
+              : AgentMessageRole.System;
 
-          const message: AgentMessage = {
-            role,
-            content: msg.content,
-            timestamp: msg.createdAt,
-          };
+        const message: AgentMessage = {
+          role,
+          content: msg.content,
+          timestamp: msg.createdAt,
+        };
 
-          // Add items if present in metadata
-          if (msg.metadata?.items) {
-            message.items = msg.metadata.items as AgentItem[];
-          }
-
-          // Add cart if present in metadata
-          if (msg.metadata?.cart) {
-            message.cart = msg.metadata.cart as AgentCart;
-          }
-
-          // Add checkout confirmation if present in metadata
-          if (msg.metadata?.checkoutConfirmation) {
-            message.checkoutConfirmation = msg.metadata.checkoutConfirmation as AgentCheckoutConfirmation;
-          }
-
-          // Add purchase request if present in metadata
-          if (msg.metadata?.purchaseRequest) {
-            message.purchaseRequest = msg.metadata.purchaseRequest as AgentPurchaseRequest;
-          }
-
-          return message;
+        // Add items if present in metadata
+        if (msg.metadata?.items) {
+          message.items = msg.metadata.items as AgentItem[];
         }
-      ),
+
+        // Add cart if present in metadata
+        if (msg.metadata?.cart) {
+          message.cart = msg.metadata.cart as AgentCart;
+        }
+
+        // Add checkout confirmation if present in metadata
+        if (msg.metadata?.checkoutConfirmation) {
+          message.checkoutConfirmation = msg.metadata
+            .checkoutConfirmation as AgentCheckoutConfirmation;
+        }
+
+        // Add purchase request if present in metadata
+        if (msg.metadata?.purchaseRequest) {
+          message.purchaseRequest = msg.metadata
+            .purchaseRequest as AgentPurchaseRequest;
+        }
+
+        return message;
+      }),
     };
   } catch (error) {
     logger.error('Error getting full conversation', { userId, id, error });
