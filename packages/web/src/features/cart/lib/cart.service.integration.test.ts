@@ -49,7 +49,7 @@ describe('cart.service - Integration Tests', () => {
 
   beforeAll(async () => {
     await setupTestDB();
-  });
+  }, 60000); // Increase timeout to 60s for MongoDB download
 
   afterEach(async () => {
     await clearTestDB();

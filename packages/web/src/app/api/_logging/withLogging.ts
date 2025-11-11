@@ -1,22 +1,22 @@
 /**
  * API Route Logging Wrapper for Node.js Runtime
- * 
+ *
  * Provides a higher-order function to wrap Next.js API route handlers with:
  * - Automatic request/response timing and logging
  * - Error capture with structured context
  * - Request correlation and context propagation
  * - Sampling support via LOG_SAMPLING environment variable
- * 
+ *
  * Usage:
  * ```typescript
  * import { withLogging } from '@/lib/logger/withLogging';
- * 
+ *
  * export const GET = withLogging(async (req: NextRequest) => {
  *   // Your handler logic here
  *   return NextResponse.json({ data: 'example' });
  * });
  * ```
- * 
+ *
  * Features:
  * - ECS-compliant HTTP request/response logs
  * - Performance monitoring with duration tracking
@@ -61,9 +61,13 @@ function shouldLogRequest(req: NextRequest): boolean {
   const context = getContext();
   if (context?.requestId) {
     // Simple hash of requestId to get consistent sampling decision
-    const hash = context.requestId.split('').reduce((acc: number, char: string) => 
-      (acc + char.charCodeAt(0)) % 100, 0);
-    return (hash / 100) < LOG_SAMPLING;
+    const hash = context.requestId
+      .split('')
+      .reduce(
+        (acc: number, char: string) => (acc + char.charCodeAt(0)) % 100,
+        0
+      );
+    return hash / 100 < LOG_SAMPLING;
   }
 
   // Fallback to random sampling
@@ -76,7 +80,7 @@ function shouldLogRequest(req: NextRequest): boolean {
 function extractRequestMetadata(req: NextRequest) {
   const url = new URL(req.url);
   const contentLength = req.headers.get('content-length');
-  
+
   return {
     http: {
       method: req.method,
@@ -90,7 +94,7 @@ function extractRequestMetadata(req: NextRequest) {
         headers: {
           'user-agent': req.headers.get('user-agent'),
           'content-type': req.headers.get('content-type'),
-          'accept': req.headers.get('accept'),
+          accept: req.headers.get('accept'),
         },
       },
     },
@@ -102,7 +106,7 @@ function extractRequestMetadata(req: NextRequest) {
  */
 function extractResponseMetadata(response: NextResponse, durationMs: number) {
   const contentLength = response.headers.get('content-length');
-  
+
   return {
     http: {
       status_code: response.status,
@@ -124,14 +128,19 @@ function extractResponseMetadata(response: NextResponse, durationMs: number) {
 /**
  * Create enhanced error context for logging
  */
-function createErrorContext(error: unknown, req: NextRequest, durationMs: number) {
+function createErrorContext(
+  error: unknown,
+  req: NextRequest,
+  durationMs: number
+) {
   const baseError = error instanceof Error ? error : new Error(String(error));
-  
+
   return {
     error: {
       type: baseError.name,
       message: baseError.message,
-      stack_trace: process.env.NODE_ENV === 'development' ? baseError.stack : undefined,
+      stack_trace:
+        process.env.NODE_ENV === 'development' ? baseError.stack : undefined,
     },
     event: {
       dataset: 'http' as const,
@@ -146,59 +155,67 @@ function createErrorContext(error: unknown, req: NextRequest, durationMs: number
  * Higher-order function to wrap API route handlers with logging
  */
 export function withLogging<T extends unknown[]>(
-  handler: (req: NextRequest, ...args: T) => Promise<NextResponse> | NextResponse
+  handler: (
+    req: NextRequest,
+    ...args: T
+  ) => Promise<NextResponse> | NextResponse
 ) {
-  return withRequestContext(async (req: NextRequest, ...args: T): Promise<NextResponse> => {
-    const startTime = Date.now();
-    const context = getContext();
-    const logger = createChildLogger({ 
-      feature: 'api',
-      procureflow: {
-        requestId: context?.requestId,
+  return withRequestContext(
+    async (req: NextRequest, ...args: T): Promise<NextResponse> => {
+      const startTime = Date.now();
+      const context = getContext();
+      const logger = createChildLogger({
         feature: 'api',
-      },
-    });
-
-    // Check sampling early
-    const shouldLog = shouldLogRequest(req);
-    
-    if (shouldLog) {
-      // Log request start
-      logger.info('HTTP request started', {
-        ...extractRequestMetadata(req),
-        event: {
-          dataset: 'http' as const,
-          action: 'request.started',
+        procureflow: {
+          requestId: context?.requestId,
+          feature: 'api',
         },
       });
-    }
 
-    try {
-      // Execute the handler
-      const response = await handler(req, ...args);
-      const durationMs = Date.now() - startTime;
+      // Check sampling early
+      const shouldLog = shouldLogRequest(req);
 
       if (shouldLog) {
-        // Log successful response
-        const logLevel = response.status >= 400 ? 'warn' : 'info';
-        const message = `HTTP request completed with status ${response.status}`;
-        
-        logger[logLevel](message, {
-          ...extractResponseMetadata(response, durationMs),
+        // Log request start
+        logger.info('HTTP request started', {
+          ...extractRequestMetadata(req),
+          event: {
+            dataset: 'http' as const,
+            action: 'request.started',
+          },
         });
       }
 
-      return response;
-    } catch (error) {
-      const durationMs = Date.now() - startTime;
+      try {
+        // Execute the handler
+        const response = await handler(req, ...args);
+        const durationMs = Date.now() - startTime;
 
-      // Always log errors regardless of sampling
-      logger.error('HTTP request failed', createErrorContext(error, req, durationMs));
+        if (shouldLog) {
+          // Log successful response
+          const logLevel = response.status >= 400 ? 'warn' : 'info';
+          const message = `HTTP request completed with status ${response.status}`;
 
-      // Re-throw the error for Next.js error handling
-      throw error;
+          logger[logLevel](message, {
+            ...extractResponseMetadata(response, durationMs),
+          });
+        }
+
+        return response;
+      } catch (error) {
+        const durationMs = Date.now() - startTime;
+
+        // Always log errors regardless of sampling
+        logger.error(
+          'HTTP request failed',
+          createErrorContext(error, req, durationMs)
+        );
+
+        // Re-throw the error for Next.js error handling
+        throw error;
+      }
     }
-  });
+  );
 }
 
 /**
@@ -206,63 +223,68 @@ export function withLogging<T extends unknown[]>(
  * Always logs regardless of sampling rate
  */
 export function withRequiredLogging<T extends unknown[]>(
-  handler: (req: NextRequest, ...args: T) => Promise<NextResponse> | NextResponse
+  handler: (
+    req: NextRequest,
+    ...args: T
+  ) => Promise<NextResponse> | NextResponse
 ) {
-  return withRequestContext(async (req: NextRequest, ...args: T): Promise<NextResponse> => {
-    const startTime = Date.now();
-    const context = getContext();
-    const logger = createChildLogger({ 
-      feature: 'api-critical',
-      procureflow: {
-        requestId: context?.requestId,
+  return withRequestContext(
+    async (req: NextRequest, ...args: T): Promise<NextResponse> => {
+      const startTime = Date.now();
+      const context = getContext();
+      const logger = createChildLogger({
         feature: 'api-critical',
-      },
-    });
-
-    // Always log critical operations
-    logger.info('Critical HTTP request started', {
-      ...extractRequestMetadata(req),
-      event: {
-        dataset: 'http' as const,
-        action: 'critical.request.started',
-      },
-    });
-
-    try {
-      const response = await handler(req, ...args);
-      const durationMs = Date.now() - startTime;
-
-      const logLevel = response.status >= 400 ? 'warn' : 'info';
-      logger[logLevel]('Critical HTTP request completed', {
-        ...extractResponseMetadata(response, durationMs),
-        event: {
-          dataset: 'http' as const,
-          action: 'critical.request.completed',
-          duration_ms: durationMs,
+        procureflow: {
+          requestId: context?.requestId,
+          feature: 'api-critical',
         },
       });
 
-      return response;
-    } catch (error) {
-      const durationMs = Date.now() - startTime;
-
-      logger.error('Critical HTTP request failed', {
-        ...createErrorContext(error, req, durationMs),
+      // Always log critical operations
+      logger.info('Critical HTTP request started', {
+        ...extractRequestMetadata(req),
         event: {
           dataset: 'http' as const,
-          action: 'critical.request.error',
-          duration_ms: durationMs,
+          action: 'critical.request.started',
         },
       });
 
-      throw error;
+      try {
+        const response = await handler(req, ...args);
+        const durationMs = Date.now() - startTime;
+
+        const logLevel = response.status >= 400 ? 'warn' : 'info';
+        logger[logLevel]('Critical HTTP request completed', {
+          ...extractResponseMetadata(response, durationMs),
+          event: {
+            dataset: 'http' as const,
+            action: 'critical.request.completed',
+            duration_ms: durationMs,
+          },
+        });
+
+        return response;
+      } catch (error) {
+        const durationMs = Date.now() - startTime;
+
+        logger.error('Critical HTTP request failed', {
+          ...createErrorContext(error, req, durationMs),
+          event: {
+            dataset: 'http' as const,
+            action: 'critical.request.error',
+            duration_ms: durationMs,
+          },
+        });
+
+        throw error;
+      }
     }
-  });
+  );
 }
 
 /**
  * Utility function to log domain events within API handlers
- * 
+ *
  * Usage:
  * ```typescript
  * await logDomainEvent('cart.item_added', {
@@ -273,7 +295,7 @@ export function withRequiredLogging<T extends unknown[]>(
  * ```
  */
 export async function logDomainEvent(
-  action: string, 
+  action: string,
   metadata: Record<string, unknown> = {}
 ): Promise<void> {
   const logger = createChildLogger({
@@ -322,11 +344,15 @@ export async function logExternalApiCall(
       error: {
         type: error.name,
         message: error.message,
-        stack_trace: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        stack_trace:
+          process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
     });
   } else {
     const logLevel = status && status >= 400 ? 'warn' : 'info';
-    logger[logLevel](`External API call completed: ${service}.${operation}`, logData);
+    logger[logLevel](
+      `External API call completed: ${service}.${operation}`,
+      logData
+    );
   }
 }

@@ -2,14 +2,14 @@
  * Logger Index
  *
  * Provides a unified logger interface for client and server environments.
- * 
+ *
  * For server-side code (Node.js runtime):
  * - Use serverLogger for Winston-based structured logging with ECS format
  * - Use createChildLogger() to include request context
- * 
+ *
  * For client-side code ('use client' components):
  * - Use clientLogger for safe console-based logging
- * 
+ *
  * Environment Variables:
  * - LOG_ENABLED: Enable/disable logging (default: true)
  * - LOG_FORMAT: 'ecs' | 'human' (default: 'ecs' in production)
@@ -29,7 +29,10 @@ if (typeof window === 'undefined') {
     getContextForLogging = context.getContextForLogging;
   } catch (error) {
     // Fallback if winston modules fail to load
-    console.warn('Failed to load Winston logger, using console fallback:', error);
+    console.warn(
+      'Failed to load Winston logger, using console fallback:',
+      error
+    );
   }
 }
 
@@ -90,25 +93,39 @@ export const clientLogger: Logger = new ClientLogger();
  * Server-side logger with Winston and request context
  * Automatically includes request context when available
  */
-export const serverLogger: Logger = typeof window === 'undefined' && winstonLogger 
-  ? {
-      info: (message: string, meta?: Record<string, unknown>) => 
-        winstonLogger!.info(message, { ...getContextForLogging?.(), ...meta }),
-      warn: (message: string, meta?: Record<string, unknown>) => 
-        winstonLogger!.warn(message, { ...getContextForLogging?.(), ...meta }),
-      error: (message: string, meta?: Record<string, unknown>) => 
-        winstonLogger!.error(message, { ...getContextForLogging?.(), ...meta }),
-      debug: (message: string, meta?: Record<string, unknown>) => 
-        winstonLogger!.debug(message, { ...getContextForLogging?.(), ...meta }),
-    }
-  : new ClientLogger(); // Fallback to client logger
+export const serverLogger: Logger =
+  typeof window === 'undefined' && winstonLogger
+    ? {
+        info: (message: string, meta?: Record<string, unknown>) =>
+          winstonLogger!.info(message, {
+            ...getContextForLogging?.(),
+            ...meta,
+          }),
+        warn: (message: string, meta?: Record<string, unknown>) =>
+          winstonLogger!.warn(message, {
+            ...getContextForLogging?.(),
+            ...meta,
+          }),
+        error: (message: string, meta?: Record<string, unknown>) =>
+          winstonLogger!.error(message, {
+            ...getContextForLogging?.(),
+            ...meta,
+          }),
+        debug: (message: string, meta?: Record<string, unknown>) =>
+          winstonLogger!.debug(message, {
+            ...getContextForLogging?.(),
+            ...meta,
+          }),
+      }
+    : new ClientLogger(); // Fallback to client logger
 
 /**
  * Universal logger that picks the appropriate implementation
  * - Server-side: Winston with request context
  * - Client-side: Console with timestamps
  */
-export const logger: Logger = typeof window === 'undefined' ? serverLogger : clientLogger;
+export const logger: Logger =
+  typeof window === 'undefined' ? serverLogger : clientLogger;
 
 /**
  * Create a child logger with additional context
@@ -119,19 +136,19 @@ export function createChildLogger(context: Record<string, unknown>): Logger {
     // Server-side: Create child logger with enhanced context
     const requestContext = getContextForLogging?.() || {};
     const combinedContext = { ...requestContext, ...context };
-    
+
     return {
-      info: (message: string, meta?: Record<string, unknown>) => 
+      info: (message: string, meta?: Record<string, unknown>) =>
         winstonLogger!.info(message, { ...combinedContext, ...meta }),
-      warn: (message: string, meta?: Record<string, unknown>) => 
+      warn: (message: string, meta?: Record<string, unknown>) =>
         winstonLogger!.warn(message, { ...combinedContext, ...meta }),
-      error: (message: string, meta?: Record<string, unknown>) => 
+      error: (message: string, meta?: Record<string, unknown>) =>
         winstonLogger!.error(message, { ...combinedContext, ...meta }),
-      debug: (message: string, meta?: Record<string, unknown>) => 
+      debug: (message: string, meta?: Record<string, unknown>) =>
         winstonLogger!.debug(message, { ...combinedContext, ...meta }),
     };
   }
-  
+
   // Client-side: Use enhanced client logger
   return {
     info: (message: string, meta?: Record<string, unknown>) =>

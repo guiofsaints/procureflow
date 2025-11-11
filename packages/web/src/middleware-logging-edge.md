@@ -1,7 +1,7 @@
 # Edge Runtime Logging Strategy for ProcureFlow
 
 **Date**: 2025-11-11  
-**Context**: Next.js Edge Runtime logging limitations and fallback strategies  
+**Context**: Next.js Edge Runtime logging limitations and fallback strategies
 
 ## Overview
 
@@ -28,7 +28,11 @@ When `LOG_ENABLED=true` in Edge runtime, use minimal JSON console logging:
 
 ```typescript
 // Edge runtime helper (lightweight)
-function edgeLog(level: string, message: string, metadata: Record<string, any> = {}) {
+function edgeLog(
+  level: string,
+  message: string,
+  metadata: Record<string, any> = {}
+) {
   if (process.env.LOG_ENABLED !== 'true') {
     return;
   }
@@ -50,7 +54,8 @@ export function middleware(request: NextRequest) {
   edgeLog('info', 'Middleware request started', {
     'http.method': request.method,
     'url.path': request.nextUrl.pathname,
-    'http.request.id': request.headers.get('x-request-id') || crypto.randomUUID(),
+    'http.request.id':
+      request.headers.get('x-request-id') || crypto.randomUUID(),
   });
 
   // ... middleware logic
@@ -100,7 +105,7 @@ const isEdgeRuntime = () => {
   return (
     typeof EdgeRuntime !== 'undefined' ||
     process.env.NEXT_RUNTIME === 'edge' ||
-    typeof window === 'undefined' && typeof global.EdgeRuntime !== 'undefined'
+    (typeof window === 'undefined' && typeof global.EdgeRuntime !== 'undefined')
   );
 };
 
@@ -113,16 +118,22 @@ export const logger = isEdgeRuntime() ? edgeLogger : nodeLogger;
 // middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-function edgeLog(level: string, message: string, meta: Record<string, any> = {}) {
+function edgeLog(
+  level: string,
+  message: string,
+  meta: Record<string, any> = {}
+) {
   if (process.env.LOG_ENABLED === 'true') {
-    console.log(JSON.stringify({
-      '@timestamp': new Date().toISOString(),
-      'log.level': level,
-      message,
-      'service.name': 'procureflow-web',
-      'labels.runtime': 'edge',
-      ...meta,
-    }));
+    console.log(
+      JSON.stringify({
+        '@timestamp': new Date().toISOString(),
+        'log.level': level,
+        message,
+        'service.name': 'procureflow-web',
+        'labels.runtime': 'edge',
+        ...meta,
+      })
+    );
   }
 }
 
@@ -146,9 +157,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
 ```
 
@@ -171,6 +180,7 @@ Edge functions have strict size limits:
 ## Migration Strategy
 
 ### Current State
+
 - All logging uses Node.js runtime (Winston)
 - No Edge runtime logging in place
 
@@ -183,11 +193,13 @@ Edge functions have strict size limits:
 ### When to Choose Edge vs Node
 
 **Use Edge Runtime for**:
+
 - ✅ Lightweight middleware (auth checks, redirects)
 - ✅ Simple API transformations
 - ✅ Geographic edge distribution needs
 
 **Use Node.js Runtime for**:
+
 - ✅ Complex business logic
 - ✅ Database operations
 - ✅ File system access
@@ -197,12 +209,14 @@ Edge functions have strict size limits:
 ## Implementation Checklist
 
 ### Immediate Actions (if needed)
+
 - [ ] Detect Edge runtime in logger selection
 - [ ] Implement minimal ECS JSON console fallback
 - [ ] Add simple string-based redaction
 - [ ] Test middleware logging with Edge runtime
 
 ### Future Considerations
+
 - [ ] Evaluate edge deployment benefits for ProcureFlow
 - [ ] Consider log shipping from Edge to centralized system
 - [ ] Monitor bundle size impact of logging code
@@ -223,12 +237,14 @@ curl -H "x-request-id: test-123" http://localhost:3000/api/health
 ## Limitations and Trade-offs
 
 ### Edge Runtime Limitations
+
 - ❌ No request context propagation (AsyncLocalStorage)
 - ❌ No Winston transports (file, Loki, etc.)
 - ❌ Limited error stack trace capture
 - ❌ Reduced metadata richness
 
 ### Acceptable Trade-offs
+
 - ✅ Faster cold starts
 - ✅ Better geographic distribution
 - ✅ Lower resource usage
@@ -239,7 +255,7 @@ curl -H "x-request-id: test-123" http://localhost:3000/api/health
 For ProcureFlow's current needs, **Node.js runtime remains the optimal choice** for API routes requiring rich observability. Edge runtime should be considered only for:
 
 1. Performance-critical middleware
-2. Simple request/response transformations  
+2. Simple request/response transformations
 3. Geographic distribution requirements
 
 The fallback logging strategy provides a safety net if Edge runtime becomes necessary, while maintaining basic observability through minimal ECS-compliant JSON logs via console.

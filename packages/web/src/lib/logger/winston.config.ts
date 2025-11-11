@@ -18,17 +18,21 @@ import winston from 'winston';
 // Package version from package.json
 let packageVersion = '0.1.0';
 try {
-  packageVersion = require('../../package.json').version;
+  packageVersion = require('../../../package.json').version;
 } catch {
   // Fallback version if package.json is not accessible
 }
 
 // Environment configuration
 const LOG_ENABLED = process.env.LOG_ENABLED !== 'false';
-const LOG_FORMAT = process.env.LOG_FORMAT || (process.env.NODE_ENV === 'production' ? 'ecs' : 'human');
+const LOG_FORMAT =
+  process.env.LOG_FORMAT ||
+  (process.env.NODE_ENV === 'production' ? 'ecs' : 'human');
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
-const LOG_SAMPLING = parseFloat(process.env.LOG_SAMPLING || '1.0');
-const CUSTOM_REDACT_KEYS = process.env.LOG_REDACT_KEYS ? process.env.LOG_REDACT_KEYS.split(',') : [];
+const _LOG_SAMPLING = parseFloat(process.env.LOG_SAMPLING || '1.0'); // Reserved for future sampling implementation
+const CUSTOM_REDACT_KEYS = process.env.LOG_REDACT_KEYS
+  ? process.env.LOG_REDACT_KEYS.split(',')
+  : [];
 
 // Default PII patterns to redact from logs
 const DEFAULT_PII_PATTERNS = {
@@ -41,9 +45,19 @@ const DEFAULT_PII_PATTERNS = {
 
 // Default redaction keys (can be extended via LOG_REDACT_KEYS)
 const DEFAULT_REDACT_KEYS = [
-  'password', 'token', 'authorization', 'secret', 'cookie',
-  'apiKey', 'api_key', 'access_token', 'refresh_token', 
-  'sessionId', 'session_id', 'jwt', 'bearer'
+  'password',
+  'token',
+  'authorization',
+  'secret',
+  'cookie',
+  'apiKey',
+  'api_key',
+  'access_token',
+  'refresh_token',
+  'sessionId',
+  'session_id',
+  'jwt',
+  'bearer',
 ];
 
 // Combine default and custom redaction keys
@@ -58,13 +72,13 @@ function redactSensitiveKeys(obj: unknown, maxDepth = 10): unknown {
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => redactSensitiveKeys(item, maxDepth - 1));
+    return obj.map((item) => redactSensitiveKeys(item, maxDepth - 1));
   }
 
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
     const lowerKey = key.toLowerCase();
-    const shouldRedact = ALL_REDACT_KEYS.some(redactKey => 
+    const shouldRedact = ALL_REDACT_KEYS.some((redactKey) =>
       lowerKey.includes(redactKey.toLowerCase())
     );
 
@@ -112,23 +126,23 @@ const ecsFormat = winston.format((info) => {
     '@timestamp': info.timestamp,
     'log.level': info.level,
     message: info.message,
-    
+
     // Service context
     service: {
       name: 'procureflow-web',
       version: packageVersion,
     },
-    
+
     // Process context
     process: {
       pid: process.pid,
     },
-    
-    // Host context 
+
+    // Host context
     host: {
       hostname: os.hostname(),
     },
-    
+
     // Environment context
     labels: {
       env: process.env.NODE_ENV || 'development',
@@ -141,13 +155,22 @@ const ecsFormat = winston.format((info) => {
       error: {
         type: info.name || 'Error',
         message: info.message,
-        stack_trace: process.env.NODE_ENV === 'development' ? info.stack : undefined,
-      }
+        stack_trace:
+          process.env.NODE_ENV === 'development' ? info.stack : undefined,
+      },
     });
   }
 
   // Merge any additional metadata
-  const { level: _level, message: _message, timestamp: _timestamp, stack: _stack, splat: _splat, name: _name, ...metadata } = info;
+  const {
+    level: _level,
+    message: _message,
+    timestamp: _timestamp,
+    stack: _stack,
+    splat: _splat,
+    name: _name,
+    ...metadata
+  } = info;
   if (Object.keys(metadata).length > 0) {
     Object.assign(ecsLog, metadata);
   }
@@ -199,15 +222,16 @@ const createLogger = () => {
   const transports: winston.transport[] = [];
 
   // Console transport (always enabled when logging is on)
-  const consoleFormat = LOG_FORMAT === 'ecs' 
-    ? winston.format.combine(
-        winston.format.timestamp(),
-        redactPII(),
-        winston.format.errors({ stack: true }),
-        ecsFormat(),
-        winston.format.printf(info => JSON.stringify(info))
-      )
-    : humanFormat;
+  const consoleFormat =
+    LOG_FORMAT === 'ecs'
+      ? winston.format.combine(
+          winston.format.timestamp(),
+          redactPII(),
+          winston.format.errors({ stack: true }),
+          ecsFormat(),
+          winston.format.printf((info) => JSON.stringify(info))
+        )
+      : humanFormat;
 
   transports.push(
     new winston.transports.Console({

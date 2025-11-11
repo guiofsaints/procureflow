@@ -55,15 +55,15 @@ cartLogger.error('Cart operation failed', { userId, error: err.message });
 import { logDomainEvent } from '@/app/api/_logging/withLogging';
 
 // Log important business events
-await logDomainEvent('cart.item_added', { 
-  itemId: 'item-123', 
+await logDomainEvent('cart.item_added', {
+  itemId: 'item-123',
   userId: 'user-456',
-  quantity: 2 
+  quantity: 2,
 });
 
 await logDomainEvent('purchase.completed', {
   purchaseId: 'purchase-789',
-  totalAmount: 99.99
+  totalAmount: 99.99,
 });
 ```
 
@@ -76,7 +76,7 @@ const startTime = Date.now();
 try {
   const response = await openai.chat.completions.create(params);
   await logExternalApiCall(
-    'openai', 
+    'openai',
     'chat.completion',
     Date.now() - startTime,
     response.status
@@ -84,7 +84,7 @@ try {
 } catch (error) {
   await logExternalApiCall(
     'openai',
-    'chat.completion', 
+    'chat.completion',
     Date.now() - startTime,
     undefined,
     error
@@ -118,6 +118,7 @@ LOG_REDACT_KEYS=password,token,authorization,secret,cookie
 ## ✅ Migration Checklist
 
 ### Before (❌ Don't do this)
+
 ```typescript
 console.log('User logged in');
 console.error('Failed to process:', error);
@@ -125,13 +126,14 @@ console.warn('Deprecated feature used');
 ```
 
 ### After (✅ Do this)
+
 ```typescript
 import { logger } from '@/lib/logger';
 
 logger.info('User logged in', { userId, timestamp });
-logger.error('Failed to process request', { 
+logger.error('Failed to process request', {
   error: { type: error.name, message: error.message },
-  context: { userId, action: 'process_payment' }
+  context: { userId, action: 'process_payment' },
 });
 logger.warn('Deprecated feature used', { feature: 'old-api', userId });
 ```
@@ -141,6 +143,7 @@ logger.warn('Deprecated feature used', { feature: 'old-api', userId });
 ## 📋 Common Patterns
 
 ### Service Layer Error Handling
+
 ```typescript
 // cart.service.ts
 import { logger } from '@/lib/logger';
@@ -150,14 +153,14 @@ export async function addItemToCart(input: AddItemInput) {
     // Business logic
     logger.info('Item added to cart', {
       event: { dataset: 'domain', action: 'cart.item_added' },
-      cart: { userId: input.userId, itemId: input.itemId }
+      cart: { userId: input.userId, itemId: input.itemId },
     });
     return result;
   } catch (error) {
     logger.error('Failed to add item to cart', {
       event: { dataset: 'domain', action: 'cart.add_item.error' },
       cart: { userId: input.userId, itemId: input.itemId },
-      error: { type: error.name, message: error.message }
+      error: { type: error.name, message: error.message },
     });
     throw error;
   }
@@ -165,6 +168,7 @@ export async function addItemToCart(input: AddItemInput) {
 ```
 
 ### API Route with Critical Logging
+
 ```typescript
 import { withRequiredLogging } from '@/app/api/_logging/withLogging';
 
@@ -175,6 +179,7 @@ export const POST = withRequiredLogging(async (req: NextRequest) => {
 ```
 
 ### Client Component Error Boundary
+
 ```typescript
 import { clientLogger } from '@/lib/logger';
 
@@ -183,7 +188,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
     error: { type: error.name, message: error.message },
     component: 'CartPageContent'
   });
-  
+
   return <div>Something went wrong</div>;
 }
 ```
@@ -193,6 +198,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
 ## 🔍 Log Structure (ECS Format)
 
 Every log includes:
+
 ```json
 {
   "@timestamp": "2025-11-11T12:34:56.789Z",
@@ -216,27 +222,31 @@ Every log includes:
 
 ## 🚫 What NOT to Do
 
-❌ **Don't use console.***
+❌ **Don't use console.\***
+
 ```typescript
-console.log('Debug info');        // Use logger.debug()
-console.error('Error:', err);     // Use logger.error()
-console.warn('Warning');          // Use logger.warn()
+console.log('Debug info'); // Use logger.debug()
+console.error('Error:', err); // Use logger.error()
+console.warn('Warning'); // Use logger.warn()
 ```
 
 ❌ **Don't log PII directly**
+
 ```typescript
 logger.info('User email', { email }); // Email will be redacted
 // User IDs are automatically hashed in request context
 ```
 
 ❌ **Don't log sensitive data**
+
 ```typescript
-logger.info('Payment', { 
-  creditCard: '1234-5678-9012-3456' // Automatically redacted
+logger.info('Payment', {
+  creditCard: '1234-5678-9012-3456', // Automatically redacted
 });
 ```
 
 ❌ **Don't create custom log formats**
+
 ```typescript
 const customLog = `[${new Date()}] ERROR: ${msg}`; // Use logger
 ```
@@ -246,6 +256,7 @@ const customLog = `[${new Date()}] ERROR: ${msg}`; // Use logger
 ## 🎯 Performance Tips
 
 ### Use Sampling for High-Volume Routes
+
 ```typescript
 // Health checks don't need 100% logging
 // Automatically sampled based on LOG_SAMPLING
@@ -255,17 +266,19 @@ export const GET = withLogging(async (req) => {
 ```
 
 ### Lazy Evaluation for Debug Logs
+
 ```typescript
 // Only evaluated if LOG_LEVEL=debug
 logger.debug('Expensive operation', () => ({
-  data: computeExpensiveData()  // Only runs if debug enabled
+  data: computeExpensiveData(), // Only runs if debug enabled
 }));
 ```
 
 ### Avoid Logging in Tight Loops
+
 ```typescript
 // ❌ Don't do this
-items.forEach(item => {
+items.forEach((item) => {
   logger.debug('Processing item', { item }); // Too many logs
 });
 
@@ -287,21 +300,25 @@ logger.debug('Processing batch', { itemCount: items.length });
 ## 🆘 Troubleshooting
 
 **Logs not appearing?**
+
 - Check `LOG_ENABLED=true` in `.env.local`
 - Verify no syntax errors in logger imports
 - Check console for Winston initialization errors
 
 **Invalid JSON in logs?**
+
 - Ensure LOG_FORMAT=ecs
 - Check for circular references in metadata
 - Verify Winston formatter is working
 
 **Missing request context?**
+
 - Ensure route wrapped with `withLogging` or `withRequestContext`
 - Check running in Node runtime (not Edge)
 - Verify AsyncLocalStorage available
 
 **Performance issues?**
+
 - Reduce LOG_SAMPLING (e.g., 0.05 for 5%)
 - Increase LOG_LEVEL to info/warn in production
 - Check for excessive metadata in logs

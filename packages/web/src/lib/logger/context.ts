@@ -1,14 +1,14 @@
 /**
  * Request Context Module
- * 
+ *
  * Provides AsyncLocalStorage-based context for request correlation in Node.js runtime.
  * Tracks requestId, spanId, and userId (hashed) throughout the request lifecycle.
- * 
+ *
  * Usage:
  * - Wrap route handlers with withRequestContext()
  * - Call getContext() within services to retrieve current request context
  * - Use logger.child(getContext()) to enrich logs with request information
- * 
+ *
  * Note: Only works in Node.js runtime, not Edge runtime.
  */
 
@@ -21,14 +21,14 @@ import type { NextRequest, NextResponse } from 'next/server';
  * Request context interface
  */
 export interface RequestContext {
-  requestId: string;           // UUID for this request
-  spanId?: string;             // Optional span ID for tracing
-  userId?: string;             // Hashed user ID for privacy
-  sessionId?: string;          // Session correlation ID  
-  userAgent?: string;          // Client user agent
-  method?: string;             // HTTP method
-  path?: string;               // Request path
-  startTime?: number;          // Request start timestamp
+  requestId: string; // UUID for this request
+  spanId?: string; // Optional span ID for tracing
+  userId?: string; // Hashed user ID for privacy
+  sessionId?: string; // Session correlation ID
+  userAgent?: string; // Client user agent
+  method?: string; // HTTP method
+  path?: string; // Request path
+  startTime?: number; // Request start timestamp
 }
 
 // AsyncLocalStorage instance for request context
@@ -46,17 +46,21 @@ function hashUserId(userId: string): string {
  * Extract request ID from headers or generate a new one
  */
 function getOrGenerateRequestId(req: NextRequest): string {
-  const headerRequestId = req.headers.get('x-request-id') || req.headers.get('x-correlation-id');
+  const headerRequestId =
+    req.headers.get('x-request-id') || req.headers.get('x-correlation-id');
   return headerRequestId || randomUUID();
 }
 
 /**
  * Create initial request context from Next.js request
  */
-function createRequestContext(req: NextRequest, userId?: string): RequestContext {
+function createRequestContext(
+  req: NextRequest,
+  userId?: string
+): RequestContext {
   const requestId = getOrGenerateRequestId(req);
   const url = new URL(req.url);
-  
+
   const context: RequestContext = {
     requestId,
     spanId: randomUUID(), // Generate span ID for this operation
@@ -114,7 +118,7 @@ export function runInContext<T>(context: RequestContext, fn: () => T): T {
 
 /**
  * Higher-order function to wrap API route handlers with request context
- * 
+ *
  * Usage:
  * export const GET = withRequestContext(async (req: NextRequest) => {
  *   const logger = createChildLogger(getContextForLogging());
@@ -123,12 +127,15 @@ export function runInContext<T>(context: RequestContext, fn: () => T): T {
  * });
  */
 export function withRequestContext<T extends unknown[]>(
-  handler: (req: NextRequest, ...args: T) => Promise<NextResponse> | NextResponse
+  handler: (
+    req: NextRequest,
+    ...args: T
+  ) => Promise<NextResponse> | NextResponse
 ) {
   return async (req: NextRequest, ...args: T): Promise<NextResponse> => {
     // Get user ID from session if available (implement based on auth system)
     let userId: string | undefined;
-    
+
     // For ProcureFlow, you might extract userId from JWT or session
     // This is a placeholder - adapt to your auth system
     try {
@@ -143,7 +150,7 @@ export function withRequestContext<T extends unknown[]>(
     }
 
     const context = createRequestContext(req, userId);
-    
+
     return asyncLocalStorage.run(context, () => {
       return handler(req, ...args);
     });
