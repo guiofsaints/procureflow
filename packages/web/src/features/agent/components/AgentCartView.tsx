@@ -202,7 +202,7 @@ export function AgentCartView({ cart, onSendMessage }: AgentCartViewProps) {
         <div className='flex items-center justify-between'>
           <span className='font-semibold'>Total:</span>
           <span className='text-lg font-bold'>
-            ${cart.totalCost.toFixed(2)}
+            ${cart.total.toFixed(2)}
           </span>
         </div>
 

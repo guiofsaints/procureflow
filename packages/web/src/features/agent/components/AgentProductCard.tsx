@@ -36,7 +36,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
   // Validate item data and provide defaults
   const safeItem = {
     ...item,
-    price: typeof item.estimatedPrice === 'number' ? item.estimatedPrice : 0,
+    estimatedPrice: typeof item.estimatedPrice === 'number' ? item.estimatedPrice : 0,
     availability: item.availability || 'in_stock',
     description: item.description || 'No description available',
   };
@@ -71,7 +71,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
       toast.success(
         `Added ${quantity} ${quantity === 1 ? 'unit' : 'units'} of "${safeItem.name}" to cart`,
         {
-          description: `Cart total: $${data.cart.totalCost.toFixed(2)}`,
+          description: `Cart total: $${data.cart.total.toFixed(2)}`,
         }
       );
 
@@ -123,7 +123,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
           </div>
           <div className='flex flex-col items-end gap-1'>
             <div className='text-xl font-bold'>
-              ${safeItem.price.toFixed(2)}
+              ${safeItem.estimatedPrice.toFixed(2)}
             </div>
             {getAvailabilityBadge()}
           </div>
@@ -170,7 +170,7 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
           <div className='flex w-full items-center justify-between text-sm'>
             <span className='text-muted-foreground'>Total:</span>
             <span className='font-bold text-primary'>
-              ${(safeItem.price * quantity).toFixed(2)}
+              ${(safeItem.estimatedPrice * quantity).toFixed(2)}
             </span>
           </div>
         )}

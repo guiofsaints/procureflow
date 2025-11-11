@@ -13,7 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 import { AgentCheckoutButton } from './AgentCheckoutButton';
 
-interface CheckoutResult {
+// Re-export the CheckoutResult type from AgentCheckoutButton
+type CheckoutResult = {
   id: string;
   items: Array<{
     itemName: string;
@@ -22,9 +23,9 @@ interface CheckoutResult {
     unitPrice: number;
     subtotal: number;
   }>;
-  totalCost: number;
+  total: number;
   status: string;
-}
+};
 
 interface AgentCheckoutPromptProps {
   message: string;

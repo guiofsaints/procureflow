@@ -16,12 +16,11 @@ interface AgentMessageWithCheckoutProps {
     metadata?: {
       cart?: {
         items: Array<{
-          itemId: string;
           itemName: string;
           quantity: number;
           itemPrice: number;
         }>;
-        totalCost: number;
+        total: number;
       };
       suggestCheckout?: boolean;
     };
@@ -75,7 +74,7 @@ export function AgentMessageWithCheckoutExample({
         <AgentCheckoutPrompt
           message='Your items are ready. Submit a purchase request?'
           cartItemCount={message.metadata.cart.items.length}
-          cartTotal={message.metadata.cart.totalCost}
+          cartTotal={message.metadata.cart.total}
           onCheckout={handleCheckout}
         />
       )}
