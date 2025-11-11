@@ -29,6 +29,9 @@ export function AgentPurchaseRequestCard({
       ? `${requestId.slice(0, 12)}...`
       : requestId;
 
+  // Validate items array to prevent undefined errors
+  const items = Array.isArray(purchaseRequest.items) ? purchaseRequest.items : [];
+
   return (
     <Card className='border-green-200 dark:border-green-900 py-6 '>
       <CardHeader className='pb-3'>
@@ -57,7 +60,7 @@ export function AgentPurchaseRequestCard({
             <div className='flex justify-between'>
               <span className='text-muted-foreground'>Total Items:</span>
               <span className='font-medium'>
-                {purchaseRequest.items.length} type(s)
+                {items.length} type(s)
               </span>
             </div>
             <div className='flex justify-between border-t pt-2 mt-2'>
@@ -78,7 +81,7 @@ export function AgentPurchaseRequestCard({
             </div>
           </div>
           <div className='divide-y max-h-[200px] overflow-y-auto'>
-            {purchaseRequest.items.slice(0, 3).map((item, idx) => (
+            {items.slice(0, 3).map((item, idx) => (
               <div
                 key={idx}
                 className='flex items-center justify-between px-3 py-2'
@@ -96,9 +99,9 @@ export function AgentPurchaseRequestCard({
                 </div>
               </div>
             ))}
-            {purchaseRequest.items.length > 3 && (
+            {items.length > 3 && (
               <div className='px-3 py-2 text-center text-xs text-muted-foreground'>
-                + {purchaseRequest.items.length - 3} more item(s)
+                + {items.length - 3} more item(s)
               </div>
             )}
           </div>

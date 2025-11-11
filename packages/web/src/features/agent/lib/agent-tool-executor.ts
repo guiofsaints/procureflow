@@ -333,8 +333,14 @@ async function executeToolInternal(
         success: true,
         purchaseRequest: {
           id: purchaseRequest.id,
+          items: purchaseRequest.items.map((item) => ({
+            itemName: item.itemName,
+            itemCategory: item.itemCategory,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            subtotal: item.subtotal,
+          })),
           totalCost: purchaseRequest.totalCost,
-          itemCount: purchaseRequest.items.length,
           status: purchaseRequest.status,
           createdAt: purchaseRequest.createdAt,
         },
