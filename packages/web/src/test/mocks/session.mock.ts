@@ -26,9 +26,7 @@ export const mockUnauthenticatedSession: Session | null = null;
 /**
  * Create custom session with overrides
  */
-export const createMockSession = (
-  overrides?: Partial<Session>
-): Session => ({
+export const createMockSession = (overrides?: Partial<Session>): Session => ({
   ...mockAuthenticatedSession,
   ...overrides,
 });
