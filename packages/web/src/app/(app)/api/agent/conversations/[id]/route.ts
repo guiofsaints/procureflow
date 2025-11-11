@@ -3,32 +3,24 @@
  * GET /api/agent/conversations/[id] - Get specific conversation with full messages
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 
 import { getConversationById } from '@/features/agent/lib/agent.service';
-import { authConfig } from '@/lib/auth/config';
+import { badRequest, handleApiError, withAuth } from '@/lib/api';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth(async (_request, { userId, params }) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
+    const id = params?.id;
 
-    if (!session || !session.user?.email) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (!id) {
+      return badRequest('Conversation ID is required', {
+        route: 'GET /api/agent/conversations/[id]',
+        userId,
+      });
     }
 
-    // Get conversation ID from params
-    const { id } = await params;
-
     // Fetch complete conversation with messages
-    const conversation = await getConversationById(session.user.id, id);
+    const conversation = await getConversationById(userId, id);
 
     if (!conversation) {
       return NextResponse.json(
@@ -42,10 +34,9 @@ export async function GET(
       conversation,
     });
   } catch (error) {
-    console.error('GET /api/agent/conversations/[id] error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch conversation' },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'GET /api/agent/conversations/[id]',
+      userId,
+    });
   }
-}
+});

@@ -6,10 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 
 import * as catalogService from '@/features/catalog';
-import { authConfig } from '@/lib/auth/config';
+import { badRequest, handleApiError, withAuth } from '@/lib/api';
 
 interface RouteContext {
   params: Promise<{
@@ -53,8 +52,6 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(item);
   } catch (error) {
-    console.error('Error in GET /api/items/[id]:', error);
-
     // Handle invalid ObjectId error from MongoDB
     if (error instanceof Error && error.message.includes('ObjectId')) {
       return NextResponse.json(
@@ -66,14 +63,9 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Generic error
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch item',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'GET /api/items/[id]',
+    });
   }
 }
 
@@ -83,32 +75,16 @@ export async function GET(_request: NextRequest, context: RouteContext) {
  * Update an existing catalog item
  * Requires authentication
  */
-export async function PUT(request: NextRequest, context: RouteContext) {
+export const PUT = withAuth(async (request, { userId, params }) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-
-    if (!session || !session.user?.email) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'You must be logged in to update items',
-        },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await context.params;
+    const id = params?.id;
 
     // Validate ID format
     if (!id || id.trim().length === 0) {
-      return NextResponse.json(
-        {
-          error: 'Invalid ID',
-          message: 'Item ID is required',
-        },
-        { status: 400 }
-      );
+      return badRequest('Item ID is required', {
+        route: 'PUT /api/items/[id]',
+        userId,
+      });
     }
 
     // Parse request body
@@ -119,37 +95,17 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(item);
   } catch (error) {
-    console.error('Error in PUT /api/items/[id]:', error);
-
-    // Handle validation errors
-    if (error instanceof Error && error.name === 'ValidationError') {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          message: error.message,
-        },
-        { status: 400 }
-      );
-    }
-
     // Handle invalid ObjectId error from MongoDB
     if (error instanceof Error && error.message.includes('ObjectId')) {
-      return NextResponse.json(
-        {
-          error: 'Invalid ID',
-          message: 'Invalid item ID format',
-        },
-        { status: 400 }
-      );
+      return badRequest('Invalid item ID format', {
+        route: 'PUT /api/items/[id]',
+        userId,
+      });
     }
 
-    // Generic error
-    return NextResponse.json(
-      {
-        error: 'Failed to update item',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'PUT /api/items/[id]',
+      userId,
+    });
   }
-}
+});

@@ -4,11 +4,10 @@
  * GET /api/purchase/[id] - Get a specific purchase request
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 
 import * as checkoutService from '@/features/checkout';
-import { authConfig } from '@/lib/auth/config';
+import { badRequest, handleApiError, withAuth } from '@/lib/api';
 
 /**
  * GET /api/purchase/[id]
@@ -16,33 +15,23 @@ import { authConfig } from '@/lib/auth/config';
  * Get details of a specific purchase request
  * Only returns the request if it belongs to the authenticated user
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth(async (_request, { userId, params }) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
+    const id = params?.id;
 
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'You must be logged in' },
-        { status: 401 }
-      );
+    if (!id) {
+      return badRequest('Purchase request ID is required', {
+        route: 'GET /api/purchase/[id]',
+        userId,
+      });
     }
 
-    const userId = session.user.id;
-    const { id } = await params;
-
     // Validate ID format (MongoDB ObjectId)
-    if (!id || !/^[0-9a-fA-F]{24}$/.test(id)) {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          message: 'Invalid purchase request ID',
-        },
-        { status: 400 }
-      );
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+      return badRequest('Invalid purchase request ID', {
+        route: 'GET /api/purchase/[id]',
+        userId,
+      });
     }
 
     // Fetch purchase request
@@ -66,14 +55,9 @@ export async function GET(
       data: purchaseRequest,
     });
   } catch (error) {
-    console.error('Error in GET /api/purchase/[id]:', error);
-
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: 'Failed to fetch purchase request',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'GET /api/purchase/[id]',
+      userId,
+    });
   }
-}
+});

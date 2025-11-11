@@ -4,13 +4,11 @@
  * GET /api/purchase - List purchase requests for authenticated user
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 
 import { PurchaseRequestStatus } from '@/domain/entities';
 import * as checkoutService from '@/features/checkout';
-import { badRequest, handleApiError, unauthorized } from '@/lib/api';
-import { authConfig } from '@/lib/auth/config';
+import { badRequest, handleApiError, withAuth } from '@/lib/api';
 
 /**
  * GET /api/purchase
@@ -21,17 +19,8 @@ import { authConfig } from '@/lib/auth/config';
  * Query Parameters:
  * - status: PurchaseRequestStatus (optional)
  */
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request, { userId }) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-
-    if (!session || !session.user?.id) {
-      return unauthorized('You must be logged in');
-    }
-
-    const userId = session.user.id;
-
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
     const statusParam = searchParams.get('status');
@@ -66,7 +55,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return handleApiError(error, {
       route: 'GET /api/purchase',
-      userId: undefined, // session not available in catch block
+      userId,
     });
   }
-}
+});

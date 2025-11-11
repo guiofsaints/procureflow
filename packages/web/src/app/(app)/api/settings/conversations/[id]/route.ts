@@ -3,41 +3,29 @@
  * Deletes a single conversation by ID
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 
 import { deleteConversation } from '@/features/settings';
-import { authConfig } from '@/lib/auth/config';
+import { badRequest, handleApiError, withAuth } from '@/lib/api';
 
-interface RouteParams {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export const DELETE = withAuth(async (_request, { userId, params }) => {
   try {
-    const session = await getServerSession(authConfig);
+    const id = params?.id;
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!id) {
+      return badRequest('Conversation ID is required', {
+        route: 'DELETE /api/settings/conversations/[id]',
+        userId,
+      });
     }
 
-    const { id } = await params;
-
-    await deleteConversation(session.user.id, id);
+    await deleteConversation(userId, id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('DELETE /api/settings/conversations/[id] error:', error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to delete conversation',
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'DELETE /api/settings/conversations/[id]',
+      userId,
+    });
   }
-}
+});

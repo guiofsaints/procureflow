@@ -7,50 +7,35 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 
 import {
   deleteAllConversations,
   listUserConversations,
 } from '@/features/settings';
-import { authConfig } from '@/lib/auth/config';
+import { handleApiError, withAuth } from '@/lib/api';
 
-export async function GET() {
+export const GET = withAuth(async (_request, { userId }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const conversations = await listUserConversations(session.user.id);
+    const conversations = await listUserConversations(userId);
 
     return NextResponse.json({ conversations });
   } catch (error) {
-    console.error('GET /api/settings/conversations error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch conversations' },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'GET /api/settings/conversations',
+      userId,
+    });
   }
-}
+});
 
-export async function DELETE() {
+export const DELETE = withAuth(async (_request, { userId }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const count = await deleteAllConversations(session.user.id);
+    const count = await deleteAllConversations(userId);
 
     return NextResponse.json({ count });
   } catch (error) {
-    console.error('DELETE /api/settings/conversations error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete conversations' },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      route: 'DELETE /api/settings/conversations',
+      userId,
+    });
   }
-}
+});
