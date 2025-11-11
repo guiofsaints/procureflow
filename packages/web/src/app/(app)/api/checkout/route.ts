@@ -4,12 +4,10 @@
  * POST /api/checkout - Complete checkout and create purchase request
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 
 import * as checkoutService from '@/features/checkout';
-import { handleApiError, unauthorized } from '@/lib/api';
-import { authConfig } from '@/lib/auth/config';
+import { handleApiError, withAuth } from '@/lib/api';
 
 /**
  * POST /api/checkout
@@ -20,21 +18,14 @@ import { authConfig } from '@/lib/auth/config';
  * Body:
  * - notes?: string (optional justification/notes)
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, { userId }) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-
-    if (!session || !session.user?.id) {
-      return unauthorized();
-    }
-
     // Parse request body
     const body = await request.json().catch(() => ({}));
 
     // Complete checkout
     const purchaseRequest = await checkoutService.checkoutCart(
-      session.user.id,
+      userId,
       body.notes
     );
 
@@ -49,7 +40,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return handleApiError(error, {
       route: 'POST /api/checkout',
-      userId: undefined, // session not available in catch block
+      userId,
     });
   }
-}
+});

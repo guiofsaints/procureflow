@@ -5,3 +5,4 @@
  */
 
 export * from './errorHandler';
+export * from './withAuth';

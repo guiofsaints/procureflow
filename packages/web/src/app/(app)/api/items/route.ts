@@ -6,11 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 
 import * as catalogService from '@/features/catalog';
-import { badRequest, handleApiError, unauthorized } from '@/lib/api';
-import { authConfig } from '@/lib/auth/config';
+import { badRequest, handleApiError, withAuth } from '@/lib/api';
 
 /**
  * GET /api/items
@@ -55,15 +53,8 @@ export async function GET(request: NextRequest) {
  * - unit?: string (optional)
  * - preferredSupplier?: string (optional)
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, { userId }) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-
-    if (!session || !session.user?.id) {
-      return unauthorized();
-    }
-
     // Parse request body
     const body = await request.json();
 
@@ -73,7 +64,7 @@ export async function POST(request: NextRequest) {
         'Missing required fields: name, category, description',
         {
           route: 'POST /api/items',
-          userId: session.user.id,
+          userId,
         }
       );
     }
@@ -81,7 +72,7 @@ export async function POST(request: NextRequest) {
     if (typeof body.estimatedPrice !== 'number' || body.estimatedPrice <= 0) {
       return badRequest('estimatedPrice must be a positive number', {
         route: 'POST /api/items',
-        userId: session.user.id,
+        userId,
       });
     }
 
@@ -93,14 +84,14 @@ export async function POST(request: NextRequest) {
       estimatedPrice: body.estimatedPrice,
       unit: body.unit,
       preferredSupplier: body.preferredSupplier,
-      createdByUserId: session.user.id,
+      createdByUserId: userId,
     });
 
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
     return handleApiError(error, {
       route: 'POST /api/items',
-      userId: undefined, // session not available in catch block
+      userId,
     });
   }
-}
+});

@@ -4,12 +4,10 @@
  * POST /api/cart/items - Add item to cart
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 
 import * as cartService from '@/features/cart';
-import { badRequest, handleApiError, unauthorized } from '@/lib/api';
-import { authConfig } from '@/lib/auth/config';
+import { badRequest, handleApiError, withAuth } from '@/lib/api';
 
 /**
  * POST /api/cart/items
@@ -21,15 +19,8 @@ import { authConfig } from '@/lib/auth/config';
  * - itemId: string (required)
  * - quantity: number (optional, default 1)
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, { userId }) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-
-    if (!session || !session.user?.id) {
-      return unauthorized();
-    }
-
     // Parse request body
     const body = await request.json();
 
@@ -37,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!body.itemId) {
       return badRequest('itemId is required', {
         route: 'POST /api/cart/items',
-        userId: session.user.id,
+        userId,
       });
     }
 
@@ -50,13 +41,13 @@ export async function POST(request: NextRequest) {
       ) {
         return badRequest('quantity must be between 1 and 999', {
           route: 'POST /api/cart/items',
-          userId: session.user.id,
+          userId,
         });
       }
     }
 
     // Add item to cart
-    const cart = await cartService.addItemToCart(session.user.id, {
+    const cart = await cartService.addItemToCart(userId, {
       itemId: body.itemId,
       quantity: body.quantity,
     });
@@ -65,7 +56,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return handleApiError(error, {
       route: 'POST /api/cart/items',
-      userId: undefined, // session not available in catch block
+      userId,
     });
   }
-}
+});
