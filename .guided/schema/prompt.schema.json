@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://guided.engineering/schema/prompt.schema.json",
+  "title": "Guided Engineering Prompt Schema",
+  "description": "Schema for structured AI agent prompts in Guided Engineering methodology",
+  "type": "object",
+  "required": ["apiVersion", "id", "title", "persona", "category", "steps"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this schema"
+    },
+    "apiVersion": {
+      "type": "string",
+      "pattern": "^guided-engineering/v[0-9]+$",
+      "description": "API version for prompt format"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+([._][a-z0-9]+)*$",
+      "description": "Unique prompt identifier (dot-separated lowercase)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable prompt title"
+    },
+    "persona": {
+      "type": "string",
+      "description": "Persona executing this prompt (e.g., DocumentationEngineer, BackendDeveloper)"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["base", "architecture", "product", "testing", "operation", "custom"],
+      "description": "Prompt category"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "medium", "hard", "expert"],
+      "description": "Complexity level"
+    },
+    "workspace": {
+      "type": "string",
+      "description": "Target workspace path (relative or absolute)"
+    },
+    "context": {
+      "type": "string",
+      "description": "Prompt context and background information"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Required dependencies or prerequisites"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "actions"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Step identifier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Step title"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of actions to perform"
+          },
+          "output": {
+            "type": "string",
+            "description": "Expected output file path"
+          }
+        }
+      },
+      "description": "Ordered steps to execute"
+    },
+    "output": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "language"],
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "Output file path"
+          },
+          "language": {
+            "type": "string",
+            "description": "Output file language/format"
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Rules for output generation"
+          }
+        }
+      },
+      "description": "Expected output files"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization and search"
+    },
+    "createdBy": {
+      "type": "string",
+      "description": "Author identifier"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Prompt version number"
+    }
+  }
+}
