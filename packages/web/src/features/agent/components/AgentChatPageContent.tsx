@@ -179,6 +179,14 @@ export function AgentChatPageContent({
 
         const data = await response.json();
 
+        // Debug: Log API response to console
+        console.warn('[AgentChatPageContent] API Response:', {
+          conversationId: data.conversationId,
+          messageCount: data.messages?.length,
+          messages: data.messages,
+          lastMessage: data.messages?.[data.messages.length - 1],
+        });
+
         // Update conversationId if this is a new conversation
         if (data.conversationId && !conversationId) {
           setConversationId(data.conversationId);
@@ -200,6 +208,8 @@ export function AgentChatPageContent({
           .filter((msg: { role: string }) => msg.role === 'agent')
           .pop();
 
+        console.warn('[AgentChatPageContent] Latest agent message:', latestAgentMessage);
+
         if (latestAgentMessage) {
           const agentMessage: AgentMessage = {
             id: `agent-${Date.now()}`,
@@ -210,6 +220,8 @@ export function AgentChatPageContent({
             checkoutConfirmation: latestAgentMessage.checkoutConfirmation, // Include checkout confirmation if present
             purchaseRequest: latestAgentMessage.purchaseRequest, // Include purchase request if present
           };
+
+          console.warn('[AgentChatPageContent] Agent message to add:', agentMessage);
 
           setMessages((prev) => [...prev, agentMessage]);
 

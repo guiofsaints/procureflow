@@ -421,10 +421,17 @@ export async function orchestrateAgentTurn(
               
               // Handle checkout results
               if (toolCall.name === 'checkout') {
-                if (toolOutput.id) {
-                  // Purchase request created
-                  accumulatedMetadata.purchaseRequest = toolOutput;
+                // checkout returns { success: true, purchaseRequest: {...} }
+                if (toolOutput.success && toolOutput.purchaseRequest) {
+                  accumulatedMetadata.purchaseRequest = toolOutput.purchaseRequest;
                   logger.debug('[Orchestrator] Added purchase request to metadata', {
+                    conversationId,
+                    purchaseId: toolOutput.purchaseRequest.id,
+                  });
+                } else if (toolOutput.id) {
+                  // Fallback: Direct purchase request format
+                  accumulatedMetadata.purchaseRequest = toolOutput;
+                  logger.debug('[Orchestrator] Added purchase request to metadata (fallback)', {
                     conversationId,
                     purchaseId: toolOutput.id,
                   });
