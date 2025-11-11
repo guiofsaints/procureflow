@@ -210,12 +210,14 @@ async function executeToolInternal(
       logger.debug('Search catalog result', {
         query: args.query,
         resultCount: items.length,
-        sampleItem: items[0] ? {
-          id: items[0].id,
-          name: items[0].name,
-          estimatedPrice: items[0].estimatedPrice,
-          priceType: typeof items[0].estimatedPrice,
-        } : null,
+        sampleItem: items[0]
+          ? {
+              id: items[0].id,
+              name: items[0].name,
+              estimatedPrice: items[0].estimatedPrice,
+              priceType: typeof items[0].estimatedPrice,
+            }
+          : null,
       });
 
       return {
@@ -228,14 +230,16 @@ async function executeToolInternal(
               priceType: typeof item.estimatedPrice,
             });
           }
-          
+
           return {
             id: item.id,
             name: item.name,
             category: item.category,
             description: item.description,
-            estimatedPrice: typeof item.estimatedPrice === 'number' ? item.estimatedPrice : 0,
-            availability: item.status === 'active' ? 'in_stock' : 'out_of_stock',
+            estimatedPrice:
+              typeof item.estimatedPrice === 'number' ? item.estimatedPrice : 0,
+            availability:
+              item.status === 'active' ? 'in_stock' : 'out_of_stock',
           };
         }),
         count: items.length,

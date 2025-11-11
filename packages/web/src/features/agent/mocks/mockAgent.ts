@@ -105,7 +105,8 @@ export function findMockItems(query: string, maxPrice?: number): AgentItem[] {
     const matchesQuery = queryWords.every((word) => searchText.includes(word));
 
     // Check price constraint
-    const matchesPrice = maxPrice === undefined || item.estimatedPrice <= maxPrice;
+    const matchesPrice =
+      maxPrice === undefined || item.estimatedPrice <= maxPrice;
 
     return matchesQuery && matchesPrice;
   });

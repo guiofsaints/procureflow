@@ -53,7 +53,7 @@ export function ItemMutateDrawer({
 
   const form = useForm<ItemForm>({
     resolver: zodResolver(formSchema),
-        defaultValues: currentRow
+    defaultValues: currentRow
       ? {
           name: currentRow.name,
           category: currentRow.category,

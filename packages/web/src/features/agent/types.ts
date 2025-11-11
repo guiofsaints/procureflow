@@ -13,7 +13,11 @@ export type AgentRole = 'user' | 'agent' | 'system';
  * Agent-specific view of an Item entity
  * Extends Item with agent-specific availability mapping
  */
-export interface AgentItem extends Pick<Item, 'id' | 'name' | 'category' | 'description' | 'estimatedPrice'> {
+export interface AgentItem
+  extends Pick<
+    Item,
+    'id' | 'name' | 'category' | 'description' | 'estimatedPrice'
+  > {
   availability: 'in_stock' | 'out_of_stock' | 'limited';
 }
 
@@ -38,7 +42,8 @@ export interface AgentCart {
  * Agent-specific view of PurchaseRequest entity
  * Adapts PurchaseRequest for agent UI display
  */
-export interface AgentPurchaseRequest extends Pick<PurchaseRequest, 'id' | 'total' | 'status'> {
+export interface AgentPurchaseRequest
+  extends Pick<PurchaseRequest, 'id' | 'total' | 'status'> {
   items: Array<{
     itemName: string;
     itemCategory: string;

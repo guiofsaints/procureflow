@@ -36,7 +36,8 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
   // Validate item data and provide defaults
   const safeItem = {
     ...item,
-    estimatedPrice: typeof item.estimatedPrice === 'number' ? item.estimatedPrice : 0,
+    estimatedPrice:
+      typeof item.estimatedPrice === 'number' ? item.estimatedPrice : 0,
     availability: item.availability || 'in_stock',
     description: item.description || 'No description available',
   };
