@@ -1,5 +1,5 @@
 import type { ColumnDef, Row } from '@tanstack/react-table';
-import { Eye, ShoppingCart } from 'lucide-react';
+import { Eye, LoaderIcon, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge, Button } from '@/components';
@@ -32,10 +32,10 @@ export const catalogColumns: ColumnDef<Item>[] = [
     ),
   },
   {
-    accessorKey: 'price',
+    accessorKey: 'estimatedPrice',
     header: 'Price',
     cell: ({ row }) => {
-      const price = parseFloat(row.getValue('price'));
+      const price = parseFloat(row.getValue('estimatedPrice'));
       const formatted = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
@@ -70,7 +70,7 @@ function CatalogRowActions({ row }: { row: Row<Item> }) {
         className='w-20'
       >
         {addingToCart === item.id ? (
-          <ShoppingCart className='h-4 w-4 animate-pulse' />
+          <LoaderIcon className='h-4 w-4 animate-pulse' />
         ) : (
           <>
             <ShoppingCart className='h-4 w-4' />

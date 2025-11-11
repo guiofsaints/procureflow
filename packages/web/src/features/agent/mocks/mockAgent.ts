@@ -105,7 +105,7 @@ export function findMockItems(query: string, maxPrice?: number): AgentItem[] {
     const matchesQuery = queryWords.every((word) => searchText.includes(word));
 
     // Check price constraint
-    const matchesPrice = maxPrice === undefined || item.price <= maxPrice;
+    const matchesPrice = maxPrice === undefined || item.estimatedPrice <= maxPrice;
 
     return matchesQuery && matchesPrice;
   });
@@ -145,7 +145,7 @@ export async function generateMockAgentResponse(
 
     return {
       id: messageId,
-      role: 'assistant',
+      role: 'agent',
       content,
       items: foundItems,
     };
@@ -159,7 +159,7 @@ export async function generateMockAgentResponse(
 
     return {
       id: messageId,
-      role: 'assistant',
+      role: 'agent',
       content,
     };
   }

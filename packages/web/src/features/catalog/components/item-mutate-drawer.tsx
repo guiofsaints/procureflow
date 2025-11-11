@@ -53,12 +53,12 @@ export function ItemMutateDrawer({
 
   const form = useForm<ItemForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: currentRow
+        defaultValues: currentRow
       ? {
           name: currentRow.name,
           category: currentRow.category,
           description: currentRow.description,
-          price: currentRow.price.toString(),
+          price: currentRow.estimatedPrice.toString(),
         }
       : {
           name: '',
@@ -75,7 +75,7 @@ export function ItemMutateDrawer({
         name: currentRow.name,
         category: currentRow.category,
         description: currentRow.description,
-        price: currentRow.price.toString(),
+        price: currentRow.estimatedPrice.toString(),
       });
     }
   }, [currentRow, form]);

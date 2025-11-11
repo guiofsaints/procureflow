@@ -412,15 +412,15 @@ export async function analyzeCart(userId: string | Types.ObjectId): Promise<{
 
     // Find highest and lowest unit price
     const sortedByUnitPrice = [...cart.items].sort(
-      (a, b) => b.itemPrice - a.itemPrice
+      (a, b) => b.unitPrice - a.unitPrice
     );
     const highestUnitPrice = {
-      itemName: sortedByUnitPrice[0].itemName,
-      price: sortedByUnitPrice[0].itemPrice,
+      itemName: sortedByUnitPrice[0].name,
+      price: sortedByUnitPrice[0].unitPrice,
     };
     const lowestUnitPrice = {
-      itemName: sortedByUnitPrice[sortedByUnitPrice.length - 1].itemName,
-      price: sortedByUnitPrice[sortedByUnitPrice.length - 1].itemPrice,
+      itemName: sortedByUnitPrice[sortedByUnitPrice.length - 1].name,
+      price: sortedByUnitPrice[sortedByUnitPrice.length - 1].unitPrice,
     };
 
     // Find most expensive item by subtotal
@@ -428,14 +428,14 @@ export async function analyzeCart(userId: string | Types.ObjectId): Promise<{
       (a, b) => b.subtotal - a.subtotal
     );
     const mostExpensiveItem = {
-      itemName: sortedBySubtotal[0].itemName,
+      itemName: sortedBySubtotal[0].name,
       subtotal: sortedBySubtotal[0].subtotal,
       quantity: sortedBySubtotal[0].quantity,
     };
 
     // Calculate average unit price
     const averageUnitPrice =
-      cart.items.reduce((sum, item) => sum + item.itemPrice, 0) /
+      cart.items.reduce((sum, item) => sum + item.unitPrice, 0) /
       cart.items.length;
 
     // Calculate total item count

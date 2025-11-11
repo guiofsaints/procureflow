@@ -11,7 +11,7 @@ export interface AgentItem {
   name: string;
   category: string;
   description: string;
-  price: number;
+  estimatedPrice: number;
   availability: 'in_stock' | 'out_of_stock' | 'limited';
 }
 

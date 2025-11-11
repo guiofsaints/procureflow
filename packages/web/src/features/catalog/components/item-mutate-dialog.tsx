@@ -99,7 +99,7 @@ export function ItemMutateDialog({
           name: currentRow.name,
           category: currentRow.category,
           description: currentRow.description,
-          estimatedPrice: currentRow.price.toString(),
+          estimatedPrice: currentRow.estimatedPrice.toString(),
           unit: 'each',
         }
       : {
@@ -118,7 +118,7 @@ export function ItemMutateDialog({
         name: currentRow.name,
         category: currentRow.category,
         description: currentRow.description,
-        estimatedPrice: currentRow.price.toString(),
+        estimatedPrice: currentRow.estimatedPrice.toString(),
         unit: 'each',
       });
     }
