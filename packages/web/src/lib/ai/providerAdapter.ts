@@ -24,7 +24,6 @@ import { TokenUsageModel } from '@/lib/db/models';
 import { connectDB } from '@/lib/db/mongoose';
 import { logger } from '@/lib/logger/winston.config';
 import { llmCostUSD, llmTokensTotal } from '@/lib/metrics/prometheus.config';
-import { withCircuitBreaker } from '@/lib/reliability/circuitBreaker';
 import { withRateLimit } from '@/lib/reliability/rateLimiter';
 import { withRetry } from '@/lib/reliability/retry';
 
@@ -299,18 +298,15 @@ export async function invokeChat(params: {
     // Apply reliability layers:
     // 1. Rate limiting (prevent overwhelming API)
     // 2. Retry logic (handle transient failures)
-    // 3. Circuit breaker (fail fast when provider is down) - currently bypassed pending proper Opossum fix
     const response = await withRateLimit(provider, async () => {
       return withRetry(provider, async () => {
-        return withCircuitBreaker(provider, async () => {
-          // Use dedicated function for OpenAI with tools
-          if (tools && tools.length > 0 && provider === 'openai') {
-            return await invokeOpenAIWithTools(messages, tools, config);
-          }
+        // Use dedicated function for OpenAI with tools
+        if (tools && tools.length > 0 && provider === 'openai') {
+          return await invokeOpenAIWithTools(messages, tools, config);
+        }
 
-          // Invoke LLM without tools or for other providers
-          return await chatModel.invoke(messages);
-        });
+        // Invoke LLM without tools or for other providers
+        return await chatModel.invoke(messages);
       });
     });
 

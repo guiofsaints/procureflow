@@ -151,6 +151,14 @@ export interface OrchestrateResult {
 
   /** Whether max iterations was reached */
   maxIterationsReached: boolean;
+
+  /** Metadata from tool executions (items, cart, etc.) */
+  metadata?: {
+    items?: unknown[];
+    cart?: unknown;
+    checkoutConfirmation?: unknown;
+    purchaseRequest?: unknown;
+  };
 }
 
 // ============================================================================
@@ -186,6 +194,14 @@ export async function orchestrateAgentTurn(
   const startTime = Date.now();
   let iterations = 0;
   let toolCallsCount = 0;
+
+  // Accumulate metadata from tool executions
+  const accumulatedMetadata: {
+    items?: unknown[];
+    cart?: unknown;
+    checkoutConfirmation?: unknown;
+    purchaseRequest?: unknown;
+  } = {};
 
   logger.info('[Orchestrator] Starting agent turn', {
     conversationId,
@@ -263,6 +279,7 @@ export async function orchestrateAgentTurn(
           toolCallsCount,
           messages: newMessages,
           maxIterationsReached: false,
+          metadata: Object.keys(accumulatedMetadata).length > 0 ? accumulatedMetadata : undefined,
         };
       }
 
@@ -312,6 +329,7 @@ export async function orchestrateAgentTurn(
           toolCallsCount,
           messages: newMessages,
           maxIterationsReached: false,
+          metadata: Object.keys(accumulatedMetadata).length > 0 ? accumulatedMetadata : undefined,
         };
       }
 
@@ -345,6 +363,44 @@ export async function orchestrateAgentTurn(
               toolCallId: toolCall.id,
               success: result.success,
             });
+
+            // Extract and accumulate metadata from tool result
+            try {
+              const toolOutput = JSON.parse(result.message.content as string);
+              
+              // Handle search_catalog results
+              if (toolCall.name === 'search_catalog' && Array.isArray(toolOutput)) {
+                accumulatedMetadata.items = toolOutput;
+              }
+              
+              // Handle add_to_cart/remove_from_cart/get_cart results
+              if (['add_to_cart', 'remove_from_cart', 'get_cart'].includes(toolCall.name)) {
+                if (toolOutput.items && toolOutput.totalCost !== undefined) {
+                  accumulatedMetadata.cart = {
+                    items: toolOutput.items,
+                    totalCost: toolOutput.totalCost,
+                    itemCount: toolOutput.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0),
+                  };
+                }
+              }
+              
+              // Handle checkout results
+              if (toolCall.name === 'checkout') {
+                if (toolOutput.id) {
+                  // Purchase request created
+                  accumulatedMetadata.purchaseRequest = toolOutput;
+                } else if (toolOutput.items && toolOutput.totalCost !== undefined) {
+                  // Checkout confirmation (before creating purchase request)
+                  accumulatedMetadata.checkoutConfirmation = toolOutput;
+                }
+              }
+            } catch (parseError) {
+              // If parsing fails, just log and continue
+              logger.debug('[Orchestrator] Could not parse tool output for metadata', {
+                toolName: toolCall.name,
+                error: parseError instanceof Error ? parseError.message : String(parseError),
+              });
+            }
 
             // Return the ToolMessage from result
             return result.message;
@@ -399,6 +455,7 @@ export async function orchestrateAgentTurn(
       toolCallsCount,
       messages: newMessages,
       maxIterationsReached: true,
+      metadata: Object.keys(accumulatedMetadata).length > 0 ? accumulatedMetadata : undefined,
     };
   } catch (error) {
     logger.error('[Orchestrator] Orchestration failed', {

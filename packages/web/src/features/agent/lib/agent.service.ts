@@ -216,6 +216,37 @@ export async function handleAgentMessage(
       }
     }
 
+    // Add metadata from orchestrator to the last agent message
+    if (orchestrationResult.metadata && conversation.messages.length > 0) {
+      const lastMessage = conversation.messages[conversation.messages.length - 1];
+      if (lastMessage.sender === 'agent') {
+        // Initialize metadata object if not present
+        if (!lastMessage.metadata) {
+          lastMessage.metadata = {};
+        }
+        
+        // Add items if present
+        if (orchestrationResult.metadata.items) {
+          lastMessage.metadata.items = orchestrationResult.metadata.items;
+        }
+        
+        // Add cart if present
+        if (orchestrationResult.metadata.cart) {
+          lastMessage.metadata.cart = orchestrationResult.metadata.cart;
+        }
+        
+        // Add checkout confirmation if present
+        if (orchestrationResult.metadata.checkoutConfirmation) {
+          lastMessage.metadata.checkoutConfirmation = orchestrationResult.metadata.checkoutConfirmation;
+        }
+        
+        // Add purchase request if present
+        if (orchestrationResult.metadata.purchaseRequest) {
+          lastMessage.metadata.purchaseRequest = orchestrationResult.metadata.purchaseRequest;
+        }
+      }
+    }
+
     // Update lastMessagePreview with agent's final response
     // Ensure it's not empty (fallback to orchestration result content)
     const previewContent = orchestrationResult.content?.trim() || 'Processing...';
