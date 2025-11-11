@@ -12,4 +12,4 @@
 export * from './entities';
 
 // Export all Mongoose document types
-export * from './mongo-schemas';
+export * from './documents';

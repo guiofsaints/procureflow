@@ -146,9 +146,9 @@ function detectProvider(): AIProvider {
   // 4. Fail fast with actionable error
   throw new Error(
     'No AI provider configured. Please set one of:\n' +
-    '  - OPENAI_API_KEY for OpenAI (recommended)\n' +
-    '  - GOOGLE_API_KEY for Google Gemini (free tier)\n' +
-    'Or force a provider with AI_PROVIDER=openai|gemini'
+      '  - OPENAI_API_KEY for OpenAI (recommended)\n' +
+      '  - GOOGLE_API_KEY for Google Gemini (free tier)\n' +
+      'Or force a provider with AI_PROVIDER=openai|gemini'
   );
 }
 
@@ -235,7 +235,7 @@ async function invokeOpenAIWithTools(
 
   logger.debug('Formatted tools for OpenAI', {
     toolCount: formattedTools.length,
-    toolNames: formattedTools.map(t => t.function.name),
+    toolNames: formattedTools.map((t) => t.function.name),
   });
 
   // Create ChatOpenAI instance
@@ -260,7 +260,7 @@ async function invokeOpenAIWithTools(
   logger.debug('ChatOpenAI response received', {
     hasContent: !!response.content,
     contentLength: response.content?.toString().length || 0,
-    hasToolCalls: !!(response.additional_kwargs?.tool_calls),
+    hasToolCalls: !!response.additional_kwargs?.tool_calls,
     toolCallsCount: Array.isArray(response.additional_kwargs?.tool_calls)
       ? response.additional_kwargs.tool_calls.length
       : 0,
@@ -351,18 +351,18 @@ export async function invokeChat(params: {
     // Extract usage information if available
     const usageMeta = response.usage_metadata as
       | {
-        input_tokens?: number;
-        output_tokens?: number;
-        total_tokens?: number;
-      }
+          input_tokens?: number;
+          output_tokens?: number;
+          total_tokens?: number;
+        }
       | undefined;
 
     const usage = usageMeta
       ? {
-        inputTokens: usageMeta.input_tokens || 0,
-        outputTokens: usageMeta.output_tokens || 0,
-        totalTokens: usageMeta.total_tokens || 0,
-      }
+          inputTokens: usageMeta.input_tokens || 0,
+          outputTokens: usageMeta.output_tokens || 0,
+          totalTokens: usageMeta.total_tokens || 0,
+        }
       : undefined;
 
     // Track token usage and cost

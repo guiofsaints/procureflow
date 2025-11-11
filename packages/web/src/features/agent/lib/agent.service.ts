@@ -196,7 +196,9 @@ export async function handleAgentMessage(
       toolCallsCount: orchestrationResult.toolCallsCount,
       maxIterationsReached: orchestrationResult.maxIterationsReached,
       hasMetadata: !!orchestrationResult.metadata,
-      metadataKeys: orchestrationResult.metadata ? Object.keys(orchestrationResult.metadata) : [],
+      metadataKeys: orchestrationResult.metadata
+        ? Object.keys(orchestrationResult.metadata)
+        : [],
     });
 
     // Add orchestrator messages to conversation
@@ -220,7 +222,8 @@ export async function handleAgentMessage(
 
     // Add metadata from orchestrator to the last agent message
     if (orchestrationResult.metadata && conversation.messages.length > 0) {
-      const lastMessage = conversation.messages[conversation.messages.length - 1];
+      const lastMessage =
+        conversation.messages[conversation.messages.length - 1];
       if (lastMessage.sender === 'agent') {
         logger.debug('Adding metadata to last agent message', {
           conversationId: conversation._id?.toString(),
@@ -230,37 +233,39 @@ export async function handleAgentMessage(
           hasCheckout: !!orchestrationResult.metadata.checkoutConfirmation,
           hasPurchaseRequest: !!orchestrationResult.metadata.purchaseRequest,
         });
-        
+
         // Initialize metadata object if not present
         if (!lastMessage.metadata) {
           lastMessage.metadata = {};
         }
-        
+
         // Add items if present
         if (orchestrationResult.metadata.items) {
           lastMessage.metadata.items = orchestrationResult.metadata.items;
         }
-        
+
         // Add cart if present
         if (orchestrationResult.metadata.cart) {
           lastMessage.metadata.cart = orchestrationResult.metadata.cart;
         }
-        
+
         // Add checkout confirmation if present
         if (orchestrationResult.metadata.checkoutConfirmation) {
-          lastMessage.metadata.checkoutConfirmation = orchestrationResult.metadata.checkoutConfirmation;
+          lastMessage.metadata.checkoutConfirmation =
+            orchestrationResult.metadata.checkoutConfirmation;
         }
-        
+
         // Add purchase request if present
         if (orchestrationResult.metadata.purchaseRequest) {
-          lastMessage.metadata.purchaseRequest = orchestrationResult.metadata.purchaseRequest;
+          lastMessage.metadata.purchaseRequest =
+            orchestrationResult.metadata.purchaseRequest;
         }
-        
+
         logger.debug('Metadata added to message', {
           conversationId: conversation._id?.toString(),
           messageMetadataKeys: Object.keys(lastMessage.metadata || {}),
         });
-        
+
         // Mark the messages array as modified for Mongoose to detect changes
         // This is critical for Schema.Types.Mixed fields in subdocuments
         conversation.markModified('messages');
@@ -269,7 +274,8 @@ export async function handleAgentMessage(
 
     // Update lastMessagePreview with agent's final response
     // Ensure it's not empty (fallback to orchestration result content)
-    const previewContent = orchestrationResult.content?.trim() || 'Processing...';
+    const previewContent =
+      orchestrationResult.content?.trim() || 'Processing...';
     conversation.lastMessagePreview = previewContent.substring(0, 100);
 
     // Save conversation
@@ -385,7 +391,7 @@ interface AgentReplyWithItems {
 /**
  * @deprecated This function is replaced by orchestrateAgentTurn (Step 8 refactor)
  * Kept for reference during migration. Will be removed after testing.
- * 
+ *
  * Generate agent response using LangChain with function calling
  *
  * Uses OpenAI's function calling to let the model decide when to use tools
@@ -1005,23 +1011,23 @@ Instructions:
             {
               highestUnitPrice: analytics.highestUnitPrice
                 ? {
-                  itemName: analytics.highestUnitPrice.itemName,
-                  price: analytics.highestUnitPrice.price,
-                }
+                    itemName: analytics.highestUnitPrice.itemName,
+                    price: analytics.highestUnitPrice.price,
+                  }
                 : null,
               lowestUnitPrice: analytics.lowestUnitPrice
                 ? {
-                  itemName: analytics.lowestUnitPrice.itemName,
-                  price: analytics.lowestUnitPrice.price,
-                }
+                    itemName: analytics.lowestUnitPrice.itemName,
+                    price: analytics.lowestUnitPrice.price,
+                  }
                 : null,
               averageUnitPrice: analytics.averageUnitPrice,
               mostExpensiveItem: analytics.mostExpensiveItem
                 ? {
-                  itemName: analytics.mostExpensiveItem.itemName,
-                  subtotal: analytics.mostExpensiveItem.subtotal,
-                  quantity: analytics.mostExpensiveItem.quantity,
-                }
+                    itemName: analytics.mostExpensiveItem.itemName,
+                    subtotal: analytics.mostExpensiveItem.subtotal,
+                    quantity: analytics.mostExpensiveItem.quantity,
+                  }
                 : null,
               totalCost: analytics.totalCost,
               uniqueItems: analytics.uniqueItems,
@@ -1092,12 +1098,18 @@ Provide a natural, conversational answer that directly addresses what the user a
 
         // If we reach here, it means a tool was called but not handled above
         // This should not happen, but provide a fallback
-        logger.warn('Unhandled tool call', { toolName: toolCall.name, toolCall });
+        logger.warn('Unhandled tool call', {
+          toolName: toolCall.name,
+          toolCall,
+        });
         return {
           text: `Tool ${toolCall.name} was executed successfully.`,
         };
       } catch (error) {
-        logger.error('Error executing tool', { toolName: toolCall.name, error });
+        logger.error('Error executing tool', {
+          toolName: toolCall.name,
+          error,
+        });
         const errorMsg =
           error instanceof Error ? error.message : 'Unknown error';
         return {

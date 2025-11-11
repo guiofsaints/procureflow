@@ -18,7 +18,7 @@ import {
 } from '@langchain/core/messages';
 import type { BaseMessage } from '@langchain/core/messages';
 
-import type { AgentConversationDocument } from '@/domain/mongo-schemas';
+import type { AgentConversationDocument } from '@/domain/documents';
 import { getCartForUser } from '@/features/cart';
 import { countTokens } from '@/lib/ai/tokenCounter';
 import { logger } from '@/lib/logger/winston.config';
@@ -218,7 +218,9 @@ export async function buildMessageHistory(
   const wasTruncated = truncatedCount > 0;
   if (wasTruncated) {
     // Determine truncation reason
-    const truncationReason = truncatedByCount ? 'message_count' : 'token_budget';
+    const truncationReason = truncatedByCount
+      ? 'message_count'
+      : 'token_budget';
 
     // Emit metrics
     conversationTruncations.labels({ reason: truncationReason }).inc();

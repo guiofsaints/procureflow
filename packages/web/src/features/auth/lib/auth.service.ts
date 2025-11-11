@@ -6,8 +6,8 @@
 
 import bcrypt from 'bcryptjs';
 
+import type { UserDocument } from '@/domain/documents';
 import type { User } from '@/domain/entities';
-import type { UserDocument } from '@/domain/mongo-schemas';
 import { UserModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
 import { UserRole } from '@/lib/db/schemas/user.schema';

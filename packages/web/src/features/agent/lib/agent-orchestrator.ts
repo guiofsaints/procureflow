@@ -13,7 +13,7 @@
 import type { BaseMessage } from '@langchain/core/messages';
 import { AIMessage, ToolMessage } from '@langchain/core/messages';
 
-import type { AgentConversationDocument } from '@/domain/mongo-schemas';
+import type { AgentConversationDocument } from '@/domain/documents';
 import type { AIResponse } from '@/lib/ai/providerAdapter';
 import { invokeChat } from '@/lib/ai/providerAdapter';
 import { logger } from '@/lib/logger/winston.config';
@@ -250,7 +250,9 @@ export async function orchestrateAgentTurn(
       logger.debug('[Orchestrator] LLM response received', {
         conversationId,
         iteration: iterations,
-        hasToolCalls: !!(aiResponse.toolCalls && aiResponse.toolCalls.length > 0),
+        hasToolCalls: !!(
+          aiResponse.toolCalls && aiResponse.toolCalls.length > 0
+        ),
         toolCallCount: aiResponse.toolCalls?.length || 0,
       });
 
@@ -279,7 +281,10 @@ export async function orchestrateAgentTurn(
           toolCallsCount,
           messages: newMessages,
           maxIterationsReached: false,
-          metadata: Object.keys(accumulatedMetadata).length > 0 ? accumulatedMetadata : undefined,
+          metadata:
+            Object.keys(accumulatedMetadata).length > 0
+              ? accumulatedMetadata
+              : undefined,
         };
       }
 
@@ -329,7 +334,10 @@ export async function orchestrateAgentTurn(
           toolCallsCount,
           messages: newMessages,
           maxIterationsReached: false,
-          metadata: Object.keys(accumulatedMetadata).length > 0 ? accumulatedMetadata : undefined,
+          metadata:
+            Object.keys(accumulatedMetadata).length > 0
+              ? accumulatedMetadata
+              : undefined,
         };
       }
 
@@ -367,17 +375,19 @@ export async function orchestrateAgentTurn(
             // Extract and accumulate metadata from tool result
             try {
               const toolOutput = JSON.parse(result.message.content as string);
-              
+
               logger.debug('[Orchestrator] Parsed tool output', {
                 conversationId,
                 toolName: toolCall.name,
-                outputType: Array.isArray(toolOutput) ? 'array' : typeof toolOutput,
+                outputType: Array.isArray(toolOutput)
+                  ? 'array'
+                  : typeof toolOutput,
                 isArray: Array.isArray(toolOutput),
                 hasItems: !!toolOutput.items,
                 hasTotalCost: toolOutput.totalCost !== undefined,
                 hasId: !!toolOutput.id,
               });
-              
+
               // Handle search_catalog results
               if (toolCall.name === 'search_catalog') {
                 // search_catalog returns { items: [...], count: number }
@@ -389,67 +399,115 @@ export async function orchestrateAgentTurn(
                   });
                 }
               }
-              
+
               // Handle add_to_cart/remove_from_cart/get_cart results
-              if (['add_to_cart', 'remove_from_cart', 'get_cart'].includes(toolCall.name)) {
+              if (
+                ['add_to_cart', 'remove_from_cart', 'get_cart'].includes(
+                  toolCall.name
+                )
+              ) {
                 // These return { success: true, cart: { items: [...], totalCost: number } }
-                if (toolOutput.cart?.items && toolOutput.cart.totalCost !== undefined) {
+                if (
+                  toolOutput.cart?.items &&
+                  toolOutput.cart.totalCost !== undefined
+                ) {
                   accumulatedMetadata.cart = {
                     items: toolOutput.cart.items,
                     totalCost: toolOutput.cart.totalCost,
-                    itemCount: toolOutput.cart.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0),
+                    itemCount: toolOutput.cart.items.reduce(
+                      (sum: number, item: { quantity: number }) =>
+                        sum + item.quantity,
+                      0
+                    ),
                   };
                   logger.debug('[Orchestrator] Added cart to metadata', {
                     conversationId,
-                    cartItemCount: (accumulatedMetadata.cart as { itemCount?: number }).itemCount,
-                    totalCost: (accumulatedMetadata.cart as { totalCost?: number }).totalCost,
+                    cartItemCount: (
+                      accumulatedMetadata.cart as { itemCount?: number }
+                    ).itemCount,
+                    totalCost: (
+                      accumulatedMetadata.cart as { totalCost?: number }
+                    ).totalCost,
                   });
-                } else if (toolOutput.items && toolOutput.totalCost !== undefined) {
+                } else if (
+                  toolOutput.items &&
+                  toolOutput.totalCost !== undefined
+                ) {
                   // Fallback for direct cart format
                   accumulatedMetadata.cart = {
                     items: toolOutput.items,
                     totalCost: toolOutput.totalCost,
-                    itemCount: toolOutput.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0),
+                    itemCount: toolOutput.items.reduce(
+                      (sum: number, item: { quantity: number }) =>
+                        sum + item.quantity,
+                      0
+                    ),
                   };
-                  logger.debug('[Orchestrator] Added cart to metadata (fallback)', {
-                    conversationId,
-                    cartItemCount: (accumulatedMetadata.cart as { itemCount?: number }).itemCount,
-                    totalCost: (accumulatedMetadata.cart as { totalCost?: number }).totalCost,
-                  });
+                  logger.debug(
+                    '[Orchestrator] Added cart to metadata (fallback)',
+                    {
+                      conversationId,
+                      cartItemCount: (
+                        accumulatedMetadata.cart as { itemCount?: number }
+                      ).itemCount,
+                      totalCost: (
+                        accumulatedMetadata.cart as { totalCost?: number }
+                      ).totalCost,
+                    }
+                  );
                 }
               }
-              
+
               // Handle checkout results
               if (toolCall.name === 'checkout') {
                 // checkout returns { success: true, purchaseRequest: {...} }
                 if (toolOutput.success && toolOutput.purchaseRequest) {
-                  accumulatedMetadata.purchaseRequest = toolOutput.purchaseRequest;
-                  logger.debug('[Orchestrator] Added purchase request to metadata', {
-                    conversationId,
-                    purchaseId: toolOutput.purchaseRequest.id,
-                  });
+                  accumulatedMetadata.purchaseRequest =
+                    toolOutput.purchaseRequest;
+                  logger.debug(
+                    '[Orchestrator] Added purchase request to metadata',
+                    {
+                      conversationId,
+                      purchaseId: toolOutput.purchaseRequest.id,
+                    }
+                  );
                 } else if (toolOutput.id) {
                   // Fallback: Direct purchase request format
                   accumulatedMetadata.purchaseRequest = toolOutput;
-                  logger.debug('[Orchestrator] Added purchase request to metadata (fallback)', {
-                    conversationId,
-                    purchaseId: toolOutput.id,
-                  });
-                } else if (toolOutput.items && toolOutput.totalCost !== undefined) {
+                  logger.debug(
+                    '[Orchestrator] Added purchase request to metadata (fallback)',
+                    {
+                      conversationId,
+                      purchaseId: toolOutput.id,
+                    }
+                  );
+                } else if (
+                  toolOutput.items &&
+                  toolOutput.totalCost !== undefined
+                ) {
                   // Checkout confirmation (before creating purchase request)
                   accumulatedMetadata.checkoutConfirmation = toolOutput;
-                  logger.debug('[Orchestrator] Added checkout confirmation to metadata', {
-                    conversationId,
-                    itemCount: toolOutput.items.length,
-                  });
+                  logger.debug(
+                    '[Orchestrator] Added checkout confirmation to metadata',
+                    {
+                      conversationId,
+                      itemCount: toolOutput.items.length,
+                    }
+                  );
                 }
               }
             } catch (parseError) {
               // If parsing fails, just log and continue
-              logger.debug('[Orchestrator] Could not parse tool output for metadata', {
-                toolName: toolCall.name,
-                error: parseError instanceof Error ? parseError.message : String(parseError),
-              });
+              logger.debug(
+                '[Orchestrator] Could not parse tool output for metadata',
+                {
+                  toolName: toolCall.name,
+                  error:
+                    parseError instanceof Error
+                      ? parseError.message
+                      : String(parseError),
+                }
+              );
             }
 
             // Return the ToolMessage from result
@@ -505,7 +563,10 @@ export async function orchestrateAgentTurn(
       toolCallsCount,
       messages: newMessages,
       maxIterationsReached: true,
-      metadata: Object.keys(accumulatedMetadata).length > 0 ? accumulatedMetadata : undefined,
+      metadata:
+        Object.keys(accumulatedMetadata).length > 0
+          ? accumulatedMetadata
+          : undefined,
     };
   } catch (error) {
     logger.error('[Orchestrator] Orchestration failed', {

@@ -32,7 +32,7 @@ const FORCED_AI_PROVIDER = process.env.AI_PROVIDER as AIProvider | undefined;
 // Priority: 1) Forced provider, 2) OpenAI (more reliable), 3) Gemini, 4) Default to OpenAI
 const AI_PROVIDER: AIProvider =
   FORCED_AI_PROVIDER &&
-    (FORCED_AI_PROVIDER === 'openai' || FORCED_AI_PROVIDER === 'gemini')
+  (FORCED_AI_PROVIDER === 'openai' || FORCED_AI_PROVIDER === 'gemini')
     ? FORCED_AI_PROVIDER
     : OPENAI_API_KEY
       ? 'openai'

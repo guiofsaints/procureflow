@@ -30,7 +30,9 @@ export function AgentPurchaseRequestCard({
       : requestId;
 
   // Validate items array to prevent undefined errors
-  const items = Array.isArray(purchaseRequest.items) ? purchaseRequest.items : [];
+  const items = Array.isArray(purchaseRequest.items)
+    ? purchaseRequest.items
+    : [];
 
   return (
     <Card className='border-green-200 dark:border-green-900 py-6 '>
@@ -59,9 +61,7 @@ export function AgentPurchaseRequestCard({
             </div>
             <div className='flex justify-between'>
               <span className='text-muted-foreground'>Total Items:</span>
-              <span className='font-medium'>
-                {items.length} type(s)
-              </span>
+              <span className='font-medium'>{items.length} type(s)</span>
             </div>
             <div className='flex justify-between border-t pt-2 mt-2'>
               <span className='font-semibold'>Total:</span>

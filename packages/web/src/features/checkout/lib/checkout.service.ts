@@ -267,7 +267,11 @@ export async function getPurchaseRequestById(
       updatedAt: request.updatedAt,
     };
   } catch (error) {
-    logger.error('Error fetching purchase request', { userId, requestId, error });
+    logger.error('Error fetching purchase request', {
+      userId,
+      requestId,
+      error,
+    });
     throw new Error('Failed to fetch purchase request');
   }
 }

@@ -1,16 +1,21 @@
 /**
- * Mongoose Document Type Definitions for ProcureFlow
+ * MongoDB Document Type Definitions for ProcureFlow
  *
- * This file defines TypeScript types that represent MongoDB documents
- * as stored/retrieved via Mongoose. These types closely mirror the domain
+ * This file defines TypeScript interfaces that represent MongoDB documents
+ * as stored and retrieved via Mongoose. These types closely mirror the domain
  * entities in entities.ts, but include MongoDB-specific concerns:
  *
  * - _id field (MongoDB ObjectId or string representation)
  * - Mongoose-specific metadata (e.g., __v version key)
- * - Differences between domain model and persisted shape
+ * - Timestamps (createdAt, updatedAt)
+ * - References to other documents (stored as ObjectId)
  *
- * These types are used when defining Mongoose schemas and working with
- * database operations.
+ * Usage:
+ * - Import document types when working with Mongoose models
+ * - Use in service layer when interacting with database
+ * - Services should convert documents to domain entities before returning
+ *
+ * Location: domain/documents.ts (not in lib/db/ to keep domain layer cohesive)
  *
  * Scope Indicators:
  * - [MVP]: In scope for tech case implementation

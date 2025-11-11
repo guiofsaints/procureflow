@@ -108,7 +108,10 @@ export async function executeTool(
 
   try {
     // 1. Validate tool arguments (Zod schemas)
-    const validatedArgs = validateToolArgs(toolName as import('@/lib/validation/schemas').ToolName, args);
+    const validatedArgs = validateToolArgs(
+      toolName as import('@/lib/validation/schemas').ToolName,
+      args
+    );
 
     logger.debug('Tool arguments validated', {
       toolName,

@@ -111,10 +111,20 @@ export function AgentChatPageContent({
           id: `${msg.role}-${index}`,
           role: msg.role, // Already in correct format from API
           content: msg.content,
-          items: Array.isArray(msg.items) && msg.items.length > 0 ? msg.items : undefined, // Validate items array
+          items:
+            Array.isArray(msg.items) && msg.items.length > 0
+              ? msg.items
+              : undefined, // Validate items array
           cart: msg.cart && typeof msg.cart === 'object' ? msg.cart : undefined, // Validate cart object
-          checkoutConfirmation: msg.checkoutConfirmation && typeof msg.checkoutConfirmation === 'object' ? msg.checkoutConfirmation : undefined, // Validate checkout
-          purchaseRequest: msg.purchaseRequest && typeof msg.purchaseRequest === 'object' ? msg.purchaseRequest : undefined, // Validate purchase request
+          checkoutConfirmation:
+            msg.checkoutConfirmation &&
+            typeof msg.checkoutConfirmation === 'object'
+              ? msg.checkoutConfirmation
+              : undefined, // Validate checkout
+          purchaseRequest:
+            msg.purchaseRequest && typeof msg.purchaseRequest === 'object'
+              ? msg.purchaseRequest
+              : undefined, // Validate purchase request
           timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
         })
       );
@@ -160,7 +170,10 @@ export function AgentChatPageContent({
     window.addEventListener('resetAgentConversation', handleResetConversation);
 
     return () => {
-      window.removeEventListener('resetAgentConversation', handleResetConversation);
+      window.removeEventListener(
+        'resetAgentConversation',
+        handleResetConversation
+      );
     };
   }, [resetConversationState]);
 
@@ -231,18 +244,26 @@ export function AgentChatPageContent({
             id: `agent-${Date.now()}`,
             role: 'agent',
             content: latestAgentMessage.content,
-            items: Array.isArray(latestAgentMessage.items) && latestAgentMessage.items.length > 0 
-              ? latestAgentMessage.items 
-              : undefined, // Validate items array
-            cart: latestAgentMessage.cart && typeof latestAgentMessage.cart === 'object' 
-              ? latestAgentMessage.cart 
-              : undefined, // Validate cart object
-            checkoutConfirmation: latestAgentMessage.checkoutConfirmation && typeof latestAgentMessage.checkoutConfirmation === 'object' 
-              ? latestAgentMessage.checkoutConfirmation 
-              : undefined, // Validate checkout
-            purchaseRequest: latestAgentMessage.purchaseRequest && typeof latestAgentMessage.purchaseRequest === 'object' 
-              ? latestAgentMessage.purchaseRequest 
-              : undefined, // Validate purchase request
+            items:
+              Array.isArray(latestAgentMessage.items) &&
+              latestAgentMessage.items.length > 0
+                ? latestAgentMessage.items
+                : undefined, // Validate items array
+            cart:
+              latestAgentMessage.cart &&
+              typeof latestAgentMessage.cart === 'object'
+                ? latestAgentMessage.cart
+                : undefined, // Validate cart object
+            checkoutConfirmation:
+              latestAgentMessage.checkoutConfirmation &&
+              typeof latestAgentMessage.checkoutConfirmation === 'object'
+                ? latestAgentMessage.checkoutConfirmation
+                : undefined, // Validate checkout
+            purchaseRequest:
+              latestAgentMessage.purchaseRequest &&
+              typeof latestAgentMessage.purchaseRequest === 'object'
+                ? latestAgentMessage.purchaseRequest
+                : undefined, // Validate purchase request
           };
 
           setMessages((prev) => [...prev, agentMessage]);

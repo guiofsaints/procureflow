@@ -116,9 +116,17 @@ export async function POST(request: NextRequest) {
       conversationId: typedResponse.conversationId,
       messageCount: typedResponse.messages?.length || 0,
       hasMessages: !!typedResponse.messages,
-      lastMessageHasMetadata: typedResponse.messages?.[typedResponse.messages.length - 1]?.metadata ? true : false,
-      lastMessageMetadataKeys: typedResponse.messages?.[typedResponse.messages.length - 1]?.metadata 
-        ? Object.keys(typedResponse.messages[typedResponse.messages.length - 1].metadata!) 
+      lastMessageHasMetadata: typedResponse.messages?.[
+        typedResponse.messages.length - 1
+      ]?.metadata
+        ? true
+        : false,
+      lastMessageMetadataKeys: typedResponse.messages?.[
+        typedResponse.messages.length - 1
+      ]?.metadata
+        ? Object.keys(
+            typedResponse.messages[typedResponse.messages.length - 1].metadata!
+          )
         : [],
     });
 

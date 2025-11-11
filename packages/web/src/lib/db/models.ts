@@ -27,7 +27,7 @@ import type {
   CartDocument,
   PurchaseRequestDocument,
   AgentConversationDocument,
-} from '@/domain/mongo-schemas';
+} from '@/domain/documents';
 
 // Import schemas
 import AgentConversationSchema, {

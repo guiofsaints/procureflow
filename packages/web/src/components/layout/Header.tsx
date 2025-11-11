@@ -109,7 +109,7 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
                   <BreadcrumbItem>
                     {!isLast ? (
                       <BreadcrumbLink asChild>
-                        <Link 
+                        <Link
                           href={crumb.href}
                           onClick={() => handleBreadcrumbClick(crumb.href)}
                         >

@@ -5,8 +5,8 @@
  * conversation history management
  */
 
+import type { UserDocument } from '@/domain/documents';
 import type { User } from '@/domain/entities';
-import type { UserDocument } from '@/domain/mongo-schemas';
 import { UserModel, AgentConversationModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
 import { logger } from '@/lib/logger/winston.config';
@@ -163,7 +163,11 @@ export async function deleteConversation(
       throw new Error('Conversation not found or access denied');
     }
   } catch (error) {
-    logger.error('Error deleting conversation', { userId, conversationId, error });
+    logger.error('Error deleting conversation', {
+      userId,
+      conversationId,
+      error,
+    });
     throw new Error('Failed to delete conversation');
   }
 }
