@@ -8,6 +8,9 @@ import { NextResponse } from 'next/server';
 import { getConversationById } from '@/features/agent/lib/agent.service';
 import { badRequest, handleApiError, withAuth } from '@/lib/api';
 
+// Force dynamic rendering to prevent build-time errors with database
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth(async (_request, { userId, params }) => {
   try {
     const id = params?.id;

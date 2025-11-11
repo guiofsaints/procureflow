@@ -152,13 +152,20 @@ function detectProvider(): AIProvider {
   );
 }
 
-// Detect provider on module load
-const ACTIVE_PROVIDER = detectProvider();
-logger.info('AI Provider selected', {
-  provider: ACTIVE_PROVIDER,
-  model: PROVIDER_MODELS[ACTIVE_PROVIDER].default,
-  name: PROVIDER_MODELS[ACTIVE_PROVIDER].name,
-});
+// Lazy provider detection - only called when actually needed
+let ACTIVE_PROVIDER: AIProvider | null = null;
+
+function getActiveProvider(): AIProvider {
+  if (!ACTIVE_PROVIDER) {
+    ACTIVE_PROVIDER = detectProvider();
+    logger.info('AI Provider selected', {
+      provider: ACTIVE_PROVIDER,
+      model: PROVIDER_MODELS[ACTIVE_PROVIDER].default,
+      name: PROVIDER_MODELS[ACTIVE_PROVIDER].name,
+    });
+  }
+  return ACTIVE_PROVIDER;
+}
 
 // ============================================================================
 // Provider Factory
@@ -168,7 +175,7 @@ logger.info('AI Provider selected', {
  * Create chat model instance for the active provider
  */
 function createChatModel(config?: Partial<ProviderConfig>): BaseChatModel {
-  const provider = config?.provider || ACTIVE_PROVIDER;
+  const provider = config?.provider || getActiveProvider();
   const model = config?.model || PROVIDER_MODELS[provider].default;
   const temperature = config?.temperature ?? 0.7;
   const maxTokens = config?.maxTokens ?? 1000;

@@ -8,6 +8,9 @@ import { NextResponse } from 'next/server';
 import { listConversationsForUser } from '@/features/agent/lib/agent.service';
 import { handleApiError, withAuth } from '@/lib/api';
 
+// Force dynamic rendering to prevent build-time errors with database
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth(async (request, { userId }) => {
   try {
     // Check if MongoDB is configured

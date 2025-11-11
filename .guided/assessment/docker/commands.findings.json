@@ -1,0 +1,191 @@
+{
+  "metadata": {
+    "assessment_date": "2025-11-11",
+    "repository": "procureflow",
+    "branch": "main",
+    "assessor": "InfraAuditor",
+    "total_findings": 18
+  },
+  "findings": [
+    {
+      "id": "BUILD-001",
+      "title": "Docker build fails due to broken symlink strategy",
+      "severity": "critical",
+      "category": "build",
+      "evidence": "Error: Cannot find module '/app/packages/web/node_modules/next/dist/bin/next' - The symlink created in Dockerfile.web line 38 (ln -s /app/node_modules /app/packages/web/node_modules) fails because Next.js dependencies are not installed in the root node_modules in the container build context.",
+      "recommendation": "Remove the symlink approach and instead copy the built Next.js application properly. The Dockerfile should either: (1) Install dependencies directly in packages/web/node_modules, or (2) Use workspace hoisting correctly, or (3) Copy the complete node_modules from builder to runner stage.",
+      "owner": "DevOps/Platform",
+      "effort": "medium (4-8 hours)"
+    },
+    {
+      "id": "BUILD-002",
+      "title": "Missing .dockerignore file",
+      "severity": "high",
+      "category": "build",
+      "evidence": "No .dockerignore file found in repository root or infra package. Build context transfers 294.69MB including unnecessary files (node_modules from host, .git, build artifacts, etc.)",
+      "recommendation": "Create .dockerignore at repository root with:\nnode_modules/\n.git/\n.next/\ndist/\nbuild/\n*.log\n.env*\n!.env.example\n.DS_Store\ncoverage/\n.vscode/\n.idea/\n*.md\n!README.md",
+      "owner": "DevOps",
+      "effort": "quick (< 1 hour)"
+    },
+    {
+      "id": "BUILD-003",
+      "title": "Build cache not optimally utilized",
+      "severity": "medium",
+      "category": "performance",
+      "evidence": "First build downloads 1073 packages (19+ seconds). While pnpm cache mount exists, the layer ordering could be improved. Source code changes invalidate all subsequent layers.",
+      "recommendation": "Separate dependency installation from source code copying. Order layers from least to most frequently changing: base image → system dependencies → package manifests → install → source code → build.",
+      "owner": "DevOps",
+      "effort": "low (2-3 hours)"
+    },
+    {
+      "id": "SEC-001",
+      "title": "Base images not pinned by digest",
+      "severity": "high",
+      "category": "security",
+      "evidence": "Dockerfile uses 'node:20-alpine' and compose.yaml uses 'mongo:7.0' and 'mongo-express:1.0.0' - all tag-based references without SHA256 digest pinning. This allows silent updates that could introduce vulnerabilities or breaking changes.",
+      "recommendation": "Pin all base images by digest:\nnode:20-alpine@sha256:6178e78b972f79c335df281f4b7674a2d85071aae2af020ffa39f0a770265435\nmongo:7.0@sha256:<current_digest>\nmongo-express:1.0.0@sha256:<current_digest>\nUse 'docker inspect' or Docker Hub to get current digests. Automate digest updates via Dependabot or Renovate.",
+      "owner": "Security/DevOps",
+      "effort": "medium (3-4 hours including CI setup)"
+    },
+    {
+      "id": "SEC-002",
+      "title": "Environment variables warnings expose configuration issues",
+      "severity": "medium",
+      "category": "security",
+      "evidence": "All docker compose commands emit warnings:\n\"The 'MONGO_INITDB_ROOT_USERNAME' variable is not set. Defaulting to a blank string.\"\n\"The 'MONGO_INITDB_ROOT_PASSWORD' variable is not set. Defaulting to a blank string.\"\nThis occurs because compose.yaml references env_file but those variables are used in the mongo-express service environment section before files are loaded.",
+      "recommendation": "Refactor compose.yaml to remove direct variable interpolation in mongo-express service. Use defaults or ensure variables are exported to shell environment before running compose commands. Add validation script to check required env vars before operations.",
+      "owner": "DevOps",
+      "effort": "low (2 hours)"
+    },
+    {
+      "id": "SEC-003",
+      "title": "MongoDB credentials stored in plaintext .env files",
+      "severity": "high",
+      "category": "security",
+      "evidence": "Files env/.env.web and env/.env.mongo contain plaintext passwords (e.g., 'password'). While .gitignored, these files are copied during build and could leak in CI/CD logs or container inspection.",
+      "recommendation": "Implement secrets management:\n- Development: Use Docker secrets or encrypted env files (git-crypt, SOPS)\n- Production: Integrate with vault (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault)\n- CI/CD: Use GitHub Secrets or equivalent\nFor local dev, use .env.local pattern and document secret rotation procedures.",
+      "owner": "Security",
+      "effort": "high (1-2 weeks for full implementation)"
+    },
+    {
+      "id": "SEC-004",
+      "title": "No container security scanning in workflow",
+      "severity": "high",
+      "category": "security",
+      "evidence": "No evidence of vulnerability scanning (Trivy, Snyk, Grype) in package.json scripts or CI/CD config. Base images and dependencies could contain known CVEs.",
+      "recommendation": "Add Trivy scanning:\n1. Add script: \"docker:scan\": \"docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image procureflow-web:latest\"\n2. Integrate into CI/CD pipeline as required check\n3. Configure severity threshold (e.g., fail on HIGH/CRITICAL)\n4. Scan both built images and base images",
+      "owner": "Security/DevOps",
+      "effort": "medium (4-6 hours)"
+    },
+    {
+      "id": "SEC-005",
+      "title": "Exposed MongoDB port with default credentials",
+      "severity": "critical",
+      "category": "security",
+      "evidence": "MongoDB port 27017 exposed to host (0.0.0.0:27017) with default credentials (admin/password). This is acceptable for local dev but extremely dangerous if deployed to cloud or accessible networks.",
+      "recommendation": "1. Add compose profiles: expose ports only in 'dev' and 'debug' profiles, not 'prod'\n2. For production, use internal Docker networks only (remove ports mapping)\n3. Implement network policies/firewall rules\n4. Force strong password generation on first boot\n5. Add startup validation to reject default credentials in production",
+      "owner": "Security/DevOps",
+      "effort": "medium (4-6 hours)"
+    },
+    {
+      "id": "OPS-001",
+      "title": "Empty MongoDB init scripts directory",
+      "severity": "low",
+      "category": "static",
+      "evidence": "Directory packages/infra/docker/mongo-init/ is empty but mounted in compose.yaml. No initial database seeding, user creation, or index setup occurs automatically.",
+      "recommendation": "Populate mongo-init with:\n- 001-create-app-user.js: Create application user with least privilege\n- 002-create-collections.js: Initialize required collections\n- 003-create-indexes.js: Create text search and performance indexes\nAlternatively, document that seeding occurs via application scripts (packages/web/scripts/) and consider moving init logic there.",
+      "owner": "Backend/Platform",
+      "effort": "medium (6-8 hours)"
+    },
+    {
+      "id": "OPS-002",
+      "title": "No resource limits defined for containers",
+      "severity": "medium",
+      "category": "reliability",
+      "evidence": "Neither web nor mongo services define memory/CPU limits in compose.yaml. Containers can consume unbounded resources, causing OOM kills or noisy neighbor issues.",
+      "recommendation": "Add deploy.resources to all services:\nweb:\n  deploy:\n    resources:\n      limits:\n        cpus: '2.0'\n        memory: 2G\n      reservations:\n        cpus: '0.5'\n        memory: 512M\nmongo:\n  deploy:\n    resources:\n      limits:\n        cpus: '1.0'\n        memory: 1G\nAdjust based on load testing results.",
+      "owner": "DevOps/SRE",
+      "effort": "low (2-3 hours including testing)"
+    },
+    {
+      "id": "OPS-003",
+      "title": "Missing graceful shutdown configuration",
+      "severity": "medium",
+      "category": "reliability",
+      "evidence": "No stop_grace_period defined in compose.yaml. Default 10s timeout may be insufficient for Next.js to drain connections or MongoDB to flush writes, causing data loss or dropped requests.",
+      "recommendation": "Add stop_grace_period and stop_signal:\nweb:\n  stop_grace_period: 30s\n  stop_signal: SIGTERM\nmongo:\n  stop_grace_period: 60s\n  stop_signal: SIGTERM\nEnsure Next.js handles SIGTERM correctly (process.on('SIGTERM', cleanup)).",
+      "owner": "Backend/DevOps",
+      "effort": "low (2-3 hours)"
+    },
+    {
+      "id": "OBS-001",
+      "title": "MongoDB logs in JSON format create noise",
+      "severity": "low",
+      "category": "observability",
+      "evidence": "MongoDB logs in JSON format with verbose connection lifecycle events (connection accepted, connection ended). 50 lines of logs contain ~40 connection events. Difficult to spot actual errors or slow queries.",
+      "recommendation": "Configure MongoDB log verbosity:\n1. Add to compose environment:\n   MONGO_INITDB_LOG_LEVEL: 'warn'\n2. Mount custom mongod.conf to disable verbose connection logging\n3. Implement log aggregation (Loki, ELK) with filters for connection events\n4. For development, use docker:logs with --since and --until flags",
+      "owner": "SRE/Platform",
+      "effort": "low (2-4 hours)"
+    },
+    {
+      "id": "OBS-002",
+      "title": "No structured logging in application",
+      "severity": "medium",
+      "category": "observability",
+      "evidence": "While MongoDB uses JSON logs, no evidence of structured logging for Next.js application. Plain console.log makes parsing, alerting, and dashboards difficult.",
+      "recommendation": "Implement structured logging:\n1. Add pino or winston to packages/web\n2. Configure ECS-compatible JSON format\n3. Include traceId, userId, requestId in all logs\n4. Add log sampling for high-volume endpoints\n5. Update docker:logs scripts to parse JSON (docker compose logs web | jq)",
+      "owner": "Backend",
+      "effort": "medium (1 week)"
+    },
+    {
+      "id": "OBS-003",
+      "title": "Missing health check endpoint implementation",
+      "severity": "high",
+      "category": "reliability",
+      "evidence": "compose.yaml defines healthcheck for web service using /api/health endpoint, but no confirmation this endpoint exists or returns proper status codes. Build failure prevents runtime validation.",
+      "recommendation": "1. Verify /api/health exists in packages/web/src/app/api/health/route.ts\n2. Health check should verify: database connectivity, external API availability, disk space\n3. Return 200 for healthy, 503 for unhealthy with JSON body: {\"status\": \"healthy\", \"checks\": {...}}\n4. Add integration test for health endpoint\n5. Document expected response format",
+      "owner": "Backend",
+      "effort": "low (2-4 hours)"
+    },
+    {
+      "id": "DX-001",
+      "title": "No help text or documentation for docker scripts",
+      "severity": "low",
+      "category": "dx",
+      "evidence": "Running 'pnpm --filter @procureflow/infra' lists scripts but provides no context. New developers must read package.json to understand what each script does. No README in packages/infra/.",
+      "recommendation": "1. Create packages/infra/README.md with:\n   - Quick start guide\n   - Script descriptions and usage examples\n   - Prerequisites (Docker, env files)\n   - Troubleshooting section\n2. Add 'help' script that prints usage\n3. Add pre-flight checks (docker daemon running, env files exist)\n4. Consider adding Makefile as alternative interface",
+      "owner": "DevOps/Documentation",
+      "effort": "medium (4-6 hours)"
+    },
+    {
+      "id": "DX-002",
+      "title": "docker:logs command lacks filtering options",
+      "severity": "low",
+      "category": "dx",
+      "evidence": "docker:logs runs with -f (follow) flag, blocking terminal. No way to see logs for specific time range, service, or with line limits. Separate scripts exist for web/mongo but not for general use.",
+      "recommendation": "Enhance logging scripts:\n1. Add: \"docker:logs:tail\": \"docker compose logs --tail=100\"\n2. Add: \"docker:logs:since\": \"docker compose logs --since=1h\"\n3. Add: \"docker:logs:errors\": \"docker compose logs | grep -i error\"\n4. Make docker:logs:web and docker:logs:mongo non-blocking (remove -f)\n5. Document in README when to use each variant",
+      "owner": "DevOps",
+      "effort": "quick (1-2 hours)"
+    },
+    {
+      "id": "DX-003",
+      "title": "No one-command bootstrap for new developers",
+      "severity": "medium",
+      "category": "dx",
+      "evidence": "New developers must: (1) copy .env.example files, (2) edit secrets, (3) run docker:build, (4) run docker:up. No automated setup or validation. High friction for onboarding.",
+      "recommendation": "Create bootstrap script:\n1. Add: \"docker:bootstrap\": \"node scripts/bootstrap.js\"\n2. Script should:\n   - Check Docker daemon running\n   - Copy .env.example → .env.web, .env.mongo if not exist\n   - Generate NEXTAUTH_SECRET automatically\n   - Validate all required vars set\n   - Run docker:build && docker:up\n   - Wait for health checks\n   - Print success message with URLs\n3. Document in root README.md",
+      "owner": "DevOps/DX",
+      "effort": "medium (6-8 hours)"
+    },
+    {
+      "id": "PERF-001",
+      "title": "Large build context slows iteration",
+      "severity": "medium",
+      "category": "performance",
+      "evidence": "Build context transfer took 24.2s and transferred 294.69MB. Without .dockerignore, every build includes unnecessary files (host node_modules, git history, build artifacts).",
+      "recommendation": "Combined with BUILD-002: After adding .dockerignore, build context should drop to <50MB. Measure before/after build times. Target: <5s for context transfer, <2min for full build with warm cache.",
+      "owner": "DevOps",
+      "effort": "quick (included in BUILD-002)"
+    }
+  ]
+}

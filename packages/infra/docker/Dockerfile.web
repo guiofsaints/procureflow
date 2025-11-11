@@ -4,7 +4,8 @@
 # ============================================================================
 # Base Stage: Set up Node.js with corepack and pnpm
 # ============================================================================
-FROM node:20-alpine AS base
+# Pinned to SHA256 digest for security and reproducibility (node:20-alpine as of 2025-11-11)
+FROM node:20-alpine@sha256:6178e78b972f79c335df281f4b7674a2d85071aae2af020ffa39f0a770265435 AS base
 
 # Install curl for healthchecks (Alpine minimal)
 RUN apk add --no-cache curl
@@ -27,18 +28,16 @@ COPY tsconfig.json ./
 
 # Install dependencies with pnpm cache mount for faster rebuilds
 # Cache location: /root/.local/share/pnpm/store
+# Use --shamefully-hoist to ensure Next.js can find all dependencies
+# This flattens the node_modules structure for better compatibility with Next.js/Turbopack
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-  pnpm install --frozen-lockfile
-
-# Copy root node_modules to make packages resolvable for Turbopack
-# This is required for Next.js 16 Turbopack in monorepo setups
-RUN ln -s /app/node_modules /app/packages/web/node_modules
+  pnpm install --frozen-lockfile --shamefully-hoist
 
 # Copy application source code
 COPY packages/web ./packages/web
 
 # Build Next.js application (outputs to .next/standalone)
-# Build from packages/web directory with node_modules accessible from root
+# Build from packages/web directory with hoisted node_modules
 # Set Turbopack root to /app for monorepo support
 WORKDIR /app/packages/web
 ENV NEXT_PRIVATE_TURBOPACK_ROOT=/app
@@ -47,7 +46,8 @@ RUN pnpm build
 # ============================================================================
 # Runner Stage: Minimal production runtime
 # ============================================================================
-FROM node:20-alpine AS runner
+# Pinned to SHA256 digest for security and reproducibility (node:20-alpine as of 2025-11-11)
+FROM node:20-alpine@sha256:6178e78b972f79c335df281f4b7674a2d85071aae2af020ffa39f0a770265435 AS runner
 
 # Install curl for healthcheck (compose-based)
 RUN apk add --no-cache curl
@@ -65,8 +65,9 @@ WORKDIR /app
 # Copy Next.js standalone output from builder
 # Standalone includes minimal dependencies and server.js entry point
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./public
+# Static files need to be in packages/web/.next/static for standalone server
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
 
 # Switch to non-root user
 USER nextjs
@@ -78,5 +79,5 @@ EXPOSE 3000
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3000
 
-# Start application (standalone server.js)
-CMD ["node", "server.js"]
+# Start application (standalone server.js is in packages/web/)
+CMD ["node", "packages/web/server.js"]

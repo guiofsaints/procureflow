@@ -37,7 +37,8 @@ services:
   # MongoDB Database
   # ============================================================================
   mongo:
-    image: mongo:7.0
+    # Pinned to SHA256 digest for security and reproducibility (mongo:7.0 as of 2025-11-11)
+    image: mongo:7.0@sha256:a814f930db8c4514f5fe5dc3e489f58637fb7ee32a7b9bb0b7064d3274e90b8e
     container_name: procureflow-mongo
     ports:
       - '27017:27017'
@@ -64,18 +65,19 @@ services:
   # Mongo Express (Database Admin UI - Debug Only)
   # ============================================================================
   mongo-express:
-    image: mongo-express:1.0.0
+    # Pinned to SHA256 digest for security and reproducibility (mongo-express:1.0.0 as of 2025-11-11)
+    image: mongo-express:1.0.0@sha256:52f18378afac432973cbd36086a7ca2357c983af39f0e24c3e21c151663e417a
     container_name: procureflow-mongo-express
     ports:
       - '8081:8081'
     env_file:
       - env/.env.mongo
     environment:
-      # Load credentials from mongo env_file
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      # Load credentials from mongo env_file with defaults to prevent warnings
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME:-admin}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-password}
       # Explicit authSource for root user authentication
-      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/?authSource=admin
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME:-admin}:${MONGO_INITDB_ROOT_PASSWORD:-password}@mongo:27017/?authSource=admin
       - ME_CONFIG_BASICAUTH=false
     depends_on:
       mongo:

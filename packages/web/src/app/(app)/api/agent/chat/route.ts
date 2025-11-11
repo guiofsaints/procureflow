@@ -18,6 +18,9 @@ import { validateWithModeration } from '@/lib/validation/moderation';
 import { validateUserInput } from '@/lib/validation/promptInjection';
 import { validateAgentMessageRequest } from '@/lib/validation/schemas';
 
+// Force dynamic rendering to prevent build-time errors with AI provider
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/agent/chat
  *
