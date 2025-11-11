@@ -29,12 +29,14 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W1.1: TypeScript Strict Mode Migration 🔴 CRITICAL
 
 **Acceptance Criteria**:
+
 - [ ] `strict: true` enabled in tsconfig
 - [ ] `ignoreBuildErrors: false` in next.config
 - [ ] Zero TypeScript compilation errors
 - [ ] tsc completes without OOM
 
 **Tasks**:
+
 1. **Enable noImplicitAny** (Week 1)
    - Add `noImplicitAny: true` to tsconfig
    - Fix ~50-100 implicit any errors in services
@@ -64,6 +66,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: None
 
 **Metrics**:
+
 - Before: `strict: false`, type coverage ~40%
 - After: `strict: true`, type coverage 95%+
 
@@ -72,12 +75,15 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W1.2: Eliminate any Types in Service Layer 🔴 CRITICAL
 
 **Acceptance Criteria**:
+
 - [ ] Zero explicit `any` types in service files
 - [ ] All Mongoose documents properly typed
 - [ ] All ESLint suppressions removed (`@typescript-eslint/no-explicit-any`)
 
 **Tasks**:
+
 1. **Create Typed Document Interfaces** (Week 1)
+
    ```typescript
    // lib/db/types/cart.types.ts
    export interface CartDocument extends Document {
@@ -91,6 +97,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
    ```
 
 2. **Create Shared Mapper Utilities** (Week 2)
+
    ```typescript
    // lib/db/mappers/cart.mapper.ts
    export function mapCartDocumentToEntity(doc: CartDocument): Cart {
@@ -118,6 +125,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Files Changed**: 6 service files, 3 new mapper files, 3 new type files
 
 **Metrics**:
+
 - Before: 20+ `any` types, 18 ESLint suppressions
 - After: 0 `any` types, 0 suppressions
 
@@ -126,11 +134,13 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W1.3: React Hooks Violations 🟠 HIGH
 
 **Acceptance Criteria**:
+
 - [ ] All useEffect hooks have correct dependencies
 - [ ] Zero `exhaustive-deps` ESLint suppressions
 - [ ] No stale closure bugs
 
 **Tasks**:
+
 1. **Fix useAgentConversations** (Week 1)
    - Wrap `fetchConversations` in `useCallback`
    - Add to useEffect dependency array
@@ -151,6 +161,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: None
 
 **Metrics**:
+
 - Before: 4 hooks violations
 - After: 0 violations
 
@@ -159,12 +170,15 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W1.4: Add Error Boundaries 🟠 HIGH
 
 **Acceptance Criteria**:
+
 - [ ] `error.tsx` in all route segments
 - [ ] Global error boundary in root layout
 - [ ] Error telemetry logging
 
 **Tasks**:
+
 1. **Create Error Templates** (Week 2)
+
    ```typescript
    // app/(app)/error.tsx
    'use client';
@@ -192,6 +206,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: None
 
 **Metrics**:
+
 - Before: 0% error boundary coverage
 - After: 100% coverage
 
@@ -200,11 +215,13 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W1.5: Add Loading States 🟡 MEDIUM
 
 **Acceptance Criteria**:
+
 - [ ] `loading.tsx` in all data-fetching routes
 - [ ] Skeleton components for all major views
 - [ ] No blank screen during navigation
 
 **Tasks**:
+
 1. **Create Skeleton Components** (Week 3)
    - CatalogSkeleton
    - CartSkeleton
@@ -220,6 +237,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: None
 
 **Metrics**:
+
 - Before: 0% loading state coverage
 - After: 100% coverage
 
@@ -237,11 +255,13 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W2.1: Deduplication - Mongoose Mappers 🔴 CRITICAL
 
 **Acceptance Criteria**:
+
 - [ ] Shared mapper utilities for all models
 - [ ] ~180 duplicate LOC removed
 - [ ] 100% test coverage for mappers
 
 **Tasks**:
+
 1. **Create Mapper Library** (Week 5)
    - lib/db/mappers/cart.mapper.ts
    - lib/db/mappers/item.mapper.ts
@@ -263,6 +283,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: W1.2 (typed documents)
 
 **Metrics**:
+
 - Before: 180 duplicate LOC across 6 files
 - After: 0 duplication, ~30 LOC in mappers
 
@@ -271,28 +292,37 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W2.2: Deduplication - API Error Handling 🟠 HIGH
 
 **Acceptance Criteria**:
+
 - [ ] Centralized `handleApiError()` utility
 - [ ] All routes use winston logger (zero console.error)
 - [ ] Correlation IDs in all error responses
 - [ ] ~200 duplicate LOC removed
 
 **Tasks**:
+
 1. **Create Error Handler** (Week 5)
+
    ```typescript
    // lib/api/errorHandler.ts
-   export function handleApiError(error: unknown, context: ErrorContext): NextResponse {
+   export function handleApiError(
+     error: unknown,
+     context: ErrorContext
+   ): NextResponse {
      const correlationId = crypto.randomUUID();
      logger.error('API error', { correlationId, ...context, error });
 
-     return NextResponse.json({
-       success: false,
-       error: {
-         code: getErrorCode(error),
-         message: error instanceof Error ? error.message : 'Unknown error',
-         correlationId,
-         timestamp: new Date().toISOString(),
+     return NextResponse.json(
+       {
+         success: false,
+         error: {
+           code: getErrorCode(error),
+           message: error instanceof Error ? error.message : 'Unknown error',
+           correlationId,
+           timestamp: new Date().toISOString(),
+         },
        },
-     }, { status: getStatusCode(error) });
+       { status: getStatusCode(error) }
+     );
    }
    ```
 
@@ -306,6 +336,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: None
 
 **Metrics**:
+
 - Before: 200 duplicate LOC, console.error in 40 files
 - After: 0 duplication, winston logger everywhere
 
@@ -314,12 +345,15 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W2.3: Deduplication - Auth Boilerplate 🟡 MEDIUM
 
 **Acceptance Criteria**:
+
 - [ ] `withAuth()` HOF or middleware
 - [ ] ~150 duplicate LOC removed
 - [ ] Consistent 401 responses
 
 **Tasks**:
+
 1. **Create Auth Wrapper** (Week 6)
+
    ```typescript
    // lib/api/withAuth.ts
    export function withAuth(handler: AuthenticatedHandler) {
@@ -327,13 +361,13 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
        const session = await getServerSession(authConfig);
 
        if (!session || !session.user?.id) {
-         return NextResponse.json(
-           { error: 'Unauthorized' },
-           { status: 401 }
-         );
+         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
        }
 
-       return handler(request, { userId: session.user.id, params: context?.params });
+       return handler(request, {
+         userId: session.user.id,
+         params: context?.params,
+       });
      };
    }
    ```
@@ -348,6 +382,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: W2.2 (error handling)
 
 **Metrics**:
+
 - Before: 150 duplicate LOC
 - After: 1 shared implementation
 
@@ -356,11 +391,13 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W2.4: Split agent.service.ts 🟠 HIGH
 
 **Acceptance Criteria**:
+
 - [ ] agent.service.ts < 500 LOC
 - [ ] 6 focused modules created
 - [ ] Cyclomatic complexity < 15 per function
 
 **Tasks**:
+
 1. **Extract Modules** (Week 7)
    - agent-tools.ts (400 LOC) - Tool definitions
    - agent-executor.ts (enhance existing, 200 LOC)
@@ -381,6 +418,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: W2.1 (mappers)
 
 **Metrics**:
+
 - Before: 1,503 LOC, CC ~80
 - After: 6 files <500 LOC each, CC <15
 
@@ -389,12 +427,14 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W2.5: API Improvements 🟡 MEDIUM
 
 **Acceptance Criteria**:
+
 - [ ] Standardized error responses
 - [ ] Pagination with cursor
 - [ ] Filtering & sorting
 - [ ] Missing update endpoints implemented
 
 **Tasks**:
+
 1. **Implement PUT /api/items/:id** (Week 7)
    - Add updateItem() to catalog.service
    - Create PUT handler
@@ -414,6 +454,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: W2.2 (error handling)
 
 **Metrics**:
+
 - Before: No update endpoint, basic search only
 - After: Full CRUD, advanced filtering
 
@@ -431,11 +472,13 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W3.1: Testing Infrastructure 🟡 MEDIUM
 
 **Acceptance Criteria**:
+
 - [ ] 80%+ test coverage (unit + integration)
 - [ ] CI runs tests on every PR
 - [ ] E2E tests for critical flows
 
 **Tasks**:
+
 1. **Setup Testing Framework** (Week 9)
    - Install Vitest + Testing Library
    - Configure coverage reporting
@@ -460,6 +503,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: W2.1, W2.2 (refactored code easier to test)
 
 **Metrics**:
+
 - Before: 0% test coverage
 - After: 80%+ coverage
 
@@ -468,12 +512,14 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W3.2: Observability & Monitoring 🟡 MEDIUM
 
 **Acceptance Criteria**:
+
 - [ ] Structured logging to Loki (already configured)
 - [ ] Prometheus metrics exposed
 - [ ] Error tracking with correlation IDs
 - [ ] Dashboard for key metrics
 
 **Tasks**:
+
 1. **Audit Logging** (Week 9)
    - Ensure all API routes use winston logger
    - Add request ID middleware
@@ -494,6 +540,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: W2.2 (error handling with correlation IDs)
 
 **Metrics**:
+
 - Before: Basic Prometheus metrics, console.error
 - After: Full observability stack
 
@@ -502,11 +549,13 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W3.3: Performance Optimization 🟢 LOW
 
 **Acceptance Criteria**:
+
 - [ ] Lighthouse score >90
 - [ ] API response time <200ms (p95)
 - [ ] Client bundle <500KB
 
 **Tasks**:
+
 1. **React Optimization** (Week 11)
    - Add React.memo to expensive components (AgentProductCard)
    - Profile with React DevTools
@@ -527,6 +576,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 **Dependencies**: W3.1 (performance tests)
 
 **Metrics**:
+
 - Before: Lighthouse ~75, bundle ~600KB
 - After: Lighthouse >90, bundle <500KB
 
@@ -535,12 +585,14 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ### W3.4: Documentation & Developer Experience 🟢 LOW
 
 **Acceptance Criteria**:
+
 - [ ] JSDoc comments on all public service functions
 - [ ] OpenAPI schema auto-generated from Zod
 - [ ] README with setup instructions updated
 - [ ] ADR documents for all major decisions
 
 **Tasks**:
+
 1. **Add JSDoc** (Week 12)
    - All service functions
    - All mappers
@@ -564,12 +616,12 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 
 ## Summary: Effort & Impact
 
-| Wave | Duration | Effort (hours) | Risk | Impact | ROI |
-|------|----------|----------------|------|--------|-----|
-| Wave 1 | Weeks 1-4 | 130 | HIGH→MEDIUM | Restore type safety, fix builds | CRITICAL |
-| Wave 2 | Weeks 5-8 | 160 | MEDIUM→LOW | Remove 500+ duplicate LOC | HIGH |
-| Wave 3 | Weeks 9-12 | 110 | LOW | Production readiness | MEDIUM |
-| **Total** | **12 weeks** | **400 hours** | | | |
+| Wave      | Duration     | Effort (hours) | Risk        | Impact                          | ROI      |
+| --------- | ------------ | -------------- | ----------- | ------------------------------- | -------- |
+| Wave 1    | Weeks 1-4    | 130            | HIGH→MEDIUM | Restore type safety, fix builds | CRITICAL |
+| Wave 2    | Weeks 5-8    | 160            | MEDIUM→LOW  | Remove 500+ duplicate LOC       | HIGH     |
+| Wave 3    | Weeks 9-12   | 110            | LOW         | Production readiness            | MEDIUM   |
+| **Total** | **12 weeks** | **400 hours**  |             |                                 |          |
 
 ---
 
@@ -595,18 +647,21 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ## Success Metrics
 
 ### Wave 1 Completion
+
 - ✅ `pnpm build` succeeds with zero TypeScript errors
 - ✅ `pnpm tsc --noEmit` completes without OOM
 - ✅ Zero `any` types in service layer
 - ✅ 100% error boundary coverage
 
 ### Wave 2 Completion
+
 - ✅ ~500 duplicate LOC removed
 - ✅ All route handlers use shared utilities
 - ✅ agent.service.ts split into 6 modules
 - ✅ Full CRUD API for catalog items
 
 ### Wave 3 Completion
+
 - ✅ 80%+ test coverage
 - ✅ Lighthouse score >90
 - ✅ API p95 latency <200ms
@@ -624,6 +679,7 @@ This refactor plan addresses **68 code smells** across 11 categories identified 
 ---
 
 **See Also**:
+
 - `refactor.todo.json` - Backlog of all 68 tasks
 - `ADR-001-code-structure-simplification.md` - Architectural decision record
 - Individual audit reports - Detailed findings per domain

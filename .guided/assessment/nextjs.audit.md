@@ -21,32 +21,34 @@
 
 ```javascript
 const nextConfig = {
-  output: 'standalone',  // ✅ Good for Docker
-  compress: true,  // ✅ Good for production
-  poweredByHeader: false,  // ✅ Security best practice
+  output: 'standalone', // ✅ Good for Docker
+  compress: true, // ✅ Good for production
+  poweredByHeader: false, // ✅ Security best practice
 
   typescript: {
-    ignoreBuildErrors: true,  // ❌ CRITICAL: Type errors ignored
+    ignoreBuildErrors: true, // ❌ CRITICAL: Type errors ignored
   },
 
-  serverExternalPackages: ['winston-loki', 'snappy', 'tiktoken'],  // ✅ Correct
+  serverExternalPackages: ['winston-loki', 'snappy', 'tiktoken'], // ✅ Correct
 
   async redirects() {
-    return [];  // Empty, acceptable
+    return []; // Empty, acceptable
   },
 
   async rewrites() {
-    return [];  // Empty, acceptable
+    return []; // Empty, acceptable
   },
 };
 ```
 
 ### Issues
+
 1. **`ignoreBuildErrors: true`** - Ships with type errors ❌
 2. **No `images` domains** - Acceptable if no external images
 3. **No `experimental` features** - Acceptable
 
 ### Recommendations
+
 ```javascript
 const nextConfig = {
   output: 'standalone',
@@ -54,7 +56,7 @@ const nextConfig = {
   poweredByHeader: false,
 
   typescript: {
-    ignoreBuildErrors: false,  // ✅ Enforce type safety
+    ignoreBuildErrors: false, // ✅ Enforce type safety
   },
 
   // Add if using external images
@@ -62,14 +64,14 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',  // Or specific domains
+        hostname: '**', // Or specific domains
       },
     ],
   },
 
   // Consider enabling
   experimental: {
-    typedRoutes: true,  // Type-safe navigation
+    typedRoutes: true, // Type-safe navigation
   },
 };
 ```
@@ -79,6 +81,7 @@ const nextConfig = {
 ## 2. App Router Structure ✅ EXCELLENT
 
 **Directory Organization**:
+
 ```
 app/
   (public)/              # Unauthenticated routes
@@ -119,9 +122,11 @@ app/
 ## 3. Server vs Client Components ✅ EXCELLENT
 
 ### Server Components (Default)
+
 **Files**: All `page.tsx` files without `'use client'`
 
 **Example**:
+
 ```typescript
 // app/(app)/catalog/page.tsx
 import { searchItems } from '@/features/catalog';
@@ -137,9 +142,11 @@ export default async function CatalogPage() {
 ---
 
 ### Client Components
+
 **Pattern**: `'use client'` only for interactivity
 
 **Examples**:
+
 - `features/agent/components/AgentChatPageContent.tsx` - Form handling
 - `features/catalog/components/CatalogPageContent.tsx` - Filtering
 - `components/layout/ThemeToggle.tsx` - Theme switching
@@ -151,6 +158,7 @@ export default async function CatalogPage() {
 ## 4. Data Fetching Patterns
 
 ### Current Pattern: Direct Service Calls in Server Components
+
 ```typescript
 // app/(app)/agent/page.tsx
 import { getConversationById } from '@/features/agent';
@@ -170,11 +178,13 @@ export default async function AgentPage({ searchParams }: { searchParams: { id?:
 ---
 
 ### Missing Patterns
+
 1. **No `loading.tsx` files** - Users see blank page during data fetch
 2. **No `error.tsx` boundaries** - Errors crash entire route
 3. **No Suspense boundaries** - Cannot stream UI
 
 **Recommendations**:
+
 ```typescript
 // app/(app)/catalog/loading.tsx
 export default function Loading() {
@@ -193,13 +203,16 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
 ## 5. Caching Strategy
 
 ### Current State
+
 **No explicit caching configuration detected**
 
 **Next.js Default Behavior**:
+
 - Static routes: Cached indefinitely
 - Dynamic routes with DB calls: Not cached (correct for real-time data)
 
 ### Segment Config (Missing)
+
 **Recommendation**: Add route segment config where appropriate
 
 ```typescript
@@ -214,6 +227,7 @@ export default async function CatalogPage() {
 ```
 
 **When to use**:
+
 - `revalidate`: For semi-static data (catalog items)
 - `dynamic = 'force-dynamic'`: For user-specific data (cart, purchases)
 - `dynamic = 'force-static'`: For static pages (docs)
@@ -223,7 +237,9 @@ export default async function CatalogPage() {
 ## 6. Route Handlers (API Routes)
 
 ### Pattern: Thin Wrappers ✅ GOOD
+
 **Example**:
+
 ```typescript
 // app/(app)/api/items/route.ts
 export async function GET(request: NextRequest) {
@@ -246,11 +262,13 @@ export async function GET(request: NextRequest) {
 ---
 
 ### Issues
+
 1. **No HTTP method validation** - Could add explicit 405 responses
 2. **No rate limiting** - Consider Vercel Edge Config or Upstash
 3. **No CORS headers** - Acceptable if same-origin only
 
 **Recommendations**:
+
 ```typescript
 // Unsupported methods return 405
 export async function PUT() {
@@ -266,6 +284,7 @@ export async function PUT() {
 ## 7. Metadata & SEO
 
 ### Current State
+
 **No `metadata` exports detected in page files**
 
 **Recommendation**: Add metadata for SEO
@@ -289,6 +308,7 @@ export default async function CatalogPage() {
 ## 8. Layouts & Templates
 
 ### Root Layout
+
 **File**: `app/layout.tsx`
 
 ```typescript
@@ -313,7 +333,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ---
 
 ### Nested Layouts
+
 **Files**:
+
 - `app/(public)/layout.tsx` - Public layout (no auth)
 - `app/(app)/layout.tsx` - App layout with AppShell
 
@@ -403,7 +425,10 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  if (pathname.startsWith('/api/cart') || pathname.startsWith('/api/checkout')) {
+  if (
+    pathname.startsWith('/api/cart') ||
+    pathname.startsWith('/api/checkout')
+  ) {
     const session = await getServerSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -423,9 +448,11 @@ export const config = {
 ## 13. Anti-Patterns Detected
 
 ### ❌ Using Client Components for Static Content
+
 **Observation**: Most components properly separated
 
 ### ❌ Over-Fetching in Client Components
+
 **Example**: `useAgentConversations` fetches all conversations client-side
 
 **Fix**: Move to Server Component with pagination
@@ -435,16 +462,19 @@ export const config = {
 ## Summary & Recommendations
 
 ### Critical (Week 1)
+
 1. ❌ **Remove `ignoreBuildErrors: true`** from next.config.mjs
 2. ✅ **Add `error.tsx` boundaries** to all route segments
 3. ✅ **Add `loading.tsx` skeletons** for better UX
 
 ### High Priority (Month 1)
+
 4. ✅ **Add metadata exports** for SEO
 5. ✅ **Implement middleware** for auth (reduce duplication)
 6. ✅ **Add Suspense boundaries** for streaming
 
 ### Medium Priority (Quarter 1)
+
 7. ✅ **Configure caching** with `revalidate` where appropriate
 8. ✅ **Add `next/font` optimization**
 9. ✅ **Add `next/image` for assets**
@@ -454,12 +484,14 @@ export const config = {
 ## Metrics & Goals
 
 ### Current State
+
 - TypeScript errors: Ignored in build ❌
 - loading.tsx coverage: 0%
 - error.tsx coverage: 0%
 - Metadata coverage: 0%
 
 ### Target State (8 weeks)
+
 - TypeScript errors: 0 (enforced)
 - loading.tsx coverage: 100%
 - error.tsx coverage: 100%

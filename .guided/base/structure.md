@@ -82,18 +82,18 @@ This document defines the canonical `.guided/` folder structure for Guided Engin
 
 ### Specific Patterns
 
-| Category | Pattern | Example |
-|----------|---------|---------|
-| Base docs | `*.md` | `project.structure.md` |
-| Product docs | `*.md` | `prd.md`, `roadmap.md` |
-| Architecture | `*.md` | `stack.md`, `context.md` |
-| ADRs | `NNNN-title.md` | `0001-use-nextjs.md` |
-| Assessment | `*.md` | `summary.md`, `risks.md` |
-| Testing | `*.md` | `strategy.md`, `coverage.md` |
-| Operation | `*.md` | `worklog.md`, `changelog.md` |
-| Personas | `*.persona.yml` | `backend-developer.persona.yml` |
-| Prompts | `*.prompt.yml` | `create-feature.prompt.yml` |
-| Schemas | `*.schema.json` | `prompt.schema.json` |
+| Category     | Pattern         | Example                         |
+| ------------ | --------------- | ------------------------------- |
+| Base docs    | `*.md`          | `project.structure.md`          |
+| Product docs | `*.md`          | `prd.md`, `roadmap.md`          |
+| Architecture | `*.md`          | `stack.md`, `context.md`        |
+| ADRs         | `NNNN-title.md` | `0001-use-nextjs.md`            |
+| Assessment   | `*.md`          | `summary.md`, `risks.md`        |
+| Testing      | `*.md`          | `strategy.md`, `coverage.md`    |
+| Operation    | `*.md`          | `worklog.md`, `changelog.md`    |
+| Personas     | `*.persona.yml` | `backend-developer.persona.yml` |
+| Prompts      | `*.prompt.yml`  | `create-feature.prompt.yml`     |
+| Schemas      | `*.schema.json` | `prompt.schema.json`            |
 
 ## Purpose and Usage
 
@@ -162,14 +162,14 @@ AI agent persona definitions for different engineering roles.
 
 - **personas.yml**: Registry of all available personas
 - **template.persona.yml**: Template for creating new personas
-- ***.persona.yml**: Individual persona definitions
+- **\*.persona.yml**: Individual persona definitions
 
 ### Prompts (`prompts/`)
 
 Structured, reusable prompts for common engineering tasks.
 
 - **template.prompt.yml**: Template for creating new prompts
-- ***.prompt.yml**: Individual prompt definitions
+- **\*.prompt.yml**: Individual prompt definitions
 
 ### Schema (`schema/`)
 

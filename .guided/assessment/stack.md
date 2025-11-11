@@ -60,24 +60,24 @@
 
 ## Version Currency
 
-| Tech | Current | Latest | Gap |
-|------|---------|--------|-----|
-| Next.js | 16.0.1 | 16.0.1 | ✅ Latest |
-| React | 19.2.0 | 19.2.0 | ✅ Latest |
-| TypeScript | 5.9.3 | 5.7.x | ⚠️ One minor behind |
-| Mongoose | 8.10.6 | 8.10.x | ✅ Latest |
-| LangChain | 1.0.x | 1.0.x | ✅ Latest |
+| Tech       | Current | Latest | Gap                 |
+| ---------- | ------- | ------ | ------------------- |
+| Next.js    | 16.0.1  | 16.0.1 | ✅ Latest           |
+| React      | 19.2.0  | 19.2.0 | ✅ Latest           |
+| TypeScript | 5.9.3   | 5.7.x  | ⚠️ One minor behind |
+| Mongoose   | 8.10.6  | 8.10.x | ✅ Latest           |
+| LangChain  | 1.0.x   | 1.0.x  | ✅ Latest           |
 
 **Verdict**: Stack is current and well-maintained
 
 ## Risk Assessment
 
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-| OpenAI rate limits | Medium | Gemini fallback ✓ |
-| MongoDB scaling | Low | Atlas supports sharding ✓ |
-| Next.js breaking changes | Low | Stable release ✓ |
-| LangChain API changes | Medium | Version pinned ✓ |
+| Risk                     | Severity | Mitigation                |
+| ------------------------ | -------- | ------------------------- |
+| OpenAI rate limits       | Medium   | Gemini fallback ✓         |
+| MongoDB scaling          | Low      | Atlas supports sharding ✓ |
+| Next.js breaking changes | Low      | Stable release ✓          |
+| LangChain API changes    | Medium   | Version pinned ✓          |
 
 ## Future Considerations
 

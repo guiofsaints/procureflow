@@ -18,10 +18,12 @@
 ## Unused Exports
 
 ### 1. Barrel File Over-Exports
+
 **File**: `components/index.ts`  
 **Pattern**: Exports all UI components, some unused in app
 
 **Examples**:
+
 - `SheetTitle`, `SheetDescription` - Exported but not used
 - `FormMessage` - Only used internally in forms
 - `DropdownMenuShortcut`, `DropdownMenuRadioGroup` - Not used
@@ -33,13 +35,16 @@
 ---
 
 ### 2. Placeholder Function Parameters
+
 **Pattern**: Unused callback parameters in event handlers
 
 **Examples**:
+
 ```typescript
 // packages/web/src/components/layout/Header.tsx
 useEffect(() => {
-  const onScroll = () => {  // No parameters used
+  const onScroll = () => {
+    // No parameters used
     setOffset(document.body.scrollTop || document.documentElement.scrollTop);
   };
   document.addEventListener('scroll', onScroll, { passive: true });
@@ -54,6 +59,7 @@ useEffect(() => {
 ## Unreachable Code
 
 ### 1. Moderation Feature (Disabled)
+
 **File**: `lib/validation/moderation.ts:163,191`  
 **Pattern**: Early return when feature flag disabled
 
@@ -71,14 +77,16 @@ if (!enableModeration) {
 
 **Impact**: MEDIUM - Dead code in production if flag always false
 
-**Recommendation**: 
+**Recommendation**:
+
 - If permanently disabled, remove dead code
 - If temporary, add tests for enabled state
 
 ---
 
 ### 2. Unimplemented Update Handler
-**File**: `features/catalog/components/item-mutate-dialog.tsx:130`  
+
+**File**: `features/catalog/components/item-mutate-dialog.tsx:130`
 
 ```typescript
 const handleUpdate = async (data: ItemFormData) => {
@@ -86,7 +94,7 @@ const handleUpdate = async (data: ItemFormData) => {
     setIsSubmitting(true);
     // TODO: Implement PUT /api/items/{id} when endpoint is ready
     throw new Error('Update endpoint not implemented');
-    
+
     // Everything below is unreachable
     const response = await fetch(`/api/items/${currentRow.id}`, {
       method: 'PUT',
@@ -107,6 +115,7 @@ const handleUpdate = async (data: ItemFormData) => {
 ## Side-Effect Modules (Tree-Shake Blockers)
 
 ### 1. Metrics Registration
+
 **File**: `lib/metrics/prometheus.config.ts`  
 **Pattern**: Module-level side effects (register metrics on import)
 
@@ -126,6 +135,7 @@ export const agentRequestTotal = new Counter({
 ---
 
 ### 2. Database Connection Singleton
+
 **File**: `lib/db/mongoose.ts`  
 **Pattern**: Module-level cached connection
 
@@ -134,6 +144,7 @@ export const agentRequestTotal = new Counter({
 ---
 
 ### 3. Logger Initialization
+
 **File**: `lib/logger/winston.config.ts`  
 **Pattern**: Module-level logger instance
 
@@ -144,6 +155,7 @@ export const agentRequestTotal = new Counter({
 ## Unused Files/Assets
 
 ### Public Assets
+
 ```bash
 find packages/web/public -type f
 # Results: Empty directory (no static assets)
@@ -154,6 +166,7 @@ find packages/web/public -type f
 ---
 
 ### Unused Scripts
+
 **File**: `packages/web/scripts/seed-fruits.ts`  
 **Usage**: Not referenced in package.json scripts
 
@@ -164,6 +177,7 @@ find packages/web/public -type f
 ## Import Analysis
 
 ### Never-Imported Modules
+
 **Detection**: Search for files with no imports in other files
 
 **Result**: All service files imported by route handlers ✅  
@@ -172,6 +186,7 @@ find packages/web/public -type f
 ---
 
 ### Circular Imports
+
 **Pattern**: Not detected (tsc would fail to compile)
 
 **Observation**: TypeScript compiler OOM prevents full check, but no obvious cycles found
@@ -181,16 +196,19 @@ find packages/web/public -type f
 ## Recommendations
 
 ### High Priority
+
 1. **Implement or remove update handler** - `item-mutate-dialog.tsx`
 2. **Audit moderation feature** - Remove if permanently disabled
 3. **Clean barrel exports** - Remove unused UI component exports
 
 ### Medium Priority
+
 4. **Add script for unused export detection** - `npx ts-prune` or similar
 5. **Document feature flags** - Create registry of disabled features
 6. **Add tree-shake validation** - CI check for bundle size
 
 ### Low Priority
+
 7. **Audit public assets** - Currently empty, no action needed
 8. **Review seed scripts** - Add `seed-fruits.ts` to package.json or remove
 
@@ -199,11 +217,13 @@ find packages/web/public -type f
 ## Metrics & Goals
 
 ### Current State
+
 - Unused exports: ~8 (barrel files)
 - Unreachable code: 2 blocks (feature flags)
 - Tree-shake blockers: 3 (acceptable patterns)
 
 ### Target State (4 weeks)
+
 - Unused exports: 0 (audit complete)
 - Unreachable code: 0 (implement or remove)
 - Tree-shake blockers: Document and accept

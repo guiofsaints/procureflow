@@ -9,11 +9,11 @@ This file contains developer-specific context and notes not tracked in version c
 
 ## Developer Notes
 
-*Add local setup notes, workarounds, or temporary configurations here*
+_Add local setup notes, workarounds, or temporary configurations here_
 
 ## Local Environment Specifics
 
-- MongoDB connection: 
+- MongoDB connection:
 - Development ports:
 - Custom scripts:
 

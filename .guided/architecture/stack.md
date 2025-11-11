@@ -12,73 +12,74 @@ ProcureFlow is built on a modern, AI-first technology stack centered around Next
 
 ### Frontend
 
-| Technology | Version | Purpose | Notes |
-|-----------|---------|---------|-------|
-| **Next.js** | 16.0.1 | Full-stack React framework | App Router, Server Components, API Routes |
-| **React** | 19.2.0 | UI library | Server Components by default |
-| **TypeScript** | 5.9.3 | Type system | Strict mode disabled (gradual migration) |
-| **Tailwind CSS** | 4.1.17 | Styling framework | With @tailwindcss/postcss |
-| **Radix UI** | Various | Accessible UI primitives | Alert, Dialog, Dropdown, Tabs, etc. |
-| **Lucide React** | 0.553.0 | Icon library | Consistent icon set |
-| **React Hook Form** | 7.66.0 | Form management | With Zod integration |
-| **next-themes** | 0.4.6 | Theme management | Dark/light mode support |
+| Technology          | Version | Purpose                    | Notes                                     |
+| ------------------- | ------- | -------------------------- | ----------------------------------------- |
+| **Next.js**         | 16.0.1  | Full-stack React framework | App Router, Server Components, API Routes |
+| **React**           | 19.2.0  | UI library                 | Server Components by default              |
+| **TypeScript**      | 5.9.3   | Type system                | Strict mode disabled (gradual migration)  |
+| **Tailwind CSS**    | 4.1.17  | Styling framework          | With @tailwindcss/postcss                 |
+| **Radix UI**        | Various | Accessible UI primitives   | Alert, Dialog, Dropdown, Tabs, etc.       |
+| **Lucide React**    | 0.553.0 | Icon library               | Consistent icon set                       |
+| **React Hook Form** | 7.66.0  | Form management            | With Zod integration                      |
+| **next-themes**     | 0.4.6   | Theme management           | Dark/light mode support                   |
 
 ### Backend & Database
 
-| Technology | Version | Purpose | Notes |
-|-----------|---------|---------|-------|
-| **Node.js** | >=18.17.0 | Runtime | Required minimum version |
-| **MongoDB** | 6.0+ | Primary database | Document database |
-| **Mongoose** | 8.10.6 | ODM | Schema validation, connection pooling |
-| **NextAuth.js** | 4.24.13 | Authentication | JWT strategy, Credentials provider |
-| **bcryptjs** | 3.0.3 | Password hashing | For credentials auth |
+| Technology      | Version   | Purpose          | Notes                                 |
+| --------------- | --------- | ---------------- | ------------------------------------- |
+| **Node.js**     | >=18.17.0 | Runtime          | Required minimum version              |
+| **MongoDB**     | 6.0+      | Primary database | Document database                     |
+| **Mongoose**    | 8.10.6    | ODM              | Schema validation, connection pooling |
+| **NextAuth.js** | 4.24.13   | Authentication   | JWT strategy, Credentials provider    |
+| **bcryptjs**    | 3.0.3     | Password hashing | For credentials auth                  |
 
 ### AI & Machine Learning
 
-| Technology | Version | Purpose | Notes |
-|-----------|---------|---------|-------|
-| **LangChain Core** | 1.0.3 | AI workflow orchestration | Message handling, chains |
-| **@langchain/openai** | 1.0.0 | OpenAI integration | GPT-4o-mini (default) |
-| **@langchain/google-genai** | 1.0.0 | Gemini integration | Alternative to OpenAI |
-| **OpenAI SDK** | 6.8.1 | Direct OpenAI API access | For non-LangChain use cases |
-| **tiktoken** | 1.0.22 | Token counting | For monitoring and cost management |
+| Technology                  | Version | Purpose                   | Notes                              |
+| --------------------------- | ------- | ------------------------- | ---------------------------------- |
+| **LangChain Core**          | 1.0.3   | AI workflow orchestration | Message handling, chains           |
+| **@langchain/openai**       | 1.0.0   | OpenAI integration        | GPT-4o-mini (default)              |
+| **@langchain/google-genai** | 1.0.0   | Gemini integration        | Alternative to OpenAI              |
+| **OpenAI SDK**              | 6.8.1   | Direct OpenAI API access  | For non-LangChain use cases        |
+| **tiktoken**                | 1.0.22  | Token counting            | For monitoring and cost management |
 
 ### Observability & Reliability
 
-| Technology | Version | Purpose | Notes |
-|-----------|---------|---------|-------|
-| **winston** | 3.18.3 | Logging | Structured logging |
-| **winston-loki** | 6.1.3 | Log aggregation | Grafana Loki integration |
-| **prom-client** | 15.1.3 | Metrics | Prometheus metrics export |
-| **opossum** | 9.0.0 | Circuit breaker | Fault tolerance |
-| **bottleneck** | 2.19.5 | Rate limiting | API request throttling |
-| **p-retry** | 7.1.0 | Retry logic | Exponential backoff |
+| Technology       | Version | Purpose         | Notes                     |
+| ---------------- | ------- | --------------- | ------------------------- |
+| **winston**      | 3.18.3  | Logging         | Structured logging        |
+| **winston-loki** | 6.1.3   | Log aggregation | Grafana Loki integration  |
+| **prom-client**  | 15.1.3  | Metrics         | Prometheus metrics export |
+| **opossum**      | 9.0.0   | Circuit breaker | Fault tolerance           |
+| **bottleneck**   | 2.19.5  | Rate limiting   | API request throttling    |
+| **p-retry**      | 7.1.0   | Retry logic     | Exponential backoff       |
 
 ### Developer Experience
 
-| Technology | Version | Purpose | Notes |
-|-----------|---------|---------|-------|
-| **pnpm** | 9.15.1 | Package manager | Strict version requirement |
-| **ESLint** | 9.39.1 | Linting | Next.js config + TypeScript |
-| **Prettier** | 3.4.2 | Code formatting | Consistent style |
-| **Husky** | 9.1.7 | Git hooks | Pre-commit checks |
-| **commitlint** | 20.1.0 | Commit message validation | Conventional commits |
-| **tsx** | 4.20.6 | TypeScript execution | For scripts |
-| **standard-version** | 9.5.0 | Versioning | Automated changelog |
+| Technology           | Version | Purpose                   | Notes                       |
+| -------------------- | ------- | ------------------------- | --------------------------- |
+| **pnpm**             | 9.15.1  | Package manager           | Strict version requirement  |
+| **ESLint**           | 9.39.1  | Linting                   | Next.js config + TypeScript |
+| **Prettier**         | 3.4.2   | Code formatting           | Consistent style            |
+| **Husky**            | 9.1.7   | Git hooks                 | Pre-commit checks           |
+| **commitlint**       | 20.1.0  | Commit message validation | Conventional commits        |
+| **tsx**              | 4.20.6  | TypeScript execution      | For scripts                 |
+| **standard-version** | 9.5.0   | Versioning                | Automated changelog         |
 
 ### Infrastructure
 
-| Technology | Version | Purpose | Notes |
-|-----------|---------|---------|-------|
-| **Docker** | Latest | Containerization | Multi-stage builds |
-| **docker-compose** | Latest | Local development | MongoDB + mongo-express |
-| **Pulumi** | Latest | Infrastructure as Code | GCP deployment (TypeScript) |
+| Technology         | Version | Purpose                | Notes                       |
+| ------------------ | ------- | ---------------------- | --------------------------- |
+| **Docker**         | Latest  | Containerization       | Multi-stage builds          |
+| **docker-compose** | Latest  | Local development      | MongoDB + mongo-express     |
+| **Pulumi**         | Latest  | Infrastructure as Code | GCP deployment (TypeScript) |
 
 ## Detailed Stack Analysis
 
 ### Next.js 15 (App Router)
 
 **Why Next.js**:
+
 - Server Components reduce client bundle size
 - Built-in API routes for backend logic
 - File-based routing with route groups
@@ -86,12 +87,14 @@ ProcureFlow is built on a modern, AI-first technology stack centered around Next
 - Excellent TypeScript integration
 
 **App Router Patterns**:
+
 - `(public)/` - Unauthenticated routes
 - `(app)/` - Authenticated routes
 - Server Components by default
 - Client Components (`'use client'`) only when needed
 
 **API Route Pattern**:
+
 - Thin wrappers around service layer
 - Session extraction via NextAuth
 - Error handling with typed errors
@@ -100,24 +103,28 @@ ProcureFlow is built on a modern, AI-first technology stack centered around Next
 ### MongoDB + Mongoose
 
 **Why MongoDB**:
+
 - Flexible schema for rapid iteration
 - Full-text search with text indexes
 - Native JSON support
 - Mature Node.js driver
 
 **Mongoose ODM**:
+
 - Schema validation
 - TypeScript integration via discriminated types
 - Connection pooling with singleton pattern
 - Middleware (pre/post hooks)
 
 **Connection Pattern**:
+
 ```typescript
 // Cached singleton to handle Next.js hot reloads
-await connectDB() // Before any DB operation
+await connectDB(); // Before any DB operation
 ```
 
 **Text Search**:
+
 - Requires index: `db:create-text-index` script
 - Used for catalog search
 - Scored results by relevance
@@ -125,17 +132,20 @@ await connectDB() // Before any DB operation
 ### LangChain + OpenAI/Gemini
 
 **Architecture**:
+
 1. **Provider abstraction**: Support OpenAI or Gemini via environment variable
 2. **LangChain wrapper**: `lib/ai/langchainClient.ts`
 3. **Function calling**: Agent tools defined as JSON schemas
 4. **Message history**: Stored in MongoDB for conversation context
 
 **AI Provider Selection**:
+
 - Default: OpenAI (GPT-4o-mini)
 - Fallback: Google Gemini (gemini-2.0-flash)
 - Configurable via `AI_PROVIDER` environment variable
 
 **Token Management**:
+
 - `tiktoken` for accurate token counting
 - Cost tracking per conversation
 - Model-specific limits
@@ -143,20 +153,23 @@ await connectDB() // Before any DB operation
 ### Authentication (NextAuth.js)
 
 **Strategy**: JWT (JSON Web Tokens)
+
 - No database sessions (stateless)
 - Credentials provider for demo (`demo@procureflow.com` / `demo123`)
 - Future: OAuth providers (Google, Microsoft)
 
 **Session Flow**:
+
 ```typescript
 // API routes and Server Components
-const session = await getServerSession(authConfig)
+const session = await getServerSession(authConfig);
 
 // Client components
-const { data: session } = useSession()
+const { data: session } = useSession();
 ```
 
 **Security**:
+
 - Passwords hashed with bcryptjs (10 rounds)
 - JWT secret in environment variable (`NEXTAUTH_SECRET`)
 - HTTPS required in production
@@ -164,12 +177,14 @@ const { data: session } = useSession()
 ### Observability Stack
 
 **Logging (Winston)**:
+
 - Structured JSON logs
 - Multiple transports (console, Loki)
 - Contextual metadata (userId, requestId)
 - Log levels: error, warn, info, debug
 
 **Metrics (Prometheus)**:
+
 - Custom metrics: request duration, AI token usage
 - Histogram for latency percentiles
 - Counter for errors
@@ -177,6 +192,7 @@ const { data: session } = useSession()
 - Exported at `/api/metrics`
 
 **Reliability**:
+
 - **Circuit Breaker** (Opossum): Prevent cascading failures on AI API
 - **Rate Limiting** (Bottleneck): Respect OpenAI rate limits (60 req/min)
 - **Retry Logic** (p-retry): Exponential backoff for transient errors
@@ -184,20 +200,23 @@ const { data: session } = useSession()
 ### UI Component Library
 
 **Radix UI Primitives**:
+
 - Unstyled, accessible components
 - Full keyboard navigation
 - ARIA attributes
 - Customized with Tailwind
 
 **Component Pattern** (shadcn-style):
+
 ```typescript
 // components/ui/button.tsx
-import { Slot } from '@radix-ui/react-slot'
-import { cva } from 'class-variance-authority'
+import { Slot } from '@radix-ui/react-slot';
+import { cva } from 'class-variance-authority';
 // Variants defined with CVA, styled with Tailwind
 ```
 
 **Key Components**:
+
 - Alert Dialog - Confirmation modals
 - Dropdown Menu - User menu, context menus
 - Tabs - Multi-panel layouts
@@ -207,18 +226,21 @@ import { cva } from 'class-variance-authority'
 ### Development Tooling
 
 **pnpm Workspaces**:
+
 - Monorepo structure
 - Shared dependencies
 - Workspace protocol for internal packages
 - Strict version enforcement
 
 **ESLint + Prettier**:
+
 - Next.js recommended rules
 - TypeScript-aware linting
 - Import order enforcement
 - Consistent formatting
 
 **Git Workflow**:
+
 - Husky pre-commit: lint + format check
 - Commitlint: Conventional commits (feat, fix, docs, etc.)
 - standard-version: Automated changelog and versioning
@@ -279,6 +301,7 @@ import { cva } from 'class-variance-authority'
 See `.guided/context/env.md` for complete reference.
 
 **Critical Variables**:
+
 - `MONGODB_URI` - Database connection string
 - `NEXTAUTH_SECRET` - JWT secret
 - `NEXTAUTH_URL` - Application URL
@@ -322,6 +345,7 @@ pnpm docker:up  # Full stack with MongoDB
 ## Testing Dependencies
 
 **Currently Minimal** (See `.guided/testing/risks.md`):
+
 - No test framework configured yet
 - Planned: Vitest, @testing-library/react, Playwright
 

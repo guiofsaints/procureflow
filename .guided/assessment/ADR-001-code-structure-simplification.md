@@ -12,6 +12,7 @@
 ProcureFlow is an AI-native procurement platform built with Next.js 15, TypeScript, MongoDB, and LangChain. The codebase (~24K LOC across 149 TypeScript files) has accumulated technical debt during rapid prototyping:
 
 **Critical Issues**:
+
 - TypeScript `strict: false` throughout codebase (defeats type system)
 - Next.js `ignoreBuildErrors: true` allows shipping with type errors
 - 20+ instances of explicit `any` type in service layer
@@ -22,12 +23,14 @@ ProcureFlow is an AI-native procurement platform built with Next.js 15, TypeScri
 - Zero test coverage, no ErrorBoundaries, no loading states
 
 **Business Context**:
+
 - Codebase is foundation/bootstrap with plumbing ready
 - Business logic implementation is primary development focus going forward
 - Need maintainable, type-safe foundation before scaling team
 - AI agent is core differentiator—must be reliable and observable
 
 **Audit Findings Summary**:
+
 - 68 code smells identified (12 critical, 18 high, 38 medium/low)
 - 24 duplication instances totaling ~660 LOC
 - 6 files >500 LOC (largest: agent.service.ts at 1,503 LOC)
@@ -44,11 +47,13 @@ We will execute a **3-wave refactor strategy** over 12 weeks to eliminate critic
 #### 1. Enable TypeScript Strict Mode (Wave 1, Weeks 1-4)
 
 **Decision**: Migrate from `strict: false` to `strict: true` in 3 phases:
+
 1. Enable `noImplicitAny` → fix all implicit any errors
 2. Enable `strictNullChecks` → add null guards
 3. Enable full `strict: true` → enforce all strict flags
 
 **Alternatives Considered**:
+
 - **Big-bang migration**: Enable strict mode immediately
   - Rejected: Would break ~500+ lines of code simultaneously, high risk
 - **Gradual per-file migration**: Use `@ts-expect-error` with tickets
@@ -57,17 +62,20 @@ We will execute a **3-wave refactor strategy** over 12 weeks to eliminate critic
   - Rejected: Defeats purpose of TypeScript, accumulates more debt
 
 **Rationale**:
+
 - Phased approach allows incremental validation (each phase builds on previous)
 - `noImplicitAny` first catches low-hanging fruit (function params without types)
 - `strictNullChecks` second addresses runtime errors (null/undefined access)
 - Full strict mode final step ensures all safety guarantees enabled
 
 **Trade-offs**:
+
 - **Pros**: Type safety prevents runtime errors, better autocomplete, safer refactoring
 - **Cons**: 130 hours of effort, temporary slowdown in feature velocity
 - **Mitigation**: Spread over 4 weeks, pair with engineers unfamiliar with strict mode
 
 **Success Criteria**:
+
 - `pnpm tsc --noEmit` completes with zero errors
 - Zero `any` types remain (except unavoidable third-party integration points)
 - All ESLint `@typescript-eslint/no-explicit-any` suppressions removed
@@ -77,6 +85,7 @@ We will execute a **3-wave refactor strategy** over 12 weeks to eliminate critic
 #### 2. Create Typed Mongoose Document Interfaces (Wave 1, Weeks 1-4)
 
 **Decision**: Define explicit TypeScript interfaces for all Mongoose documents in `lib/db/types/`:
+
 ```typescript
 // lib/db/types/cart.types.ts
 export interface CartDocument extends Document {
@@ -92,6 +101,7 @@ export interface CartDocument extends Document {
 Replace all `any` types in mappers with these interfaces.
 
 **Alternatives Considered**:
+
 - **Use Mongoose InferSchemaType**: Auto-generate types from schemas
   - Rejected: Doesn't support discriminated unions, limited control over types
 - **Keep using `any`**: Accept type safety gap
@@ -100,17 +110,20 @@ Replace all `any` types in mappers with these interfaces.
   - Rejected: Requires rewriting 8 schemas, Zod doesn't map cleanly to Mongoose features
 
 **Rationale**:
+
 - Explicit interfaces provide autocomplete and type checking in mappers
 - Prevents accidental access to non-existent fields
 - Enables gradual migration (define interfaces, use in new code, refactor old code)
 - Co-locates type definitions with database layer (`lib/db/types/`)
 
 **Trade-offs**:
+
 - **Pros**: Type safety in mappers, catches schema mismatches at compile time
 - **Cons**: Duplication between Mongoose schema and TS interface (must keep in sync)
 - **Mitigation**: Add unit tests that validate schema matches interface
 
 **Success Criteria**:
+
 - All 8 Mongoose models have corresponding TypeScript interfaces
 - Zero `any` types in service layer functions
 - All ESLint suppressions in mappers removed
@@ -136,6 +149,7 @@ export function mapCartDocumentToEntity(doc: CartDocument): Cart {
 ```
 
 **Alternatives Considered**:
+
 - **Keep mappers inline**: Each service defines own mappers
   - Rejected: 6 services have near-identical mappers (85-95% similarity)
 - **Use lodash/transformer libraries**: Generic object transformers
@@ -144,17 +158,20 @@ export function mapCartDocumentToEntity(doc: CartDocument): Cart {
   - Rejected: Over-engineered for current scale (8 entities)
 
 **Rationale**:
+
 - Mapper functions are pure, stateless, perfect for sharing
 - Single source of truth for entity shape (domain layer)
 - Easier to add validation, logging, or transformations in one place
 - Reduces testing surface area (test mapper once, not 6 times)
 
 **Trade-offs**:
+
 - **Pros**: 50% reduction in duplicate code (~180 LOC → ~40 LOC), consistent entity shapes
 - **Cons**: Additional import dependency, potential over-abstraction if entities diverge
 - **Mitigation**: Keep mappers simple, allow service-specific overrides if needed
 
 **Success Criteria**:
+
 - 6 services (cart, checkout, catalog, agent, auth, settings) use shared mappers
 - Duplication analysis shows <10% similarity between remaining service code
 - 100% test coverage of mapper functions
@@ -166,25 +183,32 @@ export function mapCartDocumentToEntity(doc: CartDocument): Cart {
 **Decision**: Create `lib/api/errorHandler.ts` with standardized error response:
 
 ```typescript
-export function handleApiError(error: unknown, context: ErrorContext): NextResponse {
+export function handleApiError(
+  error: unknown,
+  context: ErrorContext
+): NextResponse {
   const correlationId = crypto.randomUUID();
   logger.error('API error', { correlationId, ...context, error });
-  
-  return NextResponse.json({
-    success: false,
-    error: {
-      code: getErrorCode(error),
-      message: error instanceof Error ? error.message : 'Unknown error',
-      correlationId,
-      timestamp: new Date().toISOString(),
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: {
+        code: getErrorCode(error),
+        message: error instanceof Error ? error.message : 'Unknown error',
+        correlationId,
+        timestamp: new Date().toISOString(),
+      },
     },
-  }, { status: getStatusCode(error) });
+    { status: getStatusCode(error) }
+  );
 }
 ```
 
 Replace 200+ LOC of duplicated error handling across 40+ route handlers.
 
 **Alternatives Considered**:
+
 - **Next.js middleware**: Handle errors globally in middleware.ts
   - Rejected: Middleware runs before route handler, can't catch service errors
 - **Error boundary wrapper**: Higher-order function wrapping all route handlers
@@ -194,17 +218,20 @@ Replace 200+ LOC of duplicated error handling across 40+ route handlers.
   - Rejected: 40+ routes with identical console.error + JSON response pattern
 
 **Rationale**:
+
 - Centralized error handling ensures consistent correlation IDs across requests
 - Winston structured logging replaces console.error (enables log aggregation)
 - Standardized error schema improves client error handling
 - Reduces boilerplate from 8 lines per route to 1 line
 
 **Trade-offs**:
+
 - **Pros**: 75% reduction in error handling LOC, consistent observability
 - **Cons**: Loses some route-specific error context (can pass via ErrorContext param)
 - **Mitigation**: Allow optional context parameter for route-specific metadata
 
 **Success Criteria**:
+
 - All 40+ route handlers use `handleApiError`
 - Zero `console.error` or `console.log` calls in route handlers
 - All errors include correlation ID in winston logs and client response
@@ -222,6 +249,7 @@ Replace 200+ LOC of duplicated error handling across 40+ route handlers.
 4. **agent.service.ts** (~500 LOC): Core orchestration (handleAgentMessage, conversation CRUD)
 
 **Alternatives Considered**:
+
 - **Keep monolithic**: Leave agent.service.ts as-is
   - Rejected: Violates Single Responsibility Principle, hard to test/modify
 - **Microservices**: Split into separate npm packages
@@ -230,17 +258,20 @@ Replace 200+ LOC of duplicated error handling across 40+ route handlers.
   - Rejected: Functional pattern works well for Next.js server components, class adds boilerplate
 
 **Rationale**:
+
 - Tool definitions are independent, change frequently (new agent capabilities)
 - Mappers are pure functions, perfect for isolation
 - Title generator is self-contained feature with single purpose
 - Orchestration service becomes <500 LOC, easier to understand
 
 **Trade-offs**:
+
 - **Pros**: Easier to test (unit test tools/mappers independently), clearer boundaries
 - **Cons**: More files to navigate, potential circular dependency if not careful
 - **Mitigation**: Clear module boundaries, import graph validation in CI
 
 **Success Criteria**:
+
 - agent.service.ts reduced from 1,503 LOC → <500 LOC
 - All 4 modules have unit tests with >80% coverage
 - Cyclomatic complexity of handleAgentMessage reduced from ~25 → <15
@@ -269,6 +300,7 @@ export function withAuth<T>(
 Replace 150 LOC of duplicated auth checks across 30+ routes.
 
 **Alternatives Considered**:
+
 - **Middleware.ts auth**: Handle authentication in global middleware
   - Rejected: Some routes are public, need per-route control
 - **Custom API route wrapper**: Create custom route() function
@@ -277,17 +309,20 @@ Replace 150 LOC of duplicated auth checks across 30+ routes.
   - Rejected: Doesn't work well with App Router API routes, forces redirect-based flow
 
 **Rationale**:
+
 - HOF pattern is idiomatic TypeScript, familiar to team
 - Reduces boilerplate from 5 lines per route to function wrapper
 - Type safety: session is guaranteed non-null in handler
 - Easy to extend (add role checks, rate limiting, etc.)
 
 **Trade-offs**:
+
 - **Pros**: 80% reduction in auth LOC, consistent 401 responses
 - **Cons**: Slightly less flexible than inline checks (can't customize 401 response per route)
 - **Mitigation**: Allow optional `onUnauthorized` callback parameter
 
 **Success Criteria**:
+
 - 30+ protected routes use `withAuth` wrapper
 - Zero duplicate `getServerSession` calls in route handlers
 - 401 responses consistent across all protected routes
@@ -315,12 +350,12 @@ Replace 150 LOC of duplicated auth checks across 30+ routes.
 
 ### Mitigation Strategies
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Regressions during refactor | High | High | Comprehensive test suite (Wave 3), feature flags for risky changes |
-| Team productivity drop | Medium | Medium | Pair programming for strict mode migration, knowledge sharing sessions |
-| Over-abstraction | Low | Medium | Code review checklist for new abstractions, YAGNI principle |
-| Timeline overrun | Medium | High | Weekly progress checkpoints, buffer in Wave 3 for catch-up |
+| Risk                        | Probability | Impact | Mitigation                                                             |
+| --------------------------- | ----------- | ------ | ---------------------------------------------------------------------- |
+| Regressions during refactor | High        | High   | Comprehensive test suite (Wave 3), feature flags for risky changes     |
+| Team productivity drop      | Medium      | Medium | Pair programming for strict mode migration, knowledge sharing sessions |
+| Over-abstraction            | Low         | Medium | Code review checklist for new abstractions, YAGNI principle            |
+| Timeline overrun            | Medium      | High   | Weekly progress checkpoints, buffer in Wave 3 for catch-up             |
 
 ---
 
@@ -329,18 +364,21 @@ Replace 150 LOC of duplicated auth checks across 30+ routes.
 ### Validation Checkpoints
 
 **Wave 1 (Type Safety)**:
+
 - ✅ `pnpm tsc --noEmit` passes with zero errors
 - ✅ `pnpm build` succeeds without `ignoreBuildErrors`
 - ✅ All ESLint `any` suppressions removed
 - ✅ Manual QA of critical flows (search, cart, checkout, agent chat)
 
 **Wave 2 (Deduplication)**:
+
 - ✅ Duplication analysis shows <100 LOC duplicates (down from 660 LOC)
 - ✅ All 40+ routes use shared error handler
 - ✅ agent.service.ts <500 LOC
 - ✅ Unit tests for all shared utilities (mappers, error handler, withAuth)
 
 **Wave 3 (Hardening)**:
+
 - ✅ Test coverage >70% (service layer), >60% (route handlers)
 - ✅ ErrorBoundaries deployed to all routes
 - ✅ Prometheus metrics show no error rate increase
@@ -375,17 +413,17 @@ Each wave is deployable independently. If critical issues arise:
 
 ### Quantitative Metrics (12-week targets)
 
-| Metric | Baseline | Target | Measurement |
-|--------|----------|--------|-------------|
-| TypeScript `any` types | 20+ | 0 | `grep -r ": any" src/` |
-| Code duplication (LOC) | ~660 | <100 | SonarQube duplication report |
-| Largest file size (LOC) | 1,503 | <500 | `wc -l` on all TS files |
-| Test coverage (service) | 0% | >70% | Vitest coverage report |
-| Test coverage (routes) | 0% | >60% | Vitest coverage report |
-| ESLint suppressions | 20+ | <5 | `grep -r "eslint-disable"` |
-| Error routes with boundaries | 0/5 | 5/5 | Manual count of error.tsx |
-| API routes with loading | 0/5 | 5/5 | Manual count of loading.tsx |
-| Strict mode enabled | false | true | tsconfig.json |
+| Metric                       | Baseline | Target | Measurement                  |
+| ---------------------------- | -------- | ------ | ---------------------------- |
+| TypeScript `any` types       | 20+      | 0      | `grep -r ": any" src/`       |
+| Code duplication (LOC)       | ~660     | <100   | SonarQube duplication report |
+| Largest file size (LOC)      | 1,503    | <500   | `wc -l` on all TS files      |
+| Test coverage (service)      | 0%       | >70%   | Vitest coverage report       |
+| Test coverage (routes)       | 0%       | >60%   | Vitest coverage report       |
+| ESLint suppressions          | 20+      | <5     | `grep -r "eslint-disable"`   |
+| Error routes with boundaries | 0/5      | 5/5    | Manual count of error.tsx    |
+| API routes with loading      | 0/5      | 5/5    | Manual count of loading.tsx  |
+| Strict mode enabled          | false    | true   | tsconfig.json                |
 
 ### Qualitative Metrics
 
@@ -398,14 +436,15 @@ Each wave is deployable independently. If critical issues arise:
 
 ## Timeline & Effort
 
-| Wave | Duration | Effort | Critical Path |
-|------|----------|--------|---------------|
-| Wave 1: Quick Wins (Type Safety) | Weeks 1-4 | 130 hours | TypeScript strict mode migration |
-| Wave 2: Structural (Deduplication) | Weeks 5-8 | 160 hours | Split agent.service.ts + mappers |
-| Wave 3: Hardening (Testing/Obs) | Weeks 9-12 | 110 hours | Test coverage + error boundaries |
-| **Total** | **12 weeks** | **400 hours** | - |
+| Wave                               | Duration     | Effort        | Critical Path                    |
+| ---------------------------------- | ------------ | ------------- | -------------------------------- |
+| Wave 1: Quick Wins (Type Safety)   | Weeks 1-4    | 130 hours     | TypeScript strict mode migration |
+| Wave 2: Structural (Deduplication) | Weeks 5-8    | 160 hours     | Split agent.service.ts + mappers |
+| Wave 3: Hardening (Testing/Obs)    | Weeks 9-12   | 110 hours     | Test coverage + error boundaries |
+| **Total**                          | **12 weeks** | **400 hours** | -                                |
 
 **Team Allocation**:
+
 - 2 full-time engineers (80 hours/week combined)
 - 1 part-time tech lead for reviews (10 hours/week)
 - Total capacity: ~90 hours/week → ~1080 hours over 12 weeks
@@ -416,21 +455,25 @@ Each wave is deployable independently. If critical issues arise:
 ## Alternatives Not Chosen
 
 ### 1. Rewrite in Different Framework
+
 - **Option**: Rewrite in tRPC + Prisma + React Server Components
 - **Rejected**: 400+ hours already invested, business logic is sound, framework is fine
 - **Rationale**: Refactoring is faster and less risky than full rewrite
 
 ### 2. Ignore Technical Debt
+
 - **Option**: Ship features, pay tech debt later
 - **Rejected**: Debt compounds, team velocity will decrease over time
 - **Rationale**: Foundation must be solid before scaling team or features
 
 ### 3. Automated Codemod Migration
+
 - **Option**: Use ts-migrate or similar codemod tools
 - **Rejected**: Codemods generate low-quality code (excessive type assertions)
 - **Rationale**: Manual migration ensures understanding and quality
 
 ### 4. Outsource Refactoring
+
 - **Option**: Contract external team for refactor
 - **Rejected**: Requires deep domain knowledge, context transfer overhead too high
 - **Rationale**: In-house team knows codebase best, refactoring is learning opportunity
@@ -480,6 +523,7 @@ This ADR represents the **architectural vision** resulting from the deep code qu
 The decision prioritizes **long-term maintainability over short-term velocity**, acknowledging that a 12-week investment now will pay dividends in developer productivity, code quality, and system reliability for years to come.
 
 **Next Steps**:
+
 1. Present this ADR to engineering team for review
 2. Discuss timeline and resource allocation
 3. Obtain approval from stakeholders

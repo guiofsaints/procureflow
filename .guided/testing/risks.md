@@ -28,6 +28,7 @@
 ### Service Layer (High Priority)
 
 **Missing Tests**:
+
 - `catalog.service.ts`: searchItems(), createItem(), duplicate detection
 - `cart.service.ts`: addItemToCart(), updateQuantity(), removeItem()
 - `checkout.service.ts`: createPurchaseRequest(), cart clearing
@@ -38,6 +39,7 @@
 ### API Routes (High Priority)
 
 **Missing Tests**:
+
 - `/api/catalog/*` routes
 - `/api/cart/*` routes
 - `/api/checkout` route
@@ -48,6 +50,7 @@
 ### AI Agent (Critical Priority)
 
 **Missing Tests**:
+
 - Agent tool calling accuracy
 - Conversation context retention
 - Error handling for AI failures
@@ -58,6 +61,7 @@
 ### Database Operations (Medium Priority)
 
 **Missing Tests**:
+
 - Mongoose schema validation
 - Index usage verification
 - Text search correctness
@@ -68,6 +72,7 @@
 ### Components (Lower Priority)
 
 **Missing Tests**:
+
 - UI component rendering
 - User interactions
 - Error state handling
@@ -79,6 +84,7 @@
 ### Type Safety
 
 TypeScript catches many errors at compile-time:
+
 - Invalid function signatures
 - Missing required fields
 - Type mismatches
@@ -88,6 +94,7 @@ TypeScript catches many errors at compile-time:
 ### Mongoose Schema Validation
 
 Schemas enforce:
+
 - Required fields
 - Type constraints
 - Value ranges
@@ -97,6 +104,7 @@ Schemas enforce:
 ### Manual Testing
 
 Developers can manually test via:
+
 - Browser UI
 - API client (Thunder Client, Postman)
 - Agent chat interface

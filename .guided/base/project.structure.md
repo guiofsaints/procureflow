@@ -101,6 +101,7 @@ features/<feature-name>/
 ```
 
 **Features**:
+
 - `agent/` - AI agent chat and tool execution
 - `auth/` - Authentication services
 - `cart/` - Shopping cart management
@@ -148,7 +149,8 @@ lib/db/
     └── agent-conversation.schema.ts
 ```
 
-**Pattern**: 
+**Pattern**:
+
 - Schemas define Mongoose models
 - Domain entities (in `domain/entities.ts`) are framework-agnostic
 - Services accept and return domain entities, not Mongoose documents
@@ -210,6 +212,7 @@ Configured in `packages/web/tsconfig.json`:
 ### Service Layer
 
 Business logic lives in `*.service.ts` files within features:
+
 - Database-agnostic interfaces (domain entities in/out)
 - Framework-agnostic (usable in API routes, server components, jobs)
 - Custom error classes for validation and business rules
@@ -217,6 +220,7 @@ Business logic lives in `*.service.ts` files within features:
 ### Route Handlers
 
 Thin wrappers around service layer:
+
 1. Extract and validate request data
 2. Get session (authentication)
 3. Call service function
@@ -232,16 +236,18 @@ Thin wrappers around service layer:
 ## Import Conventions
 
 ✅ **Correct**:
+
 ```typescript
-import { searchItems } from '@/features/catalog'
-import { connectDB } from '@/lib/db/mongoose'
-import { Button } from '@/components/ui/button'
+import { searchItems } from '@/features/catalog';
+import { connectDB } from '@/lib/db/mongoose';
+import { Button } from '@/components/ui/button';
 ```
 
 ❌ **Avoid**:
+
 ```typescript
-import { searchItems } from '@/features/catalog/lib/catalog.service'
-import mongoose from 'mongoose' // Use models from @/lib/db/models
+import { searchItems } from '@/features/catalog/lib/catalog.service';
+import mongoose from 'mongoose'; // Use models from @/lib/db/models
 ```
 
 ## Development Workflow

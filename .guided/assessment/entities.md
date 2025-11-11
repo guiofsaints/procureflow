@@ -10,21 +10,25 @@
 ### Strengths
 
 ✅ **Clear Entity Definitions** (Excellent)
+
 - Well-defined TypeScript interfaces in `domain/entities.ts`
 - Framework-agnostic design
 - Comprehensive documentation with comments
 
 ✅ **Entity Relationships** (Good)
+
 - Logical relationships (User → Cart → Items, User → PurchaseRequest, etc.)
 - Clear ownership via userId references
 - Snapshot pattern for immutability (PurchaseRequest)
 
 ✅ **Business Rules Encoded** (Good)
+
 - Enums for status fields (ItemStatus, PurchaseRequestStatus, AgentMessageRole)
 - Type aliases for IDs (UserId, ItemId, etc.)
 - Validation constraints documented
 
 ✅ **Separation of Concerns** (Excellent)
+
 - Domain entities separate from Mongoose schemas
 - Services map between entities and documents
 - No database concerns in domain layer
@@ -32,26 +36,28 @@
 ### Weaknesses
 
 ⚠️ **Loose Typing in Some Areas** (Minor)
+
 - `AgentAction.parameters` and `result` are `Record<string, unknown>`
 - Could be more specific with discriminated unions
 
 ⚠️ **Future Entities Not Implemented** (Expected for MVP)
+
 - Category entity exists conceptually but not implemented
 - Supplier entity planned but not defined
 
 ## Entity Completeness
 
-| Entity | Definition | Schema | Service | Routes | Grade |
-|--------|-----------|--------|---------|--------|-------|
-| User | ✅ | ✅ | ✅ | ✅ | A |
-| Item | ✅ | ✅ | ✅ | ✅ | A |
-| Cart | ✅ | ✅ | ✅ | ✅ | A |
-| CartItem | ✅ | ✅ (embedded) | ✅ | ✅ | A |
-| PurchaseRequest | ✅ | ✅ | ✅ | ✅ | A |
-| PurchaseRequestItem | ✅ | ✅ (embedded) | ✅ | ✅ | A |
-| AgentConversation | ✅ | ✅ | ✅ | ✅ | A |
-| AgentMessage | ✅ | ✅ (embedded) | ✅ | ✅ | A |
-| AgentAction | ✅ | ✅ (embedded) | ✅ | ✅ | A |
+| Entity              | Definition | Schema        | Service | Routes | Grade |
+| ------------------- | ---------- | ------------- | ------- | ------ | ----- |
+| User                | ✅         | ✅            | ✅      | ✅     | A     |
+| Item                | ✅         | ✅            | ✅      | ✅     | A     |
+| Cart                | ✅         | ✅            | ✅      | ✅     | A     |
+| CartItem            | ✅         | ✅ (embedded) | ✅      | ✅     | A     |
+| PurchaseRequest     | ✅         | ✅            | ✅      | ✅     | A     |
+| PurchaseRequestItem | ✅         | ✅ (embedded) | ✅      | ✅     | A     |
+| AgentConversation   | ✅         | ✅            | ✅      | ✅     | A     |
+| AgentMessage        | ✅         | ✅ (embedded) | ✅      | ✅     | A     |
+| AgentAction         | ✅         | ✅ (embedded) | ✅      | ✅     | A     |
 
 **Verdict**: All core entities fully implemented
 
@@ -111,11 +117,13 @@
 ## Extensibility
 
 **Easy to Add**:
+
 - New item categories (just string values)
 - New agent actions (extend enum)
 - New user roles (extend enum)
 
 **Requires Schema Changes**:
+
 - Hierarchical categories → New Category entity
 - Supplier details → New Supplier entity
 - Approval workflows → New Approval entity

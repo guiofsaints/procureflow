@@ -16,14 +16,16 @@ ProcureFlow currently has minimal plugin infrastructure but several extensibilit
 **Implementation**: `lib/ai/langchainClient.ts`
 
 **Extension Method**:
+
 1. Add new provider import (e.g., Anthropic, Cohere)
 2. Update `AIProvider` type
 3. Add provider configuration
 4. Update `createChatModel()` function
 
 **Example**:
+
 ```typescript
-type AIProvider = 'openai' | 'gemini' | 'anthropic'
+type AIProvider = 'openai' | 'gemini' | 'anthropic';
 ```
 
 ### 2. Agent Tools
@@ -33,11 +35,13 @@ type AIProvider = 'openai' | 'gemini' | 'anthropic'
 **Implementation**: `features/agent/lib/agent.service.ts` → `tools` array
 
 **Extension Method**:
+
 1. Define tool JSON schema
 2. Add case in `executeTool()` switch
 3. Call appropriate service function
 
 **Example**:
+
 ```typescript
 {
   name: 'my_new_tool',
@@ -51,6 +55,7 @@ type AIProvider = 'openai' | 'gemini' | 'anthropic'
 **Mechanism**: Framework-agnostic service functions
 
 **Extension Method**:
+
 1. Create new feature folder: `features/<name>/`
 2. Add service: `features/<name>/lib/<name>.service.ts`
 3. Export via barrel: `features/<name>/index.ts`
@@ -61,6 +66,7 @@ type AIProvider = 'openai' | 'gemini' | 'anthropic'
 **Mechanism**: Schema definition + model export
 
 **Extension Method**:
+
 1. Define schema: `lib/db/schemas/<entity>.schema.ts`
 2. Export model: `lib/db/models.ts`
 3. Add domain interface: `domain/entities.ts`
@@ -73,11 +79,14 @@ type AIProvider = 'openai' | 'gemini' | 'anthropic'
 
 **Extension Method**:
 Add new transport (e.g., Datadog, Sentry):
+
 ```typescript
 transports: [
   new transports.Console(),
-  new DatadogTransport({ /* config */ })
-]
+  new DatadogTransport({
+    /* config */
+  }),
+];
 ```
 
 ### 6. Metrics
@@ -88,11 +97,12 @@ transports: [
 
 **Extension Method**:
 Define new metric:
+
 ```typescript
 const myMetric = new Counter({
   name: 'my_metric_total',
-  help: 'Description'
-})
+  help: 'Description',
+});
 ```
 
 ## Future Plugin Opportunities
@@ -137,6 +147,7 @@ const myMetric = new Counter({
 ### Configuration
 
 Environment variables in `.env.local` allow:
+
 - AI provider selection
 - Database connection
 - Log level
@@ -145,6 +156,7 @@ Environment variables in `.env.local` allow:
 ### Database Seeding
 
 Scripts in `packages/web/scripts/` for:
+
 - Custom catalog data
 - Test users
 - Demo scenarios

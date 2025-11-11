@@ -51,7 +51,9 @@
 ```
 
 ### strict: false Implications
+
 When `strict: false`, TypeScript disables:
+
 - `noImplicitAny` - Allows implicit `any` types
 - `strictNullChecks` - Allows `null`/`undefined` without checks
 - `strictFunctionTypes` - Allows unsafe function parameter types
@@ -69,6 +71,7 @@ When `strict: false`, TypeScript disables:
 **Total Instances**: 20+ across service files
 
 ### Cart Service
+
 **File**: `features/cart/lib/cart.service.ts`
 
 ```typescript
@@ -89,6 +92,7 @@ function mapCartToDto(cart: any): Cart {
 **Pattern**: Mongoose document → DTO mapping with `any` escape hatch
 
 **Occurrences**:
+
 - `cart.service.ts`: 8 instances
 - `checkout.service.ts`: 7 instances
 - `agent.service.ts`: 5 instances
@@ -100,16 +104,19 @@ function mapCartToDto(cart: any): Cart {
 **Root Cause**: Mongoose documents not properly typed
 
 **Current Pattern**:
+
 ```typescript
 const cart = await CartModel.findOne({ userId }).exec();
 // cart type is any (Mongoose Document with unknown structure)
 
-function mapCartToDto(cart: any) {  // ❌ Give up on types
+function mapCartToDto(cart: any) {
+  // ❌ Give up on types
   // ...
 }
 ```
 
 **Recommended Pattern**:
+
 ```typescript
 // lib/db/types/cart.types.ts
 import type { Types, Document } from 'mongoose';
@@ -132,15 +139,14 @@ export interface CartDocument extends Document {
 }
 
 // Usage
-const cart = await CartModel.findOne({ userId })
-  .lean<CartDocument>()
-  .exec();
+const cart = await CartModel.findOne({ userId }).lean<CartDocument>().exec();
 
-function mapCartToDto(cart: CartDocument): Cart {  // ✅ Type-safe
+function mapCartToDto(cart: CartDocument): Cart {
+  // ✅ Type-safe
   return {
     id: cart._id.toString(),
     userId: cart.userId.toString(),
-    items: cart.items.map(item => ({
+    items: cart.items.map((item) => ({
       itemId: item.itemId.toString(),
       itemName: item.itemName,
       // ... all properties type-checked
@@ -159,6 +165,7 @@ function mapCartToDto(cart: CartDocument): Cart {  // ✅ Type-safe
 **Pattern Not Used**: Type narrowing with discriminated unions
 
 **Current Code**:
+
 ```typescript
 // features/agent/lib/agent.service.ts
 const role =
@@ -166,13 +173,14 @@ const role =
     ? AgentMessageRole.Agent
     : msg.sender === 'user'
       ? AgentMessageRole.User
-      : AgentMessageRole.System;  // ⚠️ No exhaustiveness check
+      : AgentMessageRole.System; // ⚠️ No exhaustiveness check
 ```
 
 **Recommended Pattern**:
+
 ```typescript
 // Define discriminated union
-type MessageSender = 
+type MessageSender =
   | { type: 'agent'; agentId: string }
   | { type: 'user'; userId: string }
   | { type: 'system'; systemId: string };
@@ -187,7 +195,7 @@ function getSenderRole(sender: MessageSender): AgentMessageRole {
     case 'system':
       return AgentMessageRole.System;
     default:
-      const _exhaustive: never = sender;  // ✅ Type error if case missing
+      const _exhaustive: never = sender; // ✅ Type error if case missing
       throw new Error(`Unhandled sender type: ${_exhaustive}`);
   }
 }
@@ -200,6 +208,7 @@ function getSenderRole(sender: MessageSender): AgentMessageRole {
 **Pattern**: Zod schemas at API boundary
 
 **Example**:
+
 ```typescript
 // lib/validation/schemas.ts
 export const createItemSchema = z.object({
@@ -215,13 +224,13 @@ export type CreateItemInput = z.infer<typeof createItemSchema>;
 
 // Usage in route handler
 const body = await request.json();
-const result = createItemSchema.safeParse(body);  // ✅ Runtime validation
+const result = createItemSchema.safeParse(body); // ✅ Runtime validation
 
 if (!result.success) {
   return NextResponse.json({ error: result.error }, { status: 400 });
 }
 
-const item = await createItem(result.data);  // ✅ Type-safe
+const item = await createItem(result.data); // ✅ Type-safe
 ```
 
 **Assessment**: Excellent alignment between Zod schemas and domain types
@@ -233,12 +242,14 @@ const item = await createItem(result.data);  // ✅ Type-safe
 **Pattern**: Mixed usage (no clear convention)
 
 **Observation**:
+
 - `domain/entities.ts`: Uses `interface` for domain models
 - Zod schemas: Uses `type` with `z.infer`
 
 **Recommendation**: Choose consistent pattern
 
 **Guideline**:
+
 - Use `interface` for object shapes that may be extended
 - Use `type` for unions, intersections, utility types
 
@@ -268,13 +279,13 @@ export type PurchaseRequestStatus = 'submitted' | 'approved' | 'rejected';
 ```typescript
 // ❌ Bad
 function handleError(error: any) {
-  console.error(error.message);  // No type safety
+  console.error(error.message); // No type safety
 }
 
 // ✅ Good
 function handleError(error: unknown) {
   if (error instanceof Error) {
-    console.error(error.message);  // Type-safe after narrowing
+    console.error(error.message); // Type-safe after narrowing
   } else {
     console.error(String(error));
   }
@@ -288,15 +299,18 @@ function handleError(error: unknown) {
 **Use Case**: Prevent mixing similar primitive types
 
 **Example**:
+
 ```typescript
 // Without branded types
 type UserId = string;
 type ItemId = string;
 
-function getUserCart(userId: UserId) { /* ... */ }
+function getUserCart(userId: UserId) {
+  /* ... */
+}
 
 const itemId: ItemId = '123';
-getUserCart(itemId);  // ❌ Bug: passing item ID as user ID (no type error)
+getUserCart(itemId); // ❌ Bug: passing item ID as user ID (no type error)
 
 // With branded types
 type UserId = string & { readonly __brand: 'UserId' };
@@ -306,10 +320,12 @@ function createUserId(id: string): UserId {
   return id as UserId;
 }
 
-function getUserCart(userId: UserId) { /* ... */ }
+function getUserCart(userId: UserId) {
+  /* ... */
+}
 
 const itemId: ItemId = createItemId('123');
-getUserCart(itemId);  // ✅ Type error: ItemId not assignable to UserId
+getUserCart(itemId); // ✅ Type error: ItemId not assignable to UserId
 ```
 
 **Recommendation**: Use for critical domain IDs (userId, itemId, conversationId)
@@ -319,12 +335,13 @@ getUserCart(itemId);  // ✅ Type error: ItemId not assignable to UserId
 ## 9. Strict Mode Migration Plan
 
 ### Phase 1: Enable noImplicitAny (Week 1)
+
 ```jsonc
 {
   "compilerOptions": {
-    "strict": false,  // Still false
-    "noImplicitAny": true  // ✅ Add explicitly
-  }
+    "strict": false, // Still false
+    "noImplicitAny": true, // ✅ Add explicitly
+  },
 }
 ```
 
@@ -334,12 +351,13 @@ getUserCart(itemId);  // ✅ Type error: ItemId not assignable to UserId
 ---
 
 ### Phase 2: Enable strictNullChecks (Week 2-3)
+
 ```jsonc
 {
   "compilerOptions": {
     "noImplicitAny": true,
-    "strictNullChecks": true  // ✅ Add
-  }
+    "strictNullChecks": true, // ✅ Add
+  },
 }
 ```
 
@@ -349,11 +367,12 @@ getUserCart(itemId);  // ✅ Type error: ItemId not assignable to UserId
 ---
 
 ### Phase 3: Enable Full Strict Mode (Week 4)
+
 ```jsonc
 {
   "compilerOptions": {
-    "strict": true  // ✅ Enable all checks
-  }
+    "strict": true, // ✅ Enable all checks
+  },
 }
 ```
 
@@ -375,18 +394,21 @@ getUserCart(itemId);  // ✅ Type error: ItemId not assignable to UserId
 ## Summary & Recommendations
 
 ### Critical (Week 1)
+
 1. ❌ **Enable `noImplicitAny`** in tsconfig
 2. ❌ **Create typed Mongoose document interfaces**
 3. ❌ **Replace all `any` with proper types** in service layer
 4. ❌ **Remove `ignoreBuildErrors`** from next.config
 
 ### High Priority (Month 1)
+
 5. ✅ **Enable `strictNullChecks`** after fixing implicit any
 6. ✅ **Add discriminated unions** for enums
 7. ✅ **Use `unknown` instead of `any`** in error handlers
 8. ✅ **Add branded types** for domain IDs
 
 ### Medium Priority (Quarter 1)
+
 9. ✅ **Enable full strict mode**
 10. ✅ **Increase target to ES2020+**
 11. ✅ **Add exhaustiveness checks** with `never`
@@ -396,12 +418,14 @@ getUserCart(itemId);  // ✅ Type error: ItemId not assignable to UserId
 ## Metrics & Goals
 
 ### Current State
+
 - Strict mode: ❌ Disabled
 - any usage: 20+ instances
 - Type coverage: ~40% (estimate)
 - tsc errors: Unknown (compiler OOM)
 
 ### Target State (8 weeks)
+
 - Strict mode: ✅ Enabled
 - any usage: 0 instances
 - Type coverage: 95%+

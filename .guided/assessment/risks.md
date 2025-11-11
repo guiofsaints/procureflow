@@ -12,6 +12,7 @@
 **Impact**: Critical (could block production deployment)
 
 **Mitigation**:
+
 - Implement service layer tests immediately (Phase 1)
 - Add integration tests for API routes (Phase 2)
 - Add E2E tests for critical flows (Phase 3)
@@ -29,6 +30,7 @@
 **Impact**: High (agent becomes unusable)
 
 **Mitigation**:
+
 - ✅ Bottleneck rate limiting implemented
 - ✅ Gemini fallback available
 - ✅ Circuit breaker prevents cascading failures
@@ -43,6 +45,7 @@
 **Impact**: High (core feature broken)
 
 **Mitigation**:
+
 - ✅ Documented in README and setup instructions
 - ✅ Script provided (`db:create-text-index`)
 - Consider: Auto-create index on first run or startup
@@ -60,6 +63,7 @@
 **Impact**: Medium (app won't start, clear error)
 
 **Mitigation**:
+
 - ✅ Documented in `.guided/context/env.md`
 - Consider: Add startup validation and clear error messages
 
@@ -72,6 +76,7 @@
 **Impact**: High (agent feature unusable)
 
 **Mitigation**:
+
 - ✅ Dual provider support (OpenAI ↔ Gemini)
 - ✅ Circuit breaker prevents retry storms
 - Consider: Fallback to manual catalog browse if both fail
@@ -85,6 +90,7 @@
 **Impact**: Medium (requests fail)
 
 **Mitigation**:
+
 - ✅ Mongoose connection pooling configured
 - ✅ Singleton pattern prevents multiple connections
 - Consider: Monitor connection pool usage
@@ -102,6 +108,7 @@
 **Impact**: Low (caught in testing or production)
 
 **Mitigation**:
+
 - Consider: Gradually enable strict mode
 
 **Status**: Acceptable for MVP
@@ -113,6 +120,7 @@
 **Impact**: Low (can debug with logs)
 
 **Mitigation**:
+
 - Consider: Add request ID logging
 
 **Status**: Acceptable for MVP
@@ -124,6 +132,7 @@
 **Impact**: Low (sessions expire naturally)
 
 **Mitigation**:
+
 - Consider: Move to database sessions if needed
 
 **Status**: Acceptable for MVP
@@ -139,6 +148,7 @@
 **Impact**: Medium (security vulnerability)
 
 **Mitigation**:
+
 - ✅ Zod schemas defined
 - ⚠️ Not used consistently across all routes
 - Consider: Enforce validation middleware
@@ -152,6 +162,7 @@
 **Impact**: Medium (API keys compromised)
 
 **Mitigation**:
+
 - ✅ `.env.local` in .gitignore
 - ✅ Documented to use secret managers in production
 - Consider: Add secret scanning in CI
@@ -169,6 +180,7 @@
 **Impact**: Medium (slow incident response)
 
 **Mitigation**:
+
 - ✅ Prometheus metrics defined
 - ⚠️ No alerting configured
 - Consider: Add Sentry for error tracking
@@ -182,6 +194,7 @@
 **Impact**: High (app unusable)
 
 **Mitigation**:
+
 - Recommendation: Use MongoDB Atlas with automated backups
 - Recommendation: Configure replica set for high availability
 
@@ -191,14 +204,14 @@
 
 ## Risk Summary
 
-| Category | Critical | High | Medium | Low |
-|----------|----------|------|--------|-----|
-| **Testing** | 1 | 0 | 0 | 0 |
-| **AI/External** | 0 | 1 | 2 | 0 |
-| **Infrastructure** | 0 | 1 | 3 | 1 |
-| **Security** | 0 | 0 | 2 | 0 |
-| **Operational** | 0 | 0 | 2 | 2 |
-| **Total** | **1** | **2** | **9** | **3** |
+| Category           | Critical | High  | Medium | Low   |
+| ------------------ | -------- | ----- | ------ | ----- |
+| **Testing**        | 1        | 0     | 0      | 0     |
+| **AI/External**    | 0        | 1     | 2      | 0     |
+| **Infrastructure** | 0        | 1     | 3      | 1     |
+| **Security**       | 0        | 0     | 2      | 0     |
+| **Operational**    | 0        | 0     | 2      | 2     |
+| **Total**          | **1**    | **2** | **9**  | **3** |
 
 ---
 

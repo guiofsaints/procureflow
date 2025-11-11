@@ -320,6 +320,9 @@ export interface PurchaseRequest {
   /** User who created this purchase request */
   userId: UserId;
 
+  /** Purchase request number (e.g., PR-2024-0001) */
+  requestNumber: string;
+
   /** List of items in this purchase request (immutable snapshots) */
   items: PurchaseRequestItem[];
 
@@ -335,6 +338,11 @@ export interface PurchaseRequest {
    * [MVP]
    */
   notes?: string;
+
+  /**
+   * Source of the purchase request (UI or Agent)
+   */
+  source: 'ui' | 'agent';
 
   /**
    * Purchase request status

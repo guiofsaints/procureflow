@@ -1,13 +1,14 @@
 # Changelog
 
 > **Format**: Keep a Changelog v1.0.0  
-> **Versioning**: Semantic Versioning  
+> **Versioning**: Semantic Versioning
 
 All notable changes to ProcureFlow will be documented in this file.
 
 ## [Unreleased]
 
 ### Added
+
 - Initial `.guided/` documentation structure
 - Comprehensive technical assessment
 - Architecture documentation
@@ -16,6 +17,7 @@ All notable changes to ProcureFlow will be documented in this file.
 ## [0.1.0] - 2024-Q4 (Bootstrap Codebase)
 
 ### Added
+
 - Next.js 15 with App Router
 - TypeScript configuration
 - MongoDB with Mongoose ODM
@@ -33,6 +35,7 @@ All notable changes to ProcureFlow will be documented in this file.
 - Database seed scripts
 
 ### Features
+
 - AI agent chat interface
 - Conversational catalog search
 - Cart management via agent
@@ -41,6 +44,7 @@ All notable changes to ProcureFlow will be documented in this file.
 - Demo authentication
 
 ### Infrastructure
+
 - MongoDB text search index
 - Radix UI component library
 - Tailwind CSS styling
@@ -49,12 +53,14 @@ All notable changes to ProcureFlow will be documented in this file.
 - Retry logic with exponential backoff
 
 ### Documentation
+
 - `.github/copilot-instructions.md`
 - `README.md`
 - Product documentation in `.guided/product/`
 - Architecture documentation in `.guided/architecture/`
 
 ### Known Limitations
+
 - No automated tests
 - No approval workflows (future)
 - No budget management (future)
@@ -69,21 +75,27 @@ All notable changes to ProcureFlow will be documented in this file.
 ## [Version] - YYYY-MM-DD
 
 ### Added
+
 - New features
 
 ### Changed
+
 - Changes to existing functionality
 
 ### Deprecated
+
 - Soon-to-be removed features
 
 ### Removed
+
 - Removed features
 
 ### Fixed
+
 - Bug fixes
 
 ### Security
+
 - Security improvements
 ```
 

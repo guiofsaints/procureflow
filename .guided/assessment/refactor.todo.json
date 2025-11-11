@@ -364,7 +364,9 @@
   {
     "id": "CMPLX-003",
     "title": "Extract conversation title generator",
-    "files": ["packages/web/src/features/agent/lib/conversation-title-generator.ts"],
+    "files": [
+      "packages/web/src/features/agent/lib/conversation-title-generator.ts"
+    ],
     "domain": "core",
     "severity": "low",
     "effort": "low",
@@ -533,7 +535,9 @@
   {
     "id": "PERF-001",
     "title": "Add React.memo to expensive components",
-    "files": ["packages/web/src/features/agent/components/AgentProductCard.tsx"],
+    "files": [
+      "packages/web/src/features/agent/components/AgentProductCard.tsx"
+    ],
     "domain": "react",
     "severity": "low",
     "effort": "low",
@@ -654,7 +658,9 @@
   {
     "id": "REACT-003",
     "title": "Replace index keys with stable IDs in message lists",
-    "files": ["packages/web/src/features/agent/components/AgentChatMessages.tsx"],
+    "files": [
+      "packages/web/src/features/agent/components/AgentChatMessages.tsx"
+    ],
     "domain": "react",
     "severity": "medium",
     "effort": "low",

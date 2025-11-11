@@ -9,21 +9,21 @@
 
 ## Coverage by Module
 
-| Module | Lines | Functions | Branches | Statements |
-|--------|-------|-----------|----------|------------|
-| catalog.service | 0% | 0% | 0% | 0% |
-| cart.service | 0% | 0% | 0% | 0% |
-| checkout.service | 0% | 0% | 0% | 0% |
-| agent.service | 0% | 0% | 0% | 0% |
-| auth.service | 0% | 0% | 0% | 0% |
+| Module           | Lines | Functions | Branches | Statements |
+| ---------------- | ----- | --------- | -------- | ---------- |
+| catalog.service  | 0%    | 0%        | 0%       | 0%         |
+| cart.service     | 0%    | 0%        | 0%       | 0%         |
+| checkout.service | 0%    | 0%        | 0%       | 0%         |
+| agent.service    | 0%    | 0%        | 0%       | 0%         |
+| auth.service     | 0%    | 0%        | 0%       | 0%         |
 
 ## Goals
 
-| Module | Target | Priority |
-|--------|--------|----------|
-| Services | 80% | High |
-| API Routes | 70% | High |
-| Components | 60% | Medium |
+| Module     | Target | Priority |
+| ---------- | ------ | -------- |
+| Services   | 80%    | High     |
+| API Routes | 70%    | High     |
+| Components | 60%    | Medium   |
 
 ## Related Documentation
 

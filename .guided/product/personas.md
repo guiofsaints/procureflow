@@ -21,9 +21,10 @@ This document defines user personas for ProcureFlow—the end users of the procu
 
 **Name**: Alex Chen  
 **Title**: Software Engineer  
-**Company**: Mid-sized tech company  
+**Company**: Mid-sized tech company
 
 **Background**:
+
 - Manages a team of 5 engineers
 - Occasionally needs to request equipment and supplies
 - Has limited time for administrative tasks
@@ -71,6 +72,7 @@ This document defines user personas for ProcureFlow—the end users of the procu
 **Context**: Alex's team needs new keyboards and mice.
 
 **Journey**:
+
 1. Opens ProcureFlow agent
 2. Types: "I need 5 ergonomic keyboards and wireless mice"
 3. Agent shows options with prices
@@ -86,6 +88,7 @@ This document defines user personas for ProcureFlow—the end users of the procu
 **Context**: Alex needs a standing desk, but it's not in catalog.
 
 **Journey**:
+
 1. Searches: "standing desk"
 2. Agent responds: "No standing desks found. Would you like to register this item?"
 3. Alex: "Yes, I need an adjustable standing desk, budget around $500"
@@ -99,6 +102,7 @@ This document defines user personas for ProcureFlow—the end users of the procu
 **Context**: Alex added items but realizes quantity is wrong.
 
 **Journey**:
+
 1. "Show me my cart"
 2. Agent displays current cart
 3. "Change keyboards to 6"
@@ -131,6 +135,7 @@ This document defines user personas for ProcureFlow—the end users of the procu
 **Company**: Mid-sized tech company
 
 **Background**:
+
 - Manages procurement for entire organization
 - Responsible for budget compliance and vendor relationships
 - Needs visibility into all purchase requests
@@ -162,6 +167,7 @@ This document defines user personas for ProcureFlow—the end users of the procu
 #### Scenario 1: Approve Purchase Requests
 
 **Journey**:
+
 1. Opens buyer dashboard
 2. Sees pending requests
 3. Reviews request details (items, total, requester)
@@ -171,6 +177,7 @@ This document defines user personas for ProcureFlow—the end users of the procu
 #### Scenario 2: Review User-Registered Items
 
 **Journey**:
+
 1. Sees list of newly registered items
 2. Reviews item details (name, category, estimated price)
 3. Approves for catalog or requests more information
@@ -199,13 +206,13 @@ This document defines user personas for ProcureFlow—the end users of the procu
 
 ## Persona Comparison
 
-| Attribute | Employee (Requester) | Buyer | IT Admin |
-|-----------|---------------------|-------|----------|
-| **Primary Goal** | Request items quickly | Ensure compliance & efficiency | Maintain system health |
-| **System Usage** | Occasional (as needed) | Daily | Weekly |
-| **Technical Skill** | Basic | Intermediate | Advanced |
-| **Focus** | Task completion | Process optimization | Configuration |
-| **MVP Priority** | Primary | Future | Future |
+| Attribute           | Employee (Requester)   | Buyer                          | IT Admin               |
+| ------------------- | ---------------------- | ------------------------------ | ---------------------- |
+| **Primary Goal**    | Request items quickly  | Ensure compliance & efficiency | Maintain system health |
+| **System Usage**    | Occasional (as needed) | Daily                          | Weekly                 |
+| **Technical Skill** | Basic                  | Intermediate                   | Advanced               |
+| **Focus**           | Task completion        | Process optimization           | Configuration          |
+| **MVP Priority**    | Primary                | Future                         | Future                 |
 
 ## Design Implications
 

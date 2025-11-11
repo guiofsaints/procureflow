@@ -30,7 +30,14 @@
     },
     "category": {
       "type": "string",
-      "enum": ["base", "architecture", "product", "testing", "operation", "custom"],
+      "enum": [
+        "base",
+        "architecture",
+        "product",
+        "testing",
+        "operation",
+        "custom"
+      ],
       "description": "Prompt category"
     },
     "difficulty": {

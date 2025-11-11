@@ -13,6 +13,7 @@
 import type { Types } from 'mongoose';
 import { Types as MongooseTypes } from 'mongoose';
 
+import type { CartDocument, CartItemDocument } from '@/domain/documents';
 import type { Cart } from '@/domain/entities';
 import {
   CartModel,
@@ -167,8 +168,7 @@ export async function addItemToCart(
 
     // Check if item already in cart
     const existingItemIndex = cart.items.findIndex(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (cartItem: any) => cartItem.itemId?.toString() === input.itemId
+      (cartItem) => cartItem.itemId?.toString() === input.itemId
     );
 
     if (existingItemIndex >= 0) {
@@ -190,11 +190,8 @@ export async function addItemToCart(
         );
       }
 
-      // Push to cart items (using 'any' to bypass type mismatch between schema and document type)
-      // The schema uses 'name' but CartItemDocument type uses 'itemName' after mapping
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (cart.items as any).push({
-        itemId: input.itemId,
+      cart.items.push({
+        itemId: input.itemId as unknown as Types.ObjectId,
         name: item.name,
         unitPrice: item.estimatedPrice,
         quantity,
@@ -463,23 +460,21 @@ export async function analyzeCart(userId: string | Types.ObjectId): Promise<{
 // Mapping Helpers
 // ============================================================================
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapCartToDto(cart: any): Cart {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const items = cart.items.map((item: any) => ({
+/**
+ * Maps a CartDocument from Mongoose to a Cart domain entity
+ * This function is fully type-safe and eliminates the need for `any` types
+ */
+function mapCartToDto(cart: CartDocument): Cart {
+  const items = cart.items.map((item: CartItemDocument) => ({
     itemId: item.itemId?.toString() || '',
     itemName: item.name,
     itemPrice: item.unitPrice,
     quantity: item.quantity,
-    subtotal: item.unitPrice * item.quantity,
+    subtotal: item.subtotal || item.unitPrice * item.quantity,
     addedAt: item.addedAt,
   }));
 
-  const totalCost = items.reduce(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (sum: number, item: any) => sum + item.subtotal,
-    0
-  );
+  const totalCost = items.reduce((sum: number, item) => sum + item.subtotal, 0);
 
   return {
     id: cart._id.toString(),

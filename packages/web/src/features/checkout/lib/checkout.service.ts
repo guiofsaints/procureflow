@@ -11,6 +11,11 @@
 
 import { Types } from 'mongoose';
 
+import type {
+  CartItemDocument,
+  PurchaseRequestDocument,
+  PurchaseRequestItemDocument,
+} from '@/domain/documents';
 import type { PurchaseRequest } from '@/domain/entities';
 import { PurchaseRequestStatus } from '@/domain/entities';
 import { CartModel, ItemModel, PurchaseRequestModel } from '@/lib/db/models';
@@ -74,10 +79,7 @@ export async function checkoutCart(
     const requestNumber = await generateRequestNumber();
 
     // Fetch item details to get category and description
-    const itemIds = cart.items.map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (cartItem: any) => cartItem.itemId
-    );
+    const itemIds = cart.items.map((cartItem) => cartItem.itemId);
     const items = await ItemModel.find({ _id: { $in: itemIds } })
       .lean()
       .exec();
@@ -86,8 +88,7 @@ export async function checkoutCart(
     const itemMap = new Map(items.map((item) => [item._id.toString(), item]));
 
     // Create purchase request items (immutable snapshots)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestItems = cart.items.map((cartItem: any) => {
+    const requestItems = cart.items.map((cartItem: CartItemDocument) => {
       const itemDetails = itemMap.get(cartItem.itemId.toString());
       return {
         itemId: cartItem.itemId,
@@ -102,8 +103,7 @@ export async function checkoutCart(
 
     // Calculate total
     const total = requestItems.reduce(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (sum: number, item: any) => sum + item.subtotal,
+      (sum: number, item) => sum + item.subtotal,
       0
     );
 
@@ -128,20 +128,19 @@ export async function checkoutCart(
     return {
       id: savedRequest._id.toString(),
       userId: savedRequest.userId.toString(),
-      items: savedRequest.items.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (item: any) => ({
-          itemId: item.itemId?.toString() || '',
-          itemName: item.name,
-          itemCategory: item.category,
-          itemDescription: item.description,
-          unitPrice: item.unitPrice,
-          quantity: item.quantity,
-          subtotal: item.subtotal,
-        })
-      ),
+      requestNumber: savedRequest.requestNumber,
+      items: savedRequest.items.map((item: PurchaseRequestItemDocument) => ({
+        itemId: item.itemId?.toString() || '',
+        itemName: item.name,
+        itemCategory: item.category,
+        itemDescription: item.description,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
       totalCost: savedRequest.total,
       notes: savedRequest.notes,
+      source: savedRequest.source,
       status: PurchaseRequestStatus.Submitted,
       createdAt: savedRequest.createdAt,
       updatedAt: savedRequest.updatedAt,
@@ -174,8 +173,9 @@ export async function getPurchaseRequestsForUser(
       typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
 
     // Build query
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const query: any = { userId: userIdObj };
+    const query: { userId: Types.ObjectId; status?: string } = {
+      userId: userIdObj,
+    };
 
     if (filters?.status) {
       query.status = filters.status;
@@ -188,23 +188,22 @@ export async function getPurchaseRequestsForUser(
       .exec();
 
     // Map to DTOs
-    return requests.map((request) => ({
+    return requests.map((request: PurchaseRequestDocument) => ({
       id: request._id.toString(),
       userId: request.userId.toString(),
-      items: request.items.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (item: any) => ({
-          itemId: item.itemId?.toString() || '',
-          itemName: item.name,
-          itemCategory: item.category,
-          itemDescription: item.description,
-          unitPrice: item.unitPrice,
-          quantity: item.quantity,
-          subtotal: item.subtotal,
-        })
-      ),
+      requestNumber: request.requestNumber,
+      items: request.items.map((item: PurchaseRequestItemDocument) => ({
+        itemId: item.itemId?.toString() || '',
+        itemName: item.name,
+        itemCategory: item.category,
+        itemDescription: item.description,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
       totalCost: request.total,
       notes: request.notes || '',
+      source: request.source,
       status: request.status as PurchaseRequestStatus,
       createdAt: request.createdAt,
       updatedAt: request.updatedAt,
@@ -248,20 +247,19 @@ export async function getPurchaseRequestById(
     return {
       id: request._id.toString(),
       userId: request.userId.toString(),
-      items: request.items.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (item: any) => ({
-          itemId: item.itemId?.toString() || '',
-          itemName: item.name,
-          itemCategory: item.category,
-          itemDescription: item.description,
-          unitPrice: item.unitPrice,
-          quantity: item.quantity,
-          subtotal: item.subtotal,
-        })
-      ),
+      requestNumber: request.requestNumber,
+      items: request.items.map((item: PurchaseRequestItemDocument) => ({
+        itemId: item.itemId?.toString() || '',
+        itemName: item.name,
+        itemCategory: item.category,
+        itemDescription: item.description,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
       totalCost: request.total,
       notes: request.notes || '',
+      source: request.source,
       status: request.status as PurchaseRequestStatus,
       createdAt: request.createdAt,
       updatedAt: request.updatedAt,

@@ -16,6 +16,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 **Goal**: Functional AI-native procurement for single organization
 
 **Features**:
+
 - ✅ AI agent chat interface
 - ✅ Conversational catalog search
 - ✅ Cart management via agent
@@ -24,6 +25,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 - ✅ Basic authentication
 
 **Success Criteria**:
+
 - Agent successfully handles 90% of test scenarios
 - Users can complete procurement in < 2 minutes
 - Zero critical bugs in core flows
@@ -33,6 +35,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 **Goal**: Enable buyer oversight and approval processes
 
 **Features**:
+
 - Buyer role and dashboard
 - Purchase request approval/rejection workflow
 - Item approval for user-registered items
@@ -40,6 +43,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 - Approval rules configuration
 
 **Success Criteria**:
+
 - Buyers can approve/reject requests in < 30 seconds
 - Request status visible to requesters in real-time
 
@@ -48,6 +52,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 **Goal**: Provide procurement intelligence
 
 **Features**:
+
 - Spend analytics dashboard
 - Category-level insights
 - User behavior analytics
@@ -55,6 +60,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 - Duplicate item detection and consolidation
 
 **Success Criteria**:
+
 - Buyers gain visibility into spending patterns
 - Identify 20% cost savings opportunities through analytics
 
@@ -63,6 +69,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 **Goal**: Scale to multi-tenant enterprise deployment
 
 **Features**:
+
 - Multi-tenancy support
 - SSO integration (SAML, OAuth)
 - Advanced RBAC
@@ -71,6 +78,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 - Compliance reporting
 
 **Success Criteria**:
+
 - Support 5+ organizations on single deployment
 - SSO adoption > 90%
 
@@ -79,6 +87,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 **Goal**: Real-time pricing and fulfillment
 
 **Features**:
+
 - Supplier API integration
 - Real-time price and availability checks
 - Automated PO generation
@@ -86,6 +95,7 @@ Transform procurement into an intuitive, AI-driven conversation experience.
 - Supplier performance metrics
 
 **Success Criteria**:
+
 - 50% of catalog items have real-time pricing
 - Delivery time visibility for 80% of orders
 
@@ -129,17 +139,17 @@ No planned deprecations in MVP phase.
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| OpenAI rate limits | High | Implement request throttling, caching |
-| Catalog data quality | Medium | Provide catalog management tools |
-| User adoption | High | Focus on UX simplicity, training materials |
+| Risk                 | Impact | Mitigation                                 |
+| -------------------- | ------ | ------------------------------------------ |
+| OpenAI rate limits   | High   | Implement request throttling, caching      |
+| Catalog data quality | Medium | Provide catalog management tools           |
+| User adoption        | High   | Focus on UX simplicity, training materials |
 
 ## Success Metrics by Phase
 
-| Metric | MVP | Phase 2 | Phase 3 | Phase 4 |
-|--------|-----|---------|---------|---------|
-| Active Users | 50 | 200 | 1000 | 5000 |
-| Requests/Month | 500 | 2000 | 10000 | 50000 |
-| Agent Success Rate | 85% | 90% | 95% | 95% |
-| Avg Request Time | < 2min | < 1.5min | < 1min | < 1min |
+| Metric             | MVP    | Phase 2  | Phase 3 | Phase 4 |
+| ------------------ | ------ | -------- | ------- | ------- |
+| Active Users       | 50     | 200      | 1000    | 5000    |
+| Requests/Month     | 500    | 2000     | 10000   | 50000   |
+| Agent Success Rate | 85%    | 90%      | 95%     | 95%     |
+| Avg Request Time   | < 2min | < 1.5min | < 1min  | < 1min  |

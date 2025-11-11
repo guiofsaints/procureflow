@@ -18,13 +18,16 @@
 ## 1. Rules of Hooks Violations 🔴 HIGH
 
 ### Issue 1.1: Missing Dependencies in useEffect
+
 **File**: `features/agent/hooks/useAgentConversations.ts:69`  
 **Severity**: 🔴 Critical
 
 ```typescript
 export function useAgentConversations() {
-  const [conversations, setConversations] = useState<AgentConversationSummary[]>([]);
-  
+  const [conversations, setConversations] = useState<
+    AgentConversationSummary[]
+  >([]);
+
   const fetchConversations = async () => {
     // ... fetch logic using setConversations, setError, setIsLoading
   };
@@ -33,12 +36,15 @@ export function useAgentConversations() {
     fetchConversations();
 
     const handleConversationUpdate = () => {
-      fetchConversations();  // ❌ Closure captures initial fetchConversations
+      fetchConversations(); // ❌ Closure captures initial fetchConversations
     };
 
     window.addEventListener('conversationUpdated', handleConversationUpdate);
     return () => {
-      window.removeEventListener('conversationUpdated', handleConversationUpdate);
+      window.removeEventListener(
+        'conversationUpdated',
+        handleConversationUpdate
+      );
     };
   }, []); // ❌ Missing fetchConversations dependency
 
@@ -49,10 +55,11 @@ export function useAgentConversations() {
 **Problem**: `fetchConversations` is defined in component scope but not in deps array. Works by accident (function stable), but violates Rules of Hooks.
 
 **Fix**:
+
 ```typescript
 const fetchConversations = useCallback(async () => {
   // ... same logic
-}, []);  // No external dependencies
+}, []); // No external dependencies
 
 useEffect(() => {
   fetchConversations();
@@ -65,12 +72,13 @@ useEffect(() => {
   return () => {
     window.removeEventListener('conversationUpdated', handleConversationUpdate);
   };
-}, [fetchConversations]);  // ✅ Proper dependency
+}, [fetchConversations]); // ✅ Proper dependency
 ```
 
 ---
 
 ### Issue 1.2: Intentional setState in useEffect (Hydration Workaround)
+
 **File**: `components/layout/ThemeToggle.tsx:28`  
 **Severity**: 🟡 Medium (acceptable with justification)
 
@@ -97,16 +105,19 @@ export function ThemeToggle() {
 ---
 
 ### Issue 1.3: Exhaustive-deps Disabled
-**Files**: 
+
+**Files**:
+
 - `features/checkout/components/PurchaseRequestDetailPageContent.tsx:50`
 - `features/checkout/components/PurchaseHistoryPageContent.tsx:69`
 
 **Pattern**:
+
 ```typescript
 useEffect(() => {
   fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);  // Missing dependencies
+}, []); // Missing dependencies
 ```
 
 **Recommendation**: Review each case, likely needs `useCallback` wrapper.
@@ -116,9 +127,11 @@ useEffect(() => {
 ## 2. Component Architecture ✅ GOOD
 
 ### Server vs Client Components
+
 **Pattern**: Server Components by default, `'use client'` only when needed
 
 **Examples**:
+
 ```typescript
 // app/(app)/catalog/page.tsx - Server Component
 export default async function CatalogPage() {
@@ -139,9 +152,11 @@ export function CatalogPageContent({ items }: { items: Item[] }) {
 ---
 
 ### Component Boundaries
+
 **Observation**: Components are well-scoped
 
 **Examples**:
+
 - `AgentChatPageContent` (270 LOC) - Reasonable size, single responsibility
 - `SettingsPageContent` (422 LOC) - ⚠️ Could split into tabs
 - `PurchaseRequestDetailPageContent` (180 LOC) - ✅ Good size
@@ -153,19 +168,20 @@ export function CatalogPageContent({ items }: { items: Item[] }) {
 ## 3. Hooks Usage Patterns
 
 ### useCallback Usage ✅ GOOD
+
 **File**: `contexts/BreadcrumbContext.tsx`
 
 ```typescript
 const setDynamicLabel = useCallback((path: string, label: string) => {
   setDynamicLabels((prev) => ({ ...prev, [path]: label }));
-}, []);  // ✅ Correctly memoized with no deps
+}, []); // ✅ Correctly memoized with no deps
 
 const clearDynamicLabel = useCallback((path: string) => {
   setDynamicLabels((prev) => {
     const { [path]: _, ...rest } = prev;
     return rest;
   });
-}, []);  // ✅ Correctly memoized
+}, []); // ✅ Correctly memoized
 ```
 
 **Assessment**: Proper use of `useCallback` for context value stability
@@ -173,9 +189,11 @@ const clearDynamicLabel = useCallback((path: string) => {
 ---
 
 ### useMemo Usage
+
 **Pattern**: Not detected in codebase
 
 **Observation**: No premature memoization (good). Consider for expensive computations:
+
 - Filtering large lists in catalog
 - Computing cart totals
 
@@ -184,7 +202,9 @@ const clearDynamicLabel = useCallback((path: string) => {
 ---
 
 ### Custom Hooks
+
 **Files**:
+
 - `hooks/use-mobile.ts` - ✅ Simple responsive breakpoint hook
 - `features/agent/hooks/useAgentConversations.ts` - ⚠️ Needs dependency fix
 
@@ -195,6 +215,7 @@ const clearDynamicLabel = useCallback((path: string) => {
 ## 4. Context Usage
 
 ### Current Contexts
+
 1. **CartContext** (`contexts/CartContext.tsx`)
    - State: `itemCount: number`
    - ⚠️ Overkill for single primitive
@@ -207,7 +228,8 @@ const clearDynamicLabel = useCallback((path: string) => {
    - State: `dynamicLabels: Record<string, string>`
    - ✅ Justified (cross-route breadcrumb state)
 
-**Recommendation**: 
+**Recommendation**:
+
 - Remove CartContext (fetch count in layout)
 - Convert LayoutContext to URL params
 - Keep BreadcrumbContext
@@ -233,10 +255,12 @@ const clearDynamicLabel = useCallback((path: string) => {
 **Next.js Pattern**: Uses `error.tsx` files instead
 
 **Files Found**:
+
 - ❌ No `error.tsx` in `app/(app)/`
 - ❌ No global error boundary
 
 **Recommendation**: Add error.tsx files:
+
 ```typescript
 // app/(app)/error.tsx
 'use client';
@@ -260,6 +284,7 @@ export default function Error({ error, reset }: {
 **Detection**: No Suspense boundaries found
 
 **Recommendation**: Add Suspense for async Server Components:
+
 ```typescript
 // app/(app)/catalog/page.tsx
 import { Suspense } from 'react';
@@ -278,18 +303,22 @@ export default function CatalogPage() {
 ## 8. Memoization Strategy
 
 ### React.memo Usage
+
 **Detection**: None found
 
 **Assessment**: ✅ Good - avoid premature optimization
 
 **When to Add**:
+
 - Large lists that re-render frequently
 - Expensive pure components in render tree
 
 **Example candidate**: `AgentProductCard` (rendered in lists)
 
 ```typescript
-export const AgentProductCard = React.memo(function AgentProductCard({ item }: Props) {
+export const AgentProductCard = React.memo(function AgentProductCard({
+  item,
+}: Props) {
   // ... component logic
 });
 ```
@@ -301,6 +330,7 @@ export const AgentProductCard = React.memo(function AgentProductCard({ item }: P
 **Search Pattern**: `.map(` in components
 
 **Examples Found**:
+
 ```typescript
 // features/agent/components/AgentChatMessages.tsx
 {messages.map((message, index) => (
@@ -311,6 +341,7 @@ export const AgentProductCard = React.memo(function AgentProductCard({ item }: P
 **Issue**: Using index as key is anti-pattern if list can reorder
 
 **Fix**:
+
 ```typescript
 {messages.map((message) => (
   <MessageBubble key={message.id} message={message} />  // ✅ Stable ID
@@ -322,13 +353,16 @@ export const AgentProductCard = React.memo(function AgentProductCard({ item }: P
 ## 10. Effect Cleanup Patterns ✅ GOOD
 
 **Examples**:
+
 ```typescript
 // components/layout/Header.tsx
 useEffect(() => {
-  const onScroll = () => { /* ... */ };
+  const onScroll = () => {
+    /* ... */
+  };
   document.addEventListener('scroll', onScroll, { passive: true });
-  
-  return () => document.removeEventListener('scroll', onScroll);  // ✅ Cleanup
+
+  return () => document.removeEventListener('scroll', onScroll); // ✅ Cleanup
 }, []);
 ```
 
@@ -342,10 +376,11 @@ useEffect(() => {
 **Pattern**: ✅ Excellent type-safe form handling
 
 **Example**:
+
 ```typescript
 // features/settings/components/SettingsPageContent.tsx
 const form = useForm<ProfileForm>({
-  resolver: zodResolver(profileSchema),  // ✅ Type-safe validation
+  resolver: zodResolver(profileSchema), // ✅ Type-safe validation
   defaultValues: { name: session?.user?.name || '' },
 });
 ```
@@ -359,6 +394,7 @@ const form = useForm<ProfileForm>({
 **Pattern Detection**: Manual SSR/CSR sync checks
 
 **Example**:
+
 ```typescript
 // components/layout/ThemeToggle.tsx
 const [mounted, setMounted] = useState(false);
@@ -379,16 +415,19 @@ if (!mounted) {
 ## Summary & Recommendations
 
 ### Critical (Week 1)
+
 1. ✅ Fix `useAgentConversations` missing dependency
 2. ✅ Add `error.tsx` boundaries for better error UX
 3. ✅ Replace index keys with stable IDs in message lists
 
 ### High Priority (Month 1)
+
 4. ✅ Audit all `exhaustive-deps` suppressions
 5. ✅ Split `SettingsPageContent` into tab components
 6. ✅ Remove CartContext (replace with server-fetched count)
 
 ### Medium Priority (Quarter 1)
+
 7. ✅ Add Suspense boundaries for async Server Components
 8. ✅ Profile and add `React.memo` if needed (catalog cards)
 9. ✅ Convert LayoutContext to URL params
@@ -398,12 +437,14 @@ if (!mounted) {
 ## Metrics & Goals
 
 ### Current State
+
 - Hooks violations: 4
 - ErrorBoundary coverage: 0%
 - Suspense usage: 0%
 - Memoization: Minimal (good)
 
 ### Target State (8 weeks)
+
 - Hooks violations: 0
 - ErrorBoundary coverage: 100% (error.tsx in all routes)
 - Suspense usage: 100% (all async Server Components)

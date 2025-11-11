@@ -10,6 +10,7 @@
 **Symptom**: `Error: ECONNREFUSED` or `MongooseServerSelectionError`
 
 **Causes**:
+
 - MongoDB not running
 - Incorrect MONGODB_URI
 - Network issues
@@ -46,6 +47,7 @@ pnpm --filter web db:create-text-index
 ```
 
 **Verification**:
+
 ```zsh
 # Connect to MongoDB
 mongosh mongodb://localhost:27017/procureflow
@@ -62,6 +64,7 @@ db.items.getIndexes()
 **Symptom**: Agent says "No items found" for valid queries
 
 **Causes**:
+
 - No items in database
 - Missing text index
 - Missing OpenAI API key
@@ -90,6 +93,7 @@ grep OPENAI_API_KEY .env.local
 **Symptom**: `User must be authenticated` errors or login fails
 
 **Causes**:
+
 - Missing NEXTAUTH_SECRET
 - Incorrect NEXTAUTH_URL
 - Session expired
@@ -112,6 +116,7 @@ openssl rand -base64 32
 ```
 
 **Demo Credentials**:
+
 - Email: `demo@procureflow.com`
 - Password: `demo123`
 
@@ -127,10 +132,10 @@ openssl rand -base64 32
 
 ```typescript
 // ❌ Wrong
-import { searchItems } from '@/features/catalog/lib/catalog.service'
+import { searchItems } from '@/features/catalog/lib/catalog.service';
 
 // ✅ Correct
-import { searchItems } from '@/features/catalog'
+import { searchItems } from '@/features/catalog';
 ```
 
 **Verify**: Check `tsconfig.json` has correct path aliases.
@@ -142,6 +147,7 @@ import { searchItems } from '@/features/catalog'
 **Symptom**: `next build` fails with type errors
 
 **Causes**:
+
 - TypeScript errors in code
 - Missing dependencies
 - Environment variables not set
@@ -170,6 +176,7 @@ pnpm build
 **Symptom**: `pnpm install` fails or shows version mismatch
 
 **Causes**:
+
 - Wrong pnpm version
 - Lock file corruption
 
@@ -195,6 +202,7 @@ pnpm install
 **Symptom**: `pnpm docker:up` fails
 
 **Causes**:
+
 - Docker daemon not running
 - Port conflicts (27017, 8081)
 
@@ -227,6 +235,7 @@ pnpm docker:up
 **Symptom**: Agent fails with API errors
 
 **Causes**:
+
 - Invalid API key
 - Rate limit exceeded
 - Network issues
@@ -333,10 +342,11 @@ curl http://localhost:3000/api/health
 
 ```javascript
 // Enable Mongoose query logging
-mongoose.set('debug', true)
+mongoose.set('debug', true);
 ```
 
 **Solutions**:
+
 - Ensure indexes exist (especially text index)
 - Use `.lean()` for read-only queries
 - Review query patterns in service layer
@@ -348,6 +358,7 @@ mongoose.set('debug', true)
 **Diagnostic**: Check metrics at `/api/metrics`
 
 **Solutions**:
+
 - Reduce conversation history length
 - Use shorter system prompts
 - Switch to cheaper model (gpt-3.5-turbo)
@@ -373,13 +384,13 @@ Set `LOG_LEVEL=debug` in `.env.local` for verbose logging.
 
 ### Common Error Codes
 
-| Code | Meaning | Common Cause |
-|------|---------|--------------|
-| 400 | Bad Request | Invalid input |
-| 401 | Unauthorized | Not logged in |
-| 404 | Not Found | Invalid endpoint or ID |
-| 409 | Conflict | Duplicate item |
-| 500 | Server Error | Unhandled exception |
+| Code | Meaning      | Common Cause           |
+| ---- | ------------ | ---------------------- |
+| 400  | Bad Request  | Invalid input          |
+| 401  | Unauthorized | Not logged in          |
+| 404  | Not Found    | Invalid endpoint or ID |
+| 409  | Conflict     | Duplicate item         |
+| 500  | Server Error | Unhandled exception    |
 
 ---
 

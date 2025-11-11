@@ -29,12 +29,14 @@ The project has excellent infrastructure and code organization but lacks test co
 **Coverage Target**: 80%
 
 **Test Files**:
+
 - `features/catalog/lib/catalog.service.test.ts`
 - `features/cart/lib/cart.service.test.ts`
 - `features/checkout/lib/checkout.service.test.ts`
 - `features/agent/lib/agent.service.test.ts`
 
 **Mocking Strategy**:
+
 - Mock MongoDB with in-memory database or fixtures
 - Mock AI provider responses
 - Mock external services
@@ -46,6 +48,7 @@ The project has excellent infrastructure and code organization but lacks test co
 **Coverage Target**: Critical flows
 
 **Test Scenarios**:
+
 - POST /api/catalog/search → Returns items
 - POST /api/cart/add → Adds item to cart
 - POST /api/checkout → Creates purchase request
@@ -60,6 +63,7 @@ The project has excellent infrastructure and code organization but lacks test co
 **Coverage Target**: Happy paths + key error scenarios
 
 **Test Scenarios**:
+
 1. **User Journey: Search and Checkout**
    - Login → Search "keyboards" → Add to cart → Checkout → Verify purchase request
 
@@ -94,17 +98,19 @@ pnpm test:coverage      # Generate coverage report
 ### Fixtures
 
 Create test fixtures in `features/<name>/mock.ts`:
+
 ```typescript
 export const mockItem = {
   id: 'test-item-1',
   name: 'Test Keyboard',
   // ...
-}
+};
 ```
 
 ### Seeding
 
 Use scripts for consistent test data:
+
 - `db:seed-test-data` script (future)
 
 ## Mocking Dependencies
@@ -112,21 +118,23 @@ Use scripts for consistent test data:
 ### Database
 
 Use in-memory MongoDB or mock Mongoose models:
+
 ```typescript
 vi.mock('@/lib/db/models', () => ({
   ItemModel: {
-    find: vi.fn().mockResolvedValue([mockItem])
-  }
-}))
+    find: vi.fn().mockResolvedValue([mockItem]),
+  },
+}));
 ```
 
 ### AI Provider
 
 Mock LangChain responses:
+
 ```typescript
 vi.mock('@/lib/ai/langchainClient', () => ({
-  chatCompletionWithTools: vi.fn().mockResolvedValue(mockResponse)
-}))
+  chatCompletionWithTools: vi.fn().mockResolvedValue(mockResponse),
+}));
 ```
 
 ## Non-Functional Tests
@@ -144,12 +152,12 @@ vi.mock('@/lib/ai/langchainClient', () => ({
 
 ## Test Coverage Goals
 
-| Layer | Target Coverage | Priority |
-|-------|----------------|----------|
-| Services | 80% | High |
-| API Routes | 70% | High |
-| Components | 60% | Medium |
-| Utils | 90% | Medium |
+| Layer      | Target Coverage | Priority |
+| ---------- | --------------- | -------- |
+| Services   | 80%             | High     |
+| API Routes | 70%             | High     |
+| Components | 60%             | Medium   |
+| Utils      | 90%             | Medium   |
 
 ## Related Documentation
 

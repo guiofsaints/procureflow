@@ -33,6 +33,7 @@ See `.guided/base/setup.instructions.md`.
 ### Why pnpm instead of npm/yarn?
 
 pnpm offers:
+
 - Faster installs
 - Disk efficiency (hard links)
 - Strict mode (prevents phantom dependencies)
@@ -41,6 +42,7 @@ pnpm offers:
 ### Why MongoDB instead of PostgreSQL?
 
 MongoDB provides:
+
 - Schema flexibility for rapid iteration
 - Built-in full-text search
 - Natural fit for nested documents (cart items, agent messages)
@@ -95,6 +97,7 @@ Example: Adding a "cancel_order" tool would call `checkout.service.cancelPurchas
 ### What if OpenAI is down?
 
 Switch to Gemini:
+
 ```env
 AI_PROVIDER=gemini
 GOOGLE_API_KEY=your-key-here
@@ -132,6 +135,7 @@ See `.guided/operation/troubleshooting.md#text-search-not-working`.
 ### How do I connect to MongoDB?
 
 **Docker** (recommended):
+
 ```zsh
 pnpm docker:db
 ```
@@ -140,6 +144,7 @@ pnpm docker:db
 http://localhost:8081
 
 **mongosh** (CLI):
+
 ```zsh
 mongosh mongodb://localhost:27017/procureflow
 ```
@@ -161,6 +166,7 @@ Infrastructure code in `packages/infra/pulumi/gcp/`.
 See `.guided/context/env.md` for complete reference.
 
 **Required**:
+
 - `MONGODB_URI`
 - `NEXTAUTH_SECRET`
 - `NEXTAUTH_URL`
@@ -181,6 +187,7 @@ openssl rand -base64 32
 See `.guided/operation/troubleshooting.md#mongodb-connection-errors`
 
 Common solutions:
+
 1. Ensure MongoDB is running: `pnpm docker:db`
 2. Verify `MONGODB_URI` in `.env.local`
 3. Test connection: `mongosh mongodb://localhost:27017/procureflow`
@@ -188,6 +195,7 @@ Common solutions:
 ### The agent isn't responding
 
 Check:
+
 1. OpenAI API key is set
 2. Catalog items exist (`db.items.countDocuments()`)
 3. Text index exists (`pnpm --filter web db:create-text-index`)
@@ -197,11 +205,13 @@ See `.guided/operation/troubleshooting.md#agent-returns-no-results`
 ### TypeScript errors during build
 
 Run type check:
+
 ```zsh
 pnpm --filter web type-check
 ```
 
 Common issues:
+
 - Missing imports
 - Incorrect path aliases (use `@/` imports)
 - Environment variables not set
@@ -213,6 +223,7 @@ Common issues:
 ### Why the service layer pattern?
 
 **Benefits**:
+
 - Framework-agnostic (testable, reusable)
 - Separation of concerns (HTTP vs. business logic)
 - Can be called from API routes, Server Components, agent tools, or background jobs
@@ -229,6 +240,7 @@ Services accept and return domain entities, not Mongoose documents. This keeps b
 ### How do route handlers work?
 
 Route handlers are **thin wrappers**:
+
 1. Extract request data
 2. Get session (authentication)
 3. Call service function
@@ -249,6 +261,7 @@ See `.guided/testing/strategy.md` for planned approach.
 ### How do I add tests?
 
 **Phase 1** (recommended):
+
 1. Install Vitest: `pnpm add -D vitest @vitest/ui`
 2. Create `vitest.config.ts`
 3. Write service tests: `features/catalog/lib/catalog.service.test.ts`
@@ -274,6 +287,7 @@ See `.guided/testing/strategy.md#unit-tests`.
 **Types**: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
 
 **Example**:
+
 ```
 feat(catalog): add price range filtering
 
@@ -289,6 +303,7 @@ Closes #123
 - Pre-commit hooks enforce checks
 
 Run:
+
 ```zsh
 pnpm lint        # Check
 pnpm lint:fix    # Fix

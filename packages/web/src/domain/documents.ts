@@ -204,16 +204,17 @@ export interface CartDocument {
  * [MVP]
  *
  * Note: This is typically embedded within CartDocument, not a separate collection.
+ * Field names match Mongoose schema: `name` and `unitPrice` (not `itemName`/`itemPrice`)
  */
 export interface CartItemDocument {
   /** Reference to the catalog item (ObjectId) */
   itemId: Types.ObjectId | ItemId;
 
   /** Snapshot of item name at the time of adding to cart */
-  itemName: string;
+  name: string;
 
-  /** Snapshot of item price at the time of adding to cart */
-  itemPrice: number;
+  /** Snapshot of unit price at the time of adding to cart */
+  unitPrice: number;
 
   /**
    * Quantity of this item in the cart
@@ -222,10 +223,10 @@ export interface CartItemDocument {
   quantity: number;
 
   /**
-   * Subtotal for this line item (itemPrice * quantity)
-   * Can be calculated or persisted
+   * Subtotal for this line item (unitPrice * quantity)
+   * Calculated as virtual property in schema
    */
-  subtotal: number;
+  subtotal?: number;
 
   /** Timestamp when this item was added to cart */
   addedAt: Date;
@@ -264,16 +265,28 @@ export interface PurchaseRequestDocument {
   items: PurchaseRequestItemDocument[];
 
   /**
+   * Purchase request number (unique identifier, e.g., PR-2024-0001)
+   * Generated in format: PR-YYYY-####
+   */
+  requestNumber: string;
+
+  /**
    * Total estimated cost of the purchase request
    * Sum of all item subtotals
+   * Field name matches Mongoose schema: `total` (not `totalCost`)
    */
-  totalCost: number;
+  total: number;
 
   /**
    * Optional notes or justification for the purchase
    * [MVP]
    */
   notes?: string;
+
+  /**
+   * Source of the purchase request (UI or Agent)
+   */
+  source: 'ui' | 'agent';
 
   /**
    * Purchase request status
@@ -307,19 +320,20 @@ export interface PurchaseRequestDocument {
  * PurchaseRequestItemDocument represents an embedded PurchaseRequestItem sub-document
  * This is an immutable snapshot of an item at checkout time.
  * [MVP]
+ * Field names match Mongoose schema: `name`, `category`, `description` (not prefixed with `item`)
  */
 export interface PurchaseRequestItemDocument {
   /** Reference to the original catalog item (may change or be deleted later) */
-  itemId: Types.ObjectId | ItemId;
+  itemId: Types.ObjectId | ItemId | null;
 
   /** Snapshot: item name at checkout */
-  itemName: string;
+  name: string;
 
   /** Snapshot: item category at checkout */
-  itemCategory: string;
+  category: string;
 
   /** Snapshot: item description at checkout */
-  itemDescription: string;
+  description: string;
 
   /** Snapshot: unit price at checkout */
   unitPrice: number;

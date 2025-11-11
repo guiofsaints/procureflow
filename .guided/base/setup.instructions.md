@@ -35,11 +35,13 @@ Required variables documented in `.guided/context/env.md`.
 Start MongoDB (choose one):
 
 **Option A: Docker** (recommended)
+
 ```bash
 pnpm docker:db
 ```
 
 **Option B: Local MongoDB**
+
 - Install MongoDB 6.0+
 - Ensure running on `localhost:27017`
 

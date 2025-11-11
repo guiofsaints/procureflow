@@ -19,15 +19,25 @@
 ## 1. HTTP Method Usage ✅ GOOD
 
 ### Correct Patterns Detected
+
 ```typescript
 // GET /api/items - Search catalog
-export async function GET(request: NextRequest) { /* ... */ }
+export async function GET(request: NextRequest) {
+  /* ... */
+}
 
 // POST /api/items - Create new item
-export async function POST(request: NextRequest) { /* ... */ }
+export async function POST(request: NextRequest) {
+  /* ... */
+}
 
 // DELETE /api/items/:id - Delete item
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) { /* ... */ }
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  /* ... */
+}
 ```
 
 **Assessment**: Proper RESTful verb usage
@@ -35,11 +45,13 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 ---
 
 ### Missing Patterns
+
 1. **No PUT/PATCH** - Update operations not implemented
 2. **No OPTIONS** - CORS preflight not handled
 3. **No HEAD** - Resource existence checks not supported
 
 **Examples of Missing Endpoints**:
+
 - `PUT /api/items/:id` - Update catalog item (TODO in codebase)
 - `PATCH /api/cart/items/:id` - Update quantity
 - `PUT /api/settings/profile` - Update user profile
@@ -51,9 +63,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 ## 2. Resource Modeling ✅ GOOD
 
 ### Nouns vs Verbs
+
 **Pattern**: All routes use nouns (correct)
 
 **Examples**:
+
 - ✅ `/api/items` (noun, good)
 - ✅ `/api/cart` (noun, good)
 - ✅ `/api/checkout` (noun, acceptable for process)
@@ -64,6 +78,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 ---
 
 ### Nested Resources
+
 **Pattern**: Proper nesting for relationships
 
 ```
@@ -79,23 +94,26 @@ DELETE /api/cart/items/:itemId   # Remove specific item
 ## 3. Status Code Usage
 
 ### Current Patterns
-| Endpoint | Success | Error | Missing |
-|----------|---------|-------|---------|
-| GET /api/items | 200 | 500 | 404 (no items) |
-| POST /api/items | 200 ⚠️ | 400, 401, 500 | 201 (created) |
-| DELETE /api/items/:id | 200 | 500 | 404 (not found) |
-| POST /api/checkout | 200 | 400, 500 | - |
+
+| Endpoint              | Success | Error         | Missing         |
+| --------------------- | ------- | ------------- | --------------- |
+| GET /api/items        | 200     | 500           | 404 (no items)  |
+| POST /api/items       | 200 ⚠️  | 400, 401, 500 | 201 (created)   |
+| DELETE /api/items/:id | 200     | 500           | 404 (not found) |
+| POST /api/checkout    | 200     | 400, 500      | -               |
 
 **Issues**:
+
 1. **POST should return 201** for created resources
 2. **DELETE should return 204** (no content) or 200 with body
 3. **No 404 handling** for missing resources
 4. **No 409 handling** for conflicts (duplicate items)
 
 **Recommended Fixes**:
+
 ```typescript
 // POST /api/items (create)
-return NextResponse.json(item, { status: 201 });  // ✅ Created
+return NextResponse.json(item, { status: 201 }); // ✅ Created
 
 // DELETE /api/items/:id
 if (!deletedItem) {
@@ -105,11 +123,14 @@ return NextResponse.json({ success: true }, { status: 200 });
 
 // POST /api/items (duplicate)
 if (error instanceof DuplicateItemError) {
-  return NextResponse.json({
-    error: 'Conflict',
-    message: 'Item already exists',
-    duplicates: error.duplicates,
-  }, { status: 409 });
+  return NextResponse.json(
+    {
+      error: 'Conflict',
+      message: 'Item already exists',
+      duplicates: error.duplicates,
+    },
+    { status: 409 }
+  );
 }
 ```
 
@@ -118,12 +139,15 @@ if (error instanceof DuplicateItemError) {
 ## 4. Idempotency
 
 ### GET Requests ✅ IDEMPOTENT
+
 All GET endpoints are read-only (correct)
 
 ### POST Requests ⚠️ NON-IDEMPOTENT
+
 **Current Behavior**: Multiple POST requests create multiple resources
 
 **Example**:
+
 ```typescript
 // POST /api/cart/items (multiple calls)
 await addItemToCart({ itemId: '123', quantity: 1 });
@@ -140,12 +164,12 @@ const idempotencyKey = request.headers.get('Idempotency-Key');
 if (idempotencyKey) {
   const cached = await getCachedCheckout(idempotencyKey);
   if (cached) {
-    return NextResponse.json(cached);  // ✅ Return cached result
+    return NextResponse.json(cached); // ✅ Return cached result
   }
 }
 
 const result = await checkout({ userId, notes });
-await cacheCheckout(idempotencyKey, result, 86400);  // Cache 24h
+await cacheCheckout(idempotencyKey, result, 86400); // Cache 24h
 
 return NextResponse.json(result, { status: 201 });
 ```
@@ -153,6 +177,7 @@ return NextResponse.json(result, { status: 201 });
 ---
 
 ### DELETE Requests ✅ IDEMPOTENT
+
 Deleting non-existent resource should return same result (currently returns 200)
 
 ---
@@ -160,6 +185,7 @@ Deleting non-existent resource should return same result (currently returns 200)
 ## 5. Error Response Schema ⚠️ INCONSISTENT
 
 ### Current Patterns (Mixed)
+
 ```typescript
 // Pattern 1: error + message
 { error: 'Failed to search items', message: 'Connection timeout' }
@@ -174,6 +200,7 @@ Deleting non-existent resource should return same result (currently returns 200)
 **Issue**: Clients cannot rely on consistent structure
 
 **Recommended Standard**:
+
 ```typescript
 // Success response
 {
@@ -201,6 +228,7 @@ Deleting non-existent resource should return same result (currently returns 200)
 ## 6. Pagination ⚠️ INCOMPLETE
 
 ### Current Pattern
+
 ```typescript
 // GET /api/items?limit=50
 export async function GET(request: NextRequest) {
@@ -211,11 +239,13 @@ export async function GET(request: NextRequest) {
 ```
 
 **Issues**:
+
 1. **No offset/cursor** - Cannot paginate through results
 2. **No total count** - Client doesn't know total items
 3. **No next/prev links** - Client must construct URLs
 
 **Recommended Pattern** (Cursor-based):
+
 ```typescript
 // GET /api/items?limit=50&cursor=abc123
 export async function GET(request: NextRequest) {
@@ -240,17 +270,20 @@ export async function GET(request: NextRequest) {
 ## 7. Filtering & Sorting
 
 ### Current State
+
 ```typescript
 // GET /api/items?q=laptop
 // Only supports keyword search
 ```
 
 **Missing Features**:
+
 - Category filtering
 - Price range filtering
 - Sorting (price, name, date)
 
 **Recommended Pattern**:
+
 ```typescript
 // GET /api/items?category=electronics&minPrice=100&maxPrice=500&sort=-price
 export async function GET(request: NextRequest) {
@@ -261,7 +294,7 @@ export async function GET(request: NextRequest) {
     category: searchParams.get('category') || undefined,
     minPrice: parseFloat(searchParams.get('minPrice') || '0'),
     maxPrice: parseFloat(searchParams.get('maxPrice') || '999999'),
-    sort: searchParams.get('sort') || 'name',  // name, -name, price, -price
+    sort: searchParams.get('sort') || 'name', // name, -name, price, -price
   };
 
   const items = await catalogService.searchItems(filters);
@@ -274,16 +307,20 @@ export async function GET(request: NextRequest) {
 ## 8. Validation & Sanitization ✅ GOOD
 
 ### Current Pattern: Zod at Boundary
+
 ```typescript
 // POST /api/items
 const body = await request.json();
 const result = createItemSchema.safeParse(body);
 
 if (!result.success) {
-  return NextResponse.json({
-    error: 'Validation failed',
-    message: result.error.errors.map(e => e.message).join(', '),
-  }, { status: 400 });
+  return NextResponse.json(
+    {
+      error: 'Validation failed',
+      message: result.error.errors.map((e) => e.message).join(', '),
+    },
+    { status: 400 }
+  );
 }
 
 const item = await createItem(result.data);
@@ -300,11 +337,13 @@ const item = await createItem(result.data);
 **Current State**: No API versioning
 
 **Options**:
+
 1. **URL versioning**: `/api/v1/items`
 2. **Header versioning**: `Accept: application/vnd.procureflow.v1+json`
 3. **Query param**: `/api/items?version=1`
 
 **Recommendation** (for future):
+
 ```
 /api/v1/items     # Version 1
 /api/v2/items     # Version 2 (breaking changes)
@@ -324,7 +363,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(100, '1 m'),  // 100 requests per minute
+  limiter: Ratelimit.slidingWindow(100, '1 m'), // 100 requests per minute
 });
 
 export async function middleware(request: NextRequest) {
@@ -379,22 +418,26 @@ return NextResponse.json(cart, {
 **Use Case**: Avoid re-fetching unchanged resources
 
 **Recommendation**:
+
 ```typescript
 import crypto from 'crypto';
 
 // GET /api/items/:id
 const item = await getItemById(id);
-const etag = crypto.createHash('md5').update(JSON.stringify(item)).digest('hex');
+const etag = crypto
+  .createHash('md5')
+  .update(JSON.stringify(item))
+  .digest('hex');
 
 const clientEtag = request.headers.get('If-None-Match');
 
 if (clientEtag === etag) {
-  return new NextResponse(null, { status: 304 });  // Not Modified
+  return new NextResponse(null, { status: 304 }); // Not Modified
 }
 
 return NextResponse.json(item, {
   headers: {
-    'ETag': etag,
+    ETag: etag,
     'Cache-Control': 'max-age=3600',
   },
 });
@@ -405,17 +448,20 @@ return NextResponse.json(item, {
 ## 13. Security Headers ✅ PARTIALLY IMPLEMENTED
 
 ### Current State
+
 ```javascript
 // next.config.mjs
 poweredByHeader: false,  // ✅ Good (hides Next.js version)
 ```
 
 **Missing Headers**:
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Strict-Transport-Security` (HSTS)
 
 **Recommendation**: Add in middleware
+
 ```typescript
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -437,6 +483,7 @@ export function middleware(request: NextRequest) {
 **Current State**: Static schema definition
 
 **Issues**:
+
 1. **No runtime validation** against schema
 2. **Manual sync** with Zod schemas (duplication)
 3. **No auto-generation** from code
@@ -457,7 +504,7 @@ export const openApiSpec = {
         requestBody: {
           content: {
             'application/json': {
-              schema: itemSchema,  // ✅ Generated from Zod
+              schema: itemSchema, // ✅ Generated from Zod
             },
           },
         },
@@ -472,17 +519,20 @@ export const openApiSpec = {
 ## Summary & Recommendations
 
 ### Critical (Week 1)
+
 1. ✅ **Standardize error response schema** (correlationId, code, message)
 2. ✅ **Fix status codes** (201 for POST, 404 for missing resources)
 3. ✅ **Implement missing update endpoints** (PUT /api/items/:id)
 
 ### High Priority (Month 1)
+
 4. ✅ **Add pagination** (cursor-based for scalability)
 5. ✅ **Add filtering & sorting** to catalog search
 6. ✅ **Add rate limiting** middleware
 7. ✅ **Sync OpenAPI with Zod** schemas
 
 ### Medium Priority (Quarter 1)
+
 8. ✅ **Add caching headers** (Cache-Control, ETag)
 9. ✅ **Add security headers** in middleware
 10. ✅ **Implement idempotency keys** for checkout
@@ -493,6 +543,7 @@ export const openApiSpec = {
 ## Metrics & Goals
 
 ### Current State
+
 - OpenAPI sync: Manual (duplication risk)
 - Error schema: Inconsistent
 - Pagination: Incomplete (no cursor)
@@ -500,6 +551,7 @@ export const openApiSpec = {
 - Caching: No headers
 
 ### Target State (8 weeks)
+
 - OpenAPI sync: Auto-generated from Zod
 - Error schema: 100% consistent
 - Pagination: Cursor-based everywhere

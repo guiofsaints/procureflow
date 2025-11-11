@@ -15,6 +15,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 **Purpose**: Represents an authenticated user
 
 **Attributes**:
+
 - `id`: UserId (string)
 - `email`: string (unique)
 - `name`: string (optional)
@@ -24,11 +25,13 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `updatedAt`: Date
 
 **Relationships**:
+
 - One user has many carts
 - One user has many purchase requests
 - One user has many agent conversations
 
 **Business Rules**:
+
 - Email must be unique
 - Password hashed with bcryptjs (10 rounds)
 
@@ -41,6 +44,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 **Purpose**: Represents a requestable material or service
 
 **Attributes**:
+
 - `id`: ItemId (string)
 - `name`: string (required, 2-200 chars)
 - `category`: string (required)
@@ -54,10 +58,12 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `updatedAt`: Date
 
 **Relationships**:
+
 - Referenced by CartItem
 - Referenced by PurchaseRequestItem
 
 **Business Rules**:
+
 - Only "Active" items searchable by default
 - User-registered items immediately active (MVP)
 - Full-text search on name, category, description
@@ -72,6 +78,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 **Purpose**: Shopping cart for user
 
 **Cart Attributes**:
+
 - `id`: CartId (string)
 - `userId`: UserId (owner)
 - `items`: CartItem[]
@@ -81,6 +88,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `updatedAt`: Date
 
 **CartItem Attributes**:
+
 - `itemId`: ItemId (reference to catalog item)
 - `itemName`: string (snapshot at add time)
 - `itemPrice`: number (snapshot at add time)
@@ -89,11 +97,13 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `addedAt`: Date
 
 **Relationships**:
+
 - One cart per user (active)
 - Many cart items per cart
 - Cart items reference items (soft reference)
 
 **Business Rules**:
+
 - One active cart per user
 - Quantity: 1-999 per item
 - Max 100 line items per cart (soft limit)
@@ -109,6 +119,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 **Purpose**: Immutable record of submitted procurement request
 
 **PurchaseRequest Attributes**:
+
 - `id`: PurchaseRequestId (string)
 - `userId`: UserId (requester)
 - `items`: PurchaseRequestItem[]
@@ -121,6 +132,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `updatedAt`: Date
 
 **PurchaseRequestItem Attributes**:
+
 - `itemId`: ItemId (reference to original catalog item)
 - `itemName`: string (snapshot at checkout)
 - `itemCategory`: string (snapshot)
@@ -130,11 +142,13 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `subtotal`: number (unitPrice × quantity)
 
 **Relationships**:
+
 - One purchase request per checkout
 - Many purchase request items per request
 - Items are immutable snapshots (not live references)
 
 **Business Rules**:
+
 - Purchase request immutable after creation
 - Status defaults to "Submitted"
 - Items snapshotted (price, details) at checkout time
@@ -149,6 +163,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 **Purpose**: AI agent interaction logs
 
 **AgentConversation Attributes**:
+
 - `id`: AgentConversationId (string)
 - `userId`: UserId
 - `messages`: AgentMessage[]
@@ -159,6 +174,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `updatedAt`: Date
 
 **AgentMessage Attributes**:
+
 - `role`: 'user' | 'agent' | 'system'
 - `content`: string
 - `timestamp`: Date
@@ -167,6 +183,7 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `purchaseRequest`: PurchaseRequestSummary (optional, for rendering confirmation)
 
 **AgentAction Attributes**:
+
 - `actionType`: AgentActionType (search_catalog, add_to_cart, checkout, etc.)
 - `parameters`: Record<string, unknown>
 - `result`: Record<string, unknown> (optional)
@@ -174,11 +191,13 @@ ProcureFlow's domain model consists of 5 core entities representing the procurem
 - `timestamp`: Date
 
 **Relationships**:
+
 - One conversation per user session
 - Many messages per conversation
 - Many actions per conversation
 
 **Business Rules**:
+
 - Conversations tied to authenticated user
 - Actions logged for debugging and traceability
 - Messages include structured data for UI rendering
@@ -205,13 +224,13 @@ User
 
 ## Domain Rules Summary
 
-| Entity | Key Rules |
-|--------|-----------|
-| User | Unique email, hashed password |
-| Item | Active items searchable, text index required |
-| Cart | One per user, 1-999 qty per item, max 100 items |
-| PurchaseRequest | Immutable, snapshots item details |
-| AgentConversation | User-scoped, tracks actions for debugging |
+| Entity            | Key Rules                                       |
+| ----------------- | ----------------------------------------------- |
+| User              | Unique email, hashed password                   |
+| Item              | Active items searchable, text index required    |
+| Cart              | One per user, 1-999 qty per item, max 100 items |
+| PurchaseRequest   | Immutable, snapshots item details               |
+| AgentConversation | User-scoped, tracks actions for debugging       |
 
 ## Type Definitions
 
@@ -220,9 +239,10 @@ Mongoose schemas in `src/lib/db/schemas/*.schema.ts`.
 Models exported from `src/lib/db/models.ts`.
 
 **Import Pattern**:
+
 ```typescript
-import type { Item, Cart, PurchaseRequest } from '@/domain/entities'
-import { ItemModel, CartModel } from '@/lib/db/models'
+import type { Item, Cart, PurchaseRequest } from '@/domain/entities';
+import { ItemModel, CartModel } from '@/lib/db/models';
 ```
 
 ## Future Entities (Out of Scope)
