@@ -13,13 +13,13 @@
 import type { Types } from 'mongoose';
 
 import type { AgentMessageDocument } from '@/domain/documents';
-import type { AgentMessage } from '@/domain/entities';
 import { AgentMessageRole } from '@/domain/entities';
 import type {
   AgentCart,
   AgentCheckoutConfirmation,
   AgentConversationSummary,
   AgentItem,
+  AgentMessage,
   AgentPurchaseRequest,
 } from '@/features/agent/types';
 import { mapConversationToSummary } from '@/lib/db/mappers';
@@ -46,15 +46,6 @@ export interface HandleAgentMessageParams {
 
   /** Existing conversation ID (optional, creates new if not provided) */
   conversationId?: string;
-}
-
-export interface AgentResponseItem {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  price: number;
-  availability: 'in_stock' | 'out_of_stock' | 'limited';
 }
 
 export interface AgentResponseCart {
@@ -296,6 +287,7 @@ export async function handleAgentMessage(
               : AgentMessageRole.System;
 
         const message: AgentMessage = {
+          id: msg._id?.toString() || '',
           role,
           content: msg.content,
           timestamp: msg.createdAt,
@@ -505,6 +497,7 @@ export async function getConversationById(
               : AgentMessageRole.System;
 
         const message: AgentMessage = {
+          id: msg._id?.toString() || '',
           role,
           content: msg.content,
           timestamp: msg.createdAt,

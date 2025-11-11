@@ -218,7 +218,7 @@ async function executeToolInternal(
           name: item.name,
           category: item.category,
           description: item.description,
-          price: item.estimatedPrice,
+          estimatedPrice: item.estimatedPrice,
           availability: item.status === 'active' ? 'in_stock' : 'out_of_stock',
         })),
         count: items.length,

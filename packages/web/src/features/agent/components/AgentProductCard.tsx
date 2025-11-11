@@ -32,11 +32,12 @@ export function AgentProductCard({ item }: AgentProductCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const { setItemCount } = useCart();
+  
+  console.log('AgentProductCard rendering with item:', item);
 
   // Validate item data and provide defaults
   const safeItem = {
     ...item,
-    estimatedPrice: typeof item.estimatedPrice === 'number' ? item.estimatedPrice : 0,
     availability: item.availability || 'in_stock',
     description: item.description || 'No description available',
   };
