@@ -68,8 +68,8 @@ pnpm dev
 
 ### Demo Credentials
 
-- **Email**: `demo@procureflow.com`
-- **Password**: `demo123`
+- **Email**: `guilherme@procureflow.com`
+- **Password**: `guigui123`
 
 ## Project Structure
 
