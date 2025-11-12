@@ -106,7 +106,9 @@ export async function getCartForUser(
         userId: userIdQuery,
         items: [],
       });
-      cart = await newCart.save();
+      const savedCart = await newCart.save();
+      // Convert saved cart to lean object for consistent type
+      cart = savedCart.toObject();
     }
 
     return mapCartToEntity(cart);
@@ -153,6 +155,16 @@ export async function addItemToCart(
       throw new ItemNotFoundError(input.itemId);
     }
 
+    // Debug: Log item data to verify structure
+    console.log('[addItemToCart] Item data:', {
+      itemId: input.itemId,
+      name: item.name,
+      estimatedPrice: item.estimatedPrice,
+      hasName: !!item.name,
+      hasPrice: item.estimatedPrice !== undefined,
+      priceType: typeof item.estimatedPrice,
+    });
+
     // Convert string userId to ObjectId for MongoDB query
     const userIdQuery = toObjectId(userId);
 
@@ -197,10 +209,35 @@ export async function addItemToCart(
         quantity,
         addedAt: new Date(),
       });
+
+      // Debug: Log what we're pushing to cart
+      console.log('[addItemToCart] Pushing item to cart:', {
+        itemId: input.itemId,
+        name: item.name,
+        unitPrice: item.estimatedPrice,
+        quantity,
+        itemKeys: Object.keys(item),
+      });
     }
 
     const updatedCart = await cart.save();
-    return mapCartToEntity(updatedCart);
+
+    // Debug: Log saved cart
+    console.log(
+      '[addItemToCart] Cart saved, item count:',
+      updatedCart.items.length
+    );
+    if (updatedCart.items.length > 0) {
+      const lastItem = updatedCart.items[updatedCart.items.length - 1];
+      console.log('[addItemToCart] Last item in saved cart:', {
+        itemId: lastItem.itemId?.toString(),
+        name: lastItem.name,
+        unitPrice: lastItem.unitPrice,
+        quantity: lastItem.quantity,
+      });
+    }
+
+    return mapCartToEntity(updatedCart.toObject());
   } catch (error) {
     if (
       error instanceof ItemNotFoundError ||

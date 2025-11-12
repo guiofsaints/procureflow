@@ -15,6 +15,7 @@
     "test:coverage": "vitest run --coverage",
     "generate-build-info": "node scripts/generate-build-info.js",
     "db:create-text-index": "tsx scripts/create-text-index.ts",
+    "db:create-composite-indexes": "tsx scripts/create-composite-indexes.ts",
     "db:seed-office-items": "tsx scripts/seed-office-items.ts",
     "db:seed-initial-user": "tsx scripts/seed-initial-user.ts",
     "db:seed-fruits": "tsx scripts/seed-fruits.ts"

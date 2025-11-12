@@ -17,6 +17,12 @@ import type { Types } from 'mongoose';
 
 import type { Item } from '@/domain/entities';
 import { ItemStatus } from '@/domain/entities';
+import {
+  generateSearchCacheKey,
+  getCachedSearch,
+  cacheSearchResults,
+  invalidateSearchCache,
+} from '@/lib/cache/searchCache';
 import { mapItemToEntity } from '@/lib/db/mappers';
 import { ItemModel } from '@/lib/db/models';
 import connectDB from '@/lib/db/mongoose';
@@ -117,6 +123,17 @@ export async function searchItems(
 
   const { q, limit = 10, includeArchived = false, maxPrice } = params;
 
+  // Check cache first
+  const cacheKey = generateSearchCacheKey(params);
+  const cachedResults = getCachedSearch<Item[]>(cacheKey);
+  if (cachedResults) {
+    logger.debug('Returning cached search results', {
+      query: q,
+      resultCount: cachedResults.length,
+    });
+    return cachedResults;
+  }
+
   try {
     let items;
 
@@ -153,7 +170,16 @@ export async function searchItems(
     }
 
     // Convert MongoDB documents to domain Item type
-    return items.map(mapItemToEntity);
+    const results = items.map(mapItemToEntity);
+
+    // Cache results
+    cacheSearchResults(cacheKey, results);
+    logger.debug('Search results cached', {
+      query: q,
+      resultCount: results.length,
+    });
+
+    return results;
   } catch (error) {
     logger.error('Error searching items', { error });
     throw new Error('Failed to search items');
@@ -220,6 +246,15 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
     const newItem = new ItemModel(itemData);
 
     const item = await newItem.save();
+
+    // Invalidate search cache since new item was added
+    invalidateSearchCache();
+
+    logger.info('Item created successfully', {
+      itemId: item._id.toString(),
+      name: normalizedName,
+      category: normalizedCategory,
+    });
 
     // Convert to domain type
     return mapItemToEntity(item);

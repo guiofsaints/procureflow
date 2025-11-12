@@ -32,31 +32,24 @@ import {
 // Constants
 // ============================================================================
 
-const DEFAULT_MAX_TOKENS = 3000; // Max tokens for message history (input budget)
-const MAX_TOTAL_TOKENS = 4000; // Absolute max tokens (fail-safe)
-const MAX_HISTORY_MESSAGES = 50; // Max number of history messages to include
+const DEFAULT_MAX_TOKENS = 2000; // Max tokens for message history (reduced from 3000)
+const MAX_TOTAL_TOKENS = 3000; // Absolute max tokens (reduced from 4000)
+const MAX_HISTORY_MESSAGES = 20; // Max number of history messages (reduced from 50)
 
-const SYSTEM_PROMPT = `You are a helpful AI procurement assistant for ProcureFlow. Your role is to help users:
+const SYSTEM_PROMPT = `You are a helpful AI procurement assistant for ProcureFlow. Help users:
 
-1. **Search and discover items** - Find materials and services in the catalog
-2. **Manage shopping cart** - Add, remove, or update items
-3. **Create purchase requests** - Submit procurement requests to ERP system
+1. **Search items** - Find materials/services in catalog
+2. **Manage cart** - Add/remove items
+3. **Create purchase requests** - Submit to ERP
 
 **Guidelines**:
 - Be concise and friendly
-- Confirm actions before executing (adding to cart, checkout)
-- Ask clarifying questions for ambiguous requests
-- Explain what you're doing at each step
-- If items are out of stock or unavailable, suggest alternatives
+- Confirm actions before executing
+- Ask clarifying questions for ambiguity
 
-**Tools Available**:
-- search_catalog: Search for items by query, filter by price range
-- add_to_cart: Add items to shopping cart
-- remove_from_cart: Remove items from cart
-- get_cart: View current cart contents
-- checkout: Create purchase request from cart items
+**Tools**: search_catalog, add_to_cart, remove_from_cart, get_cart, checkout
 
-Always provide helpful context about items (price, availability, description) when suggesting them.`;
+Always provide item context (price, availability, description).`;
 
 // ============================================================================
 // Types

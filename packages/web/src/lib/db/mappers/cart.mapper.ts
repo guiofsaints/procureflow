@@ -12,13 +12,25 @@ import type { Cart, CartItem } from '@/domain/entities';
  * Maps a CartItemDocument from Mongoose to a CartItem domain entity
  */
 export function mapCartItemToEntity(item: CartItemDocument): CartItem {
+  // Debug log to see what data we're receiving
+  if (!item.name || item.unitPrice === undefined) {
+    console.warn('[mapCartItemToEntity] Missing cart item data:', {
+      itemId: item.itemId?.toString(),
+      name: item.name,
+      unitPrice: item.unitPrice,
+      hasName: !!item.name,
+      hasPrice: item.unitPrice !== undefined,
+      rawItem: item,
+    });
+  }
+
   return {
     itemId: item.itemId?.toString() || '',
-    name: item.name,
-    unitPrice: item.unitPrice,
-    quantity: item.quantity,
-    subtotal: item.subtotal || item.unitPrice * item.quantity,
-    addedAt: item.addedAt,
+    name: item.name || 'Unknown Item',
+    unitPrice: item.unitPrice || 0,
+    quantity: item.quantity || 1,
+    subtotal: item.subtotal || (item.unitPrice || 0) * (item.quantity || 1),
+    addedAt: item.addedAt || new Date(),
   };
 }
 

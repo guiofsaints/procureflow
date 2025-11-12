@@ -308,6 +308,15 @@ async function executeToolInternal(
       logger.debug('Get cart result', {
         userId,
         itemCount: cart?.items.length || 0,
+        cartData: cart,
+        firstItem: cart?.items[0]
+          ? {
+              itemId: cart.items[0].itemId,
+              name: cart.items[0].name,
+              unitPrice: cart.items[0].unitPrice,
+              quantity: cart.items[0].quantity,
+            }
+          : null,
       });
 
       if (!cart || cart.items.length === 0) {
