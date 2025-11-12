@@ -166,6 +166,14 @@ jobs:
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
+      - name: Update NEXTAUTH_URL
+        run: |
+          SERVICE_URL="${{ steps.pulumi-up.outputs.serviceUrl }}"
+          gcloud run services update procureflow-web \
+            --region=${{ env.GCP_REGION }} \
+            --update-env-vars="NEXTAUTH_URL=$SERVICE_URL" \
+            --quiet
+
       - name: Comment PR with deployment info
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7

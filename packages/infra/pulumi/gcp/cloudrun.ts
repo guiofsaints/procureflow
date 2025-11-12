@@ -87,10 +87,7 @@ export function createCloudRunService(config: CloudRunConfig) {
                 name: 'NEXT_TELEMETRY_DISABLED',
                 value: '1',
               },
-              {
-                name: 'NEXTAUTH_URL',
-                value: pulumi.interpolate`https://${serviceName}-\${config.projectId}.${config.region}.run.app`,
-              },
+              // NEXTAUTH_URL will be set after deployment via gcloud
               // Secrets from Secret Manager
               {
                 name: 'NEXTAUTH_SECRET',
