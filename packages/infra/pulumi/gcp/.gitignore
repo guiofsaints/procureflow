@@ -1,0 +1,41 @@
+# Compiled TypeScript output
+dist/
+*.js
+*.js.map
+*.d.ts
+!*.config.js
+
+# Pulumi
+.pulumi/
+stack-backup.json
+*.backup
+
+# Secrets and sensitive files
+*-key.json
+*-secrets*.txt
+github-actions-key.json
+github-secrets-output.txt
+apply-pulumi-config.ps1
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
