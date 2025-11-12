@@ -100,7 +100,7 @@ Authentication library for Next.js. ProcureFlow uses JWT strategy with 30-day se
 Documentation framework built on Next.js. Powers this documentation site with MDX support and docs theme.
 
 **NFR (Non-Functional Requirement)**  
-System quality attributes: performance (p95 latency <2s), security (bcrypt, JWT), reliability (99.5% uptime), observability (Winston logs, Prometheus metrics).
+System quality attributes: performance (p95 latency less than 2s), security (bcrypt, JWT), reliability (99.5% uptime), observability (Winston logs, Prometheus metrics).
 
 ## O
 
@@ -135,7 +135,7 @@ Business logic layer in `*.service.ts` files. Database-agnostic, framework-agnos
 Post-deployment verification: health check returns 200, root endpoint accessible, catalog search functional.
 
 **SLO (Service Level Objective)**  
-Performance target: p95 API latency <2s, catalog search <500ms, checkout <2s, 99.5% uptime, <0.1% error rate.
+Performance target: p95 API latency less than 2s, catalog search less than 500ms, checkout less than 2s, 99.5% uptime, less than 0.1% error rate.
 
 ## T
 

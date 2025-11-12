@@ -120,11 +120,11 @@ function walkDir(dir: string): void {
 }
 
 // Main execution
-const pagesDir = join(process.cwd(), 'pages');
+const contentDir = join(process.cwd(), 'content');
 
 console.log('🔧 Fixing MDX files...\n');
 
-walkDir(pagesDir);
+walkDir(contentDir);
 
 if (fixes.length === 0) {
   console.log('✅ No changes needed!\n');

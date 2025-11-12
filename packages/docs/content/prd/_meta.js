@@ -1,0 +1,7 @@
+export default {
+  index: 'PRD Overview',
+  objective: 'Objective & Vision',
+  features: 'Features',
+  'functional-requirements': 'Functional Requirements',
+  'non-functional-requirements': 'Non-Functional Requirements'
+}

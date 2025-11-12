@@ -1,11 +1,10 @@
-import nextra from 'nextra';
+import nextra from 'nextra'
 
 const withNextra = nextra({
-  theme: 'nextra-theme-docs',
-  themeConfig: './theme.config.tsx',
+  // No theme or themeConfig in Nextra 4 - configured in app/layout.jsx
   defaultShowCopyCode: true,
   latex: true,
-});
+})
 
 export default withNextra({
   output: 'export',
@@ -14,4 +13,4 @@ export default withNextra({
   },
   basePath: '',
   trailingSlash: true,
-});
+})

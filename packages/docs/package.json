@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
+    "postbuild": "pagefind --site out --output-path out/_pagefind",
     "start": "next start -p 3001",
     "export": "next build && next export",
     "lint": "next lint",

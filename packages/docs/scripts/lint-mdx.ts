@@ -8,7 +8,7 @@
  * - Unclosed code blocks
  */
 
-import { readdirSync, readFileSync, statSync } from 'fs';
+import { readdirSync, readFileSync, statSync, existsSync } from 'fs';
 import { join } from 'path';
 
 interface Issue {
@@ -110,11 +110,16 @@ function walkDir(dir: string): void {
 }
 
 // Main execution
-const pagesDir = join(process.cwd(), 'pages');
+const contentDir = join(process.cwd(), 'content');
 
 console.log('🔍 Linting MDX files...\n');
 
-walkDir(pagesDir);
+if (!existsSync(contentDir)) {
+  console.error('❌ Error: content/ directory not found');
+  process.exit(1);
+}
+
+walkDir(contentDir);
 
 if (issues.length === 0) {
   console.log('✅ No issues found!\n');

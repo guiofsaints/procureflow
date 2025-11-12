@@ -6,6 +6,8 @@ node_modules/
 # Next.js
 /.next/
 /out/
+_pagefind/
+out/_pagefind/
 
 # Production
 /build

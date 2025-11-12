@@ -6,7 +6,7 @@ For complete autoscaling documentation, see: [`.guided/operations/autoscaling-po
 
 ## Executive Summary
 
-ProcureFlow uses GCP Cloud Run serverless autoscaling with concurrency-based scaling (target: 80 concurrent requests per instance, max container concurrency: 1000). Dev environment: min 0 instances (scale-to-zero), max 2 instances (cost control); production (future): min 1 instance (avoid cold starts), max 100 instances (handle traffic spikes). CPU-based autoscaling not used (Cloud Run default concurrency preferred). Scale-up: immediate on request queue buildup; scale-down: 15-minute idle period before terminating instances. Cost guardrails: GCP billing alert at $10/month, max instance caps prevent runaway costs, MongoDB Atlas M0 free tier limits 500 connections (constrains max Cloud Run instances to ~40 with 12 connections/instance). Load test baselines: 50 concurrent users (normal load), 500 concurrent (5× peak load), p95 latency target <1s.
+ProcureFlow uses GCP Cloud Run serverless autoscaling with concurrency-based scaling (target: 80 concurrent requests per instance, max container concurrency: 1000). Dev environment: min 0 instances (scale-to-zero), max 2 instances (cost control); production (future): min 1 instance (avoid cold starts), max 100 instances (handle traffic spikes). CPU-based autoscaling not used (Cloud Run default concurrency preferred). Scale-up: immediate on request queue buildup; scale-down: 15-minute idle period before terminating instances. Cost guardrails: GCP billing alert at $10/month, max instance caps prevent runaway costs, MongoDB Atlas M0 free tier limits 500 connections (constrains max Cloud Run instances to ~40 with 12 connections/instance). Load test baselines: 50 concurrent users (normal load), 500 concurrent (5× peak load), p95 latency target less than 1s.
 
 ---
 
@@ -205,24 +205,24 @@ gcloud billing budgets create \
 - **Concurrent Users**: 50
 - **Requests per Second**: ~100
 - **Required Instances**: 2 (50 users × 2 req/s = 100 req/s ÷ 80 = 1.25 → 2 instances)
-- **P95 Latency**: <1s
-- **Error Rate**: <0.1%
+- **P95 Latency**: less than 1s
+- **Error Rate**: less than 0.1%
 
 ### Peak Load (5× Normal)
 
 - **Concurrent Users**: 250
 - **Requests per Second**: ~500
 - **Required Instances**: 7 (250 users × 2 req/s = 500 req/s ÷ 80 = 6.25 → 7 instances)
-- **P95 Latency**: <2s
-- **Error Rate**: <0.5%
+- **P95 Latency**: less than 2s
+- **Error Rate**: less than 0.5%
 
 ### Stress Test (10× Normal)
 
 - **Concurrent Users**: 500
 - **Requests per Second**: ~1000
 - **Required Instances**: 13 (500 users × 2 req/s = 1000 req/s ÷ 80 = 12.5 → 13 instances)
-- **P95 Latency**: <3s
-- **Error Rate**: <1%
+- **P95 Latency**: less than 3s
+- **Error Rate**: under 1%
 
 **Note**: Load tests planned for v1.1 (not implemented in v1.0)
 
