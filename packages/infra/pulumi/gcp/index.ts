@@ -1,35 +1,45 @@
 /**
  * ProcureFlow GCP Infrastructure - FREE TIER Edition
  * 
- * Stack: MongoDB Atlas M0 + GCP Cloud Run + Secret Manager
- * Cost: $0.00/month (within free tiers)
+ * **Architecture:**
+ * - MongoDB Atlas M0 (free tier, existing cluster)
+ * - GCP Cloud Run (free tier: 2M requests/month)
+ * - GCP Secret Manager (free tier: 6 secrets)
+ * - GCP Artifact Registry (~$0.30/month)
  * 
- * Prerequisites:
- * 1. MongoDB Atlas account (free)
- * 2. GCP account with billing enabled (free tier usage)
+ * **Estimated Cost:** $0.30 - $0.50/month
+ * 
+ * **Prerequisites:**
+ * 1. MongoDB Atlas account (free M0 cluster)
+ * 2. GCP account with billing enabled
  * 3. Pulumi Cloud account (free tier)
- * 4. GitHub account (for Actions)
+ * 4. GitHub account (for CI/CD)
  * 
- * Setup:
- * ```
+ * **Quick Start:**
+ * ```bash
+ * # Initialize stack
  * pulumi stack init dev
  * pulumi config set gcp:project YOUR_PROJECT_ID
  * pulumi config set gcp:region us-central1
+ * 
+ * # Set secrets
  * pulumi config set --secret nextauth-secret $(openssl rand -base64 32)
- * pulumi config set --secret mongodb-password $(openssl rand -base64 32)
- * pulumi config set --secret mongodb-atlas:publicKey YOUR_ATLAS_PUBLIC_KEY
- * pulumi config set --secret mongodb-atlas:privateKey YOUR_ATLAS_PRIVATE_KEY
- * pulumi config set mongodb-atlas:orgId YOUR_ATLAS_ORG_ID
- * pulumi config set app:image-tag latest
+ * pulumi config set --secret mongodb-connection-string "mongodb+srv://..."
+ * pulumi config set --secret openai-api-key "sk-..."
+ * 
+ * # Deploy
  * pnpm install
- * pnpm run preview
  * pnpm run deploy
  * ```
+ * 
+ * See: docs/SETUP.md for detailed setup instructions
+ * 
+ * @module index
  */
 
 import * as pulumi from '@pulumi/pulumi';
-import { createSecrets, grantSecretAccess } from './project/secrets';
-import { createCloudRunService, createArtifactRegistry } from './project/cloudrun';
+import { createSecrets, grantSecretAccess } from './security/secrets';
+import { createCloudRunService, createArtifactRegistry } from './compute/cloudrun';
 
 // ==============================================================================
 // Configuration
