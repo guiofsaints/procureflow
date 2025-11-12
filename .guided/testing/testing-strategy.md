@@ -264,8 +264,8 @@ test.describe('Checkout Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Login
     await page.goto('http://localhost:3000');
-    await page.fill('input[name="email"]', 'demo@procureflow.com');
-    await page.fill('input[name="password"]', 'demo123');
+    await page.fill('input[name="email"]', 'guilherme@procureflow.com');
+    await page.fill('input[name="password"]', 'guigui123');
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL('http://localhost:3000/catalog');
   });
@@ -655,7 +655,7 @@ export const mockUsers = {
   demoUser: {
     _id: '507f1f77bcf86cd799439011',
     name: 'Demo User',
-    email: 'demo@procureflow.com',
+    email: 'guilherme@procureflow.com',
     password: '<hashed>',
     createdAt: new Date('2025-01-01T00:00:00Z'),
   } as User,

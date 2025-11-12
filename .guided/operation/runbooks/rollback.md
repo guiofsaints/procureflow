@@ -186,7 +186,7 @@ curl -s $SERVICE_URL/api/health
 
 **Manual Smoke Tests**:
 
-1. **Login**: Navigate to `$SERVICE_URL`, login with `demo@procureflow.com` / `demo123`
+1. **Login**: Navigate to `$SERVICE_URL`, login with `guilherme@procureflow.com` / `guigui123`
    - **Expected**: Redirect to `/catalog`, no errors
 
 2. **Catalog Search**: Search for "pen"

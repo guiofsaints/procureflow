@@ -211,28 +211,34 @@ export function SettingsPageContent() {
       <Separator className='mt-10' />
 
       <Tabs defaultValue='profile' className='space-y-6 mt-2'>
-        <TabsList>
-          <TabsTrigger value='profile'>
-            <User className='h-4 w-4 mr-2' />
-            Profile
-          </TabsTrigger>
-          <TabsTrigger value='theme'>
-            {theme === 'dark' ? (
-              <Moon className='h-4 w-4 mr-2' />
-            ) : (
-              <Sun className='h-4 w-4 mr-2' />
-            )}
-            Theme
-          </TabsTrigger>
-          <TabsTrigger value='conversations' onClick={handleLoadConversations}>
-            <MessageSquare className='h-4 w-4 mr-2' />
-            Conversations
-          </TabsTrigger>
-          <TabsTrigger value='analytics'>
-            <BarChart className='h-4 w-4 mr-2' />
-            Analytics
-          </TabsTrigger>
-        </TabsList>
+        <div className='overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0'>
+          <TabsList className='inline-flex w-auto min-w-full sm:min-w-0'>
+            <TabsTrigger value='profile' className='shrink-0'>
+              <User className='h-4 w-4 mr-2' />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value='theme' className='shrink-0'>
+              {theme === 'dark' ? (
+                <Moon className='h-4 w-4 mr-2' />
+              ) : (
+                <Sun className='h-4 w-4 mr-2' />
+              )}
+              Theme
+            </TabsTrigger>
+            <TabsTrigger
+              value='conversations'
+              onClick={handleLoadConversations}
+              className='shrink-0'
+            >
+              <MessageSquare className='h-4 w-4 mr-2' />
+              Conversations
+            </TabsTrigger>
+            <TabsTrigger value='analytics' className='shrink-0'>
+              <BarChart className='h-4 w-4 mr-2' />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Profile Tab */}
         <TabsContent value='profile' className='space-y-4'>

@@ -172,7 +172,7 @@ export function AgentCheckoutButton({
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className='max-w-2xl'>
+        <DialogContent className='w-[calc(100vw-1.5rem)] max-w-2xl sm:w-full'>
           <DialogHeader>
             <DialogTitle className='flex items-center gap-2 text-green-600'>
               <div className='flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900'>

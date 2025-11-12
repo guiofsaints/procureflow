@@ -6,8 +6,10 @@ import { CartPageContent } from '@/features/cart/components/CartPageContent';
  */
 export default function CartPage() {
   return (
-    <div className='container mx-auto p-6 max-w-7xl'>
-      <CartPageContent />
+    <div className='container mx-auto max-w-7xl'>
+      <div className='p-3 sm:p-4 md:p-6 lg:p-8'>
+        <CartPageContent />
+      </div>
     </div>
   );
 }

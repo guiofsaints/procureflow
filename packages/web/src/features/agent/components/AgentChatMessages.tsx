@@ -51,7 +51,7 @@ export function AgentChatMessages({
   }
 
   return (
-    <div className='h-full px-4 py-4'>
+    <div className='h-full px-3 py-4 sm:px-4'>
       <div className='mx-auto max-w-4xl space-y-6'>
         {messages.map((message) => {
           const isUser = message.role === 'user';
@@ -59,28 +59,31 @@ export function AgentChatMessages({
           return (
             <div
               key={message.id}
-              className={cn('flex gap-3', isUser && 'flex-row-reverse')}
+              className={cn(
+                'flex gap-2 sm:gap-3',
+                isUser && 'flex-row-reverse'
+              )}
             >
               {/* Avatar */}
               <div
                 className={cn(
-                  'shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
+                  'shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center',
                   isUser
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-black text-white'
                 )}
               >
                 {isUser ? (
-                  <User className='h-5 w-5' />
+                  <User className='h-4 w-4 sm:h-5 sm:w-5' />
                 ) : (
-                  <Bot className='h-5 w-5' />
+                  <Bot className='h-4 w-4 sm:h-5 sm:w-5' />
                 )}
               </div>
 
               {/* Message Content */}
               <div
                 className={cn(
-                  'flex-1 max-w-3xl',
+                  'flex-1 min-w-0 max-w-[calc(100%-2.5rem)] sm:max-w-2xl md:max-w-3xl',
                   isUser && 'flex flex-col items-end'
                 )}
               >
@@ -99,7 +102,7 @@ export function AgentChatMessages({
                 {/* Message Bubble */}
                 <div
                   className={cn(
-                    'rounded-lg px-4 py-3 shadow-sm',
+                    'rounded-lg px-3 py-2 sm:px-4 sm:py-3 shadow-sm wrap-break-word',
                     isUser
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-card text-card-foreground border border-border'

@@ -426,8 +426,8 @@ curl $SERVICE_URL/api/health
 Start-Process $SERVICE_URL
 
 # Login with demo credentials:
-# Email: demo@procureflow.com
-# Password: demo123
+# Email: guilherme@procureflow.com
+# Password: guigui123
 ```
 
 ### 3. Verify MongoDB Connection

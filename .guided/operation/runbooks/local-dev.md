@@ -258,11 +258,11 @@ pnpm --filter web db:seed-office-items
 # Output:
 # ✅ Seeded 200 items successfully
 
-# Seed initial admin user (demo@procureflow.com / demo123)
+# Seed initial admin user (guilherme@procureflow.com / guigui123)
 pnpm --filter web db:seed-initial-user
 
 # Output:
-# ✅ User created: demo@procureflow.com
+# ✅ User created: guilherme@procureflow.com
 ```
 
 **Verification**:
@@ -324,8 +324,8 @@ pnpm dev
    - **Expected**: Login page displayed (or redirect to /catalog if already logged in)
 
 2. **Login with demo user**:
-   - Email: `demo@procureflow.com`
-   - Password: `demo123`
+   - Email: `guilherme@procureflow.com`
+   - Password: `guigui123`
    - **Expected**: Redirect to http://localhost:3000/catalog
 
 3. **Test Catalog Search**:

@@ -59,7 +59,7 @@ Route handlers in `app/**/route.ts` are thin wrappers:
 - Server components: Same pattern
 - Client: `useSession()` hook
 
-**Demo credentials**: `demo@procureflow.com` / `demo123` (credentials provider in `lib/auth/config.ts`)
+**Demo credentials**: `guilherme@procureflow.com` / `guigui123` (credentials provider in `lib/auth/config.ts`)
 
 User IDs flow through services as `string | Types.ObjectId` to support both authenticated users and demo scenarios.
 

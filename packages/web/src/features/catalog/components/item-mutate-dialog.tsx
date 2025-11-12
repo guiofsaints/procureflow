@@ -191,7 +191,7 @@ export function ItemMutateDialog({
         }
       }}
     >
-      <DialogContent className='max-w-2xl max-h-[90vh] flex flex-col'>
+      <DialogContent className='w-[calc(100vw-1.5rem)] max-w-2xl max-h-[90vh] flex flex-col sm:w-full'>
         <DialogHeader>
           <DialogTitle>{isUpdate ? 'Update' : 'Create'} Item</DialogTitle>
           <DialogDescription>

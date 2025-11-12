@@ -51,7 +51,7 @@ export function CheckoutConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className='max-w-2xl'>
+      <DialogContent className='w-[calc(100vw-1.5rem)] max-w-2xl sm:w-full'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
             <ShoppingCart className='h-5 w-5' />

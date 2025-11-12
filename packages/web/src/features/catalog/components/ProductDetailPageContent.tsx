@@ -211,9 +211,10 @@ export function ProductDetailPageContent() {
         <Card className='py-6'>
           {/* Product Header */}
           <CardHeader className='border-b'>
-            <div className='flex items-start justify-between gap-4'>
-              <div className='flex-1'>
-                <div className='flex items-center gap-2 mb-2'>
+            <div className='space-y-4'>
+              {/* Title and Badges */}
+              <div className='space-y-3'>
+                <div className='flex flex-wrap items-center gap-2'>
                   <Badge variant='secondary' className='gap-1'>
                     <Tag className='h-3 w-3' />
                     {item.category}
@@ -228,13 +229,17 @@ export function ProductDetailPageContent() {
                       : 'Inactive'}
                   </Badge>
                 </div>
-                <h1 className='text-2xl lg:text-3xl font-bold text-foreground'>
+                <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold text-foreground'>
                   {item.name}
                 </h1>
               </div>
-              <div className='text-right'>
-                <div className='text-sm text-muted-foreground mb-1'>Price</div>
-                <div className='text-3xl font-bold text-primary'>
+
+              {/* Price */}
+              <div className='bg-muted/50 rounded-lg p-4 inline-block'>
+                <div className='text-xs sm:text-sm text-muted-foreground mb-1'>
+                  Price
+                </div>
+                <div className='text-2xl sm:text-3xl font-bold text-primary'>
                   ${(item.estimatedPrice ?? 0).toFixed(2)}
                 </div>
               </div>
@@ -275,22 +280,23 @@ export function ProductDetailPageContent() {
 
             {/* Add to Cart Section */}
             <div className='pt-6 border-t border-border'>
-              <h2 className='text-lg font-semibold text-foreground mb-4'>
+              <h2 className='text-base sm:text-lg font-semibold text-foreground mb-4'>
                 Add to Cart
               </h2>
 
-              <div className='flex flex-col sm:flex-row gap-4'>
+              <div className='space-y-4'>
                 {/* Quantity Selector */}
-                <div className='flex items-center gap-3'>
+                <div className='flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4'>
                   <span className='text-sm font-medium text-foreground'>
                     Quantity:
                   </span>
                   <div className='flex items-center gap-2'>
                     <Button
-                      size='icon-sm'
-                      variant='ghost'
+                      size='icon'
+                      variant='outline'
                       onClick={() => handleQuantityChange(-1)}
                       disabled={quantity <= 1 || isAddingToCart}
+                      className='h-9 w-9 sm:h-10 sm:w-10'
                     >
                       <Minus className='h-4 w-4' />
                     </Button>
@@ -302,15 +308,16 @@ export function ProductDetailPageContent() {
                         setQuantity(Math.max(1, Math.min(999, val)));
                       }}
                       disabled={isAddingToCart}
-                      className='w-16 text-center'
+                      className='w-16 sm:w-20 text-center'
                       min='1'
                       max='999'
                     />
                     <Button
-                      size='icon-sm'
-                      variant='ghost'
+                      size='icon'
+                      variant='outline'
                       onClick={() => handleQuantityChange(1)}
                       disabled={quantity >= 999 || isAddingToCart}
+                      className='h-9 w-9 sm:h-10 sm:w-10'
                     >
                       <Plus className='h-4 w-4' />
                     </Button>
@@ -321,7 +328,8 @@ export function ProductDetailPageContent() {
                 <Button
                   onClick={handleAddToCart}
                   disabled={isAddingToCart}
-                  className='flex-1 sm:flex-initial flex items-center justify-center gap-2'
+                  className='w-full sm:w-auto flex items-center justify-center gap-2'
+                  size='lg'
                 >
                   {isAddingToCart ? (
                     <>
@@ -338,12 +346,12 @@ export function ProductDetailPageContent() {
               </div>
 
               {/* Subtotal */}
-              <div className='mt-4 p-4 bg-accent rounded-lg'>
+              <div className='mt-4 p-3 sm:p-4 bg-accent rounded-lg'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm font-medium text-accent-foreground'>
+                  <span className='text-xs sm:text-sm font-medium text-accent-foreground'>
                     Subtotal ({quantity} {quantity === 1 ? 'item' : 'items'}):
                   </span>
-                  <span className='text-xl font-bold text-primary'>
+                  <span className='text-lg sm:text-xl font-bold text-primary'>
                     ${(item.estimatedPrice * quantity).toFixed(2)}
                   </span>
                 </div>

@@ -146,7 +146,7 @@ None. This is the first stable release establishing the baseline API contract.
 - Bcrypt password hashing with configurable salt rounds (default: 10) for secure credential storage
 - Session validation middleware for protected API routes (cart, checkout, agent, settings)
 - User lookup by email and MongoDB ObjectId for authentication flows
-- Demo credentials (demo@procureflow.com / demo123) seeded via migration script for testing
+- Demo credentials (guilherme@procureflow.com / guigui123) seeded via migration script for testing
 - Session expiration and refresh token support via NextAuth.js configuration
 
 ##### User Settings and Analytics

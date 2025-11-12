@@ -79,18 +79,20 @@ export function AgentWelcome({
         </div>
 
         {/* Suggested Prompts Grid */}
-        <div className='grid gap-3 sm:grid-cols-2'>
+        <div className='grid gap-2 sm:gap-3 sm:grid-cols-2'>
           {suggestedPrompts.map((prompt, index) => {
             const Icon = prompt.icon;
             return (
               <Card
                 key={index}
-                className='group cursor-pointer transition-all hover:border-primary hover:shadow-md'
+                className='group cursor-pointer transition-all hover:border-primary hover:shadow-md active:scale-[0.98]'
                 onClick={() => onPromptClick(prompt.text)}
               >
-                <div className='h-auto w-full justify-start gap-3 p-4 text-left font-normal flex'>
-                  <Icon className='h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary' />
-                  <span className='text-sm'>{prompt.text}</span>
+                <div className='h-auto w-full justify-start gap-2 sm:gap-3 p-3 sm:p-4 text-left font-normal flex min-h-[3rem]'>
+                  <Icon className='h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary' />
+                  <span className='text-xs sm:text-sm leading-snug'>
+                    {prompt.text}
+                  </span>
                 </div>
               </Card>
             );

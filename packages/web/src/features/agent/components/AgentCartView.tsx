@@ -115,13 +115,15 @@ export function AgentCartView({ cart, onSendMessage }: AgentCartViewProps) {
   return (
     <Card className='overflow-hidden'>
       {/* Cart Header */}
-      <div className='border-b bg-muted/50 px-4 py-3'>
+      <div className='border-b bg-muted/50 px-3 py-2 sm:px-4 sm:py-3'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <ShoppingCart className='h-5 w-5' />
-            <h3 className='font-semibold'>Shopping Cart</h3>
+            <ShoppingCart className='h-4 w-4 sm:h-5 sm:w-5' />
+            <h3 className='font-semibold text-sm sm:text-base'>
+              Shopping Cart
+            </h3>
           </div>
-          <div className='text-sm text-muted-foreground'>
+          <div className='text-xs sm:text-sm text-muted-foreground'>
             {cart.itemCount} {cart.itemCount === 1 ? 'item' : 'items'}
           </div>
         </div>
@@ -135,73 +137,78 @@ export function AgentCartView({ cart, onSendMessage }: AgentCartViewProps) {
           return (
             <div
               key={item.itemId}
-              className='flex items-center gap-4 p-4 transition-opacity'
+              className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-opacity'
               style={{ opacity: isLoading ? 0.5 : 1 }}
             >
               {/* Item Info */}
               <div className='min-w-0 flex-1'>
-                <h4 className='truncate font-medium'>{item.itemName}</h4>
-                <p className='text-sm text-muted-foreground'>
+                <h4 className='truncate font-medium text-sm sm:text-base'>
+                  {item.itemName}
+                </h4>
+                <p className='text-xs sm:text-sm text-muted-foreground'>
                   ${item.itemPrice.toFixed(2)} each
                 </p>
               </div>
 
-              {/* Quantity Controls */}
-              <div className='flex items-center gap-2'>
-                <Button
-                  variant='outline'
-                  size='icon'
-                  className='h-8 w-8'
-                  onClick={() =>
-                    handleUpdateQuantity(item.itemId, item.quantity - 1)
-                  }
-                  disabled={isLoading}
-                >
-                  <Minus className='h-4 w-4' />
-                </Button>
+              {/* Controls Row (mobile: horizontal, desktop: same) */}
+              <div className='flex items-center justify-between sm:justify-end gap-3 sm:gap-4'>
+                {/* Quantity Controls */}
+                <div className='flex items-center gap-1.5 sm:gap-2'>
+                  <Button
+                    variant='outline'
+                    size='icon'
+                    className='h-8 w-8'
+                    onClick={() =>
+                      handleUpdateQuantity(item.itemId, item.quantity - 1)
+                    }
+                    disabled={isLoading}
+                  >
+                    <Minus className='h-3 w-3 sm:h-4 sm:w-4' />
+                  </Button>
 
-                <div className='w-12 text-center font-medium'>
-                  {item.quantity}
+                  <div className='w-10 sm:w-12 text-center font-medium text-sm'>
+                    {item.quantity}
+                  </div>
+
+                  <Button
+                    variant='outline'
+                    size='icon'
+                    className='h-8 w-8'
+                    onClick={() =>
+                      handleUpdateQuantity(item.itemId, item.quantity + 1)
+                    }
+                    disabled={isLoading}
+                  >
+                    <Plus className='h-3 w-3 sm:h-4 sm:w-4' />
+                  </Button>
                 </div>
 
+                {/* Subtotal */}
+                <div className='w-20 sm:w-24 text-right font-medium text-sm sm:text-base'>
+                  ${(item.itemPrice * item.quantity).toFixed(2)}
+                </div>
+
+                {/* Remove Button */}
                 <Button
-                  variant='outline'
+                  variant='ghost'
                   size='icon'
-                  className='h-8 w-8'
-                  onClick={() =>
-                    handleUpdateQuantity(item.itemId, item.quantity + 1)
-                  }
+                  className='h-8 w-8 text-destructive'
+                  onClick={() => handleRemoveItem(item.itemId)}
                   disabled={isLoading}
                 >
-                  <Plus className='h-4 w-4' />
+                  <Trash2 className='h-3 w-3 sm:h-4 sm:w-4' />
                 </Button>
               </div>
-
-              {/* Subtotal */}
-              <div className='w-24 text-right font-medium'>
-                ${(item.itemPrice * item.quantity).toFixed(2)}
-              </div>
-
-              {/* Remove Button */}
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-8 w-8 text-destructive'
-                onClick={() => handleRemoveItem(item.itemId)}
-                disabled={isLoading}
-              >
-                <Trash2 className='h-4 w-4' />
-              </Button>
             </div>
           );
         })}
       </div>
 
       {/* Cart Footer */}
-      <div className='border-t bg-muted/50 px-4 py-4 space-y-3'>
+      <div className='border-t bg-muted/50 px-3 py-3 sm:px-4 sm:py-4 space-y-3'>
         <div className='flex items-center justify-between'>
-          <span className='font-semibold'>Total:</span>
-          <span className='text-lg font-bold'>
+          <span className='font-semibold text-sm sm:text-base'>Total:</span>
+          <span className='text-lg sm:text-xl font-bold'>
             ${cart.totalCost.toFixed(2)}
           </span>
         </div>
@@ -211,8 +218,8 @@ export function AgentCartView({ cart, onSendMessage }: AgentCartViewProps) {
           size='lg'
           onClick={() => setShowCheckoutDialog(true)}
         >
-          <CreditCard className='mr-2 h-5 w-5' />
-          Proceed to Checkout
+          <CreditCard className='mr-2 h-4 w-4 sm:h-5 sm:w-5' />
+          <span className='text-sm sm:text-base'>Proceed to Checkout</span>
         </Button>
       </div>
 

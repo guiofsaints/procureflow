@@ -188,7 +188,7 @@ curl -s $SERVICE_URL/api/health
 **Test 2: Login Flow**:
 
 1. Navigate to: $SERVICE_URL
-2. Login with: `demo@procureflow.com` / `demo123`
+2. Login with: `guilherme@procureflow.com` / `guigui123`
 3. Expected: Redirect to `/catalog`
 
 **Test 3: Catalog Search**:

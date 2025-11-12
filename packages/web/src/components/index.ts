@@ -91,6 +91,17 @@ export {
 } from './ui/form';
 export { Skeleton } from './ui/skeleton';
 export {
+  SkeletonText,
+  SkeletonAvatar,
+  SkeletonCard,
+  SkeletonTable,
+  SkeletonList,
+  SkeletonButton,
+  SkeletonForm,
+  SkeletonProductDetail,
+  SkeletonPurchaseRequest,
+} from './ui/skeleton-compositions';
+export {
   Sheet,
   SheetClose,
   SheetContent,

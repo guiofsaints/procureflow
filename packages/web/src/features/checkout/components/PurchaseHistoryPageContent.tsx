@@ -13,13 +13,7 @@ import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -110,60 +104,65 @@ export function PurchaseHistoryPageContent() {
   };
 
   return (
-    <div>
-      <Card className='py-8'>
+    <div className='space-y-6'>
+      {/* Header */}
+      <div>
+        <h2 className='text-3xl font-bold tracking-tight text-foreground'>
+          Purchase History
+        </h2>
+        <p className='mt-2 text-muted-foreground'>
+          View and manage your purchase requests
+        </p>
+      </div>
+
+      <Card className='py-2'>
         <CardHeader>
-          <div className='flex items-center justify-between'>
-            <div>
-              <CardTitle className='text-2xl font-bold'>
-                Purchase History
-              </CardTitle>
-              <CardDescription>
-                View and manage your purchase requests
-              </CardDescription>
-            </div>
-            <div className='flex gap-2'>
-              <Button
-                variant={filter === 'all' ? 'default' : 'outline'}
-                size='sm'
-                onClick={() => setFilter('all')}
-              >
-                All
-              </Button>
-              <Button
-                variant={
-                  filter === PurchaseRequestStatus.Submitted
-                    ? 'default'
-                    : 'outline'
-                }
-                size='sm'
-                onClick={() => setFilter(PurchaseRequestStatus.Submitted)}
-              >
-                Submitted
-              </Button>
-              <Button
-                variant={
-                  filter === PurchaseRequestStatus.Approved
-                    ? 'default'
-                    : 'outline'
-                }
-                size='sm'
-                onClick={() => setFilter(PurchaseRequestStatus.Approved)}
-              >
-                Approved
-              </Button>
-              <Button
-                variant={
-                  filter === PurchaseRequestStatus.Rejected
-                    ? 'default'
-                    : 'outline'
-                }
-                size='sm'
-                onClick={() => setFilter(PurchaseRequestStatus.Rejected)}
-              >
-                Rejected
-              </Button>
-            </div>
+          {/* Filters - Mobile: wrap, Desktop: inline */}
+          <div className='flex flex-wrap gap-2'>
+            <Button
+              variant={filter === 'all' ? 'default' : 'outline'}
+              size='sm'
+              onClick={() => setFilter('all')}
+              className='text-xs sm:text-sm'
+            >
+              All
+            </Button>
+            <Button
+              variant={
+                filter === PurchaseRequestStatus.Submitted
+                  ? 'default'
+                  : 'outline'
+              }
+              size='sm'
+              onClick={() => setFilter(PurchaseRequestStatus.Submitted)}
+              className='text-xs sm:text-sm'
+            >
+              Submitted
+            </Button>
+            <Button
+              variant={
+                filter === PurchaseRequestStatus.Approved
+                  ? 'default'
+                  : 'outline'
+              }
+              size='sm'
+              onClick={() => setFilter(PurchaseRequestStatus.Approved)}
+              className='text-xs sm:text-sm'
+            >
+              Approved
+            </Button>
+            <Button
+              variant={
+                filter === PurchaseRequestStatus.Rejected
+                  ? 'default'
+                  : 'outline'
+              }
+              size='sm'
+              onClick={() => setFilter(PurchaseRequestStatus.Rejected)}
+              className='text-xs sm:text-sm'
+            >
+              Rejected
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -184,48 +183,66 @@ export function PurchaseHistoryPageContent() {
               </Button>
             </div>
           ) : (
-            <div className='rounded-md border'>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Request ID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className='text-right'>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {purchaseRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell className='font-mono text-sm'>
-                        {request.id.slice(-8)}
-                      </TableCell>
-                      <TableCell className='text-sm'>
-                        {formatDate(request.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <span className='text-sm text-muted-foreground'>
-                          {request.items.length} item
-                          {request.items.length !== 1 ? 's' : ''}
-                        </span>
-                      </TableCell>
-                      <TableCell className='font-semibold'>
-                        ${request.total.toFixed(2)}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell className='text-right'>
-                        <Button asChild variant='ghost' size='sm'>
-                          <Link href={`/purchase/${request.id}`}>
-                            View Details
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className='overflow-x-auto -mx-3 sm:mx-0'>
+              <div className='inline-block min-w-full align-middle px-3 sm:px-0'>
+                <div className='rounded-md border'>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className='whitespace-nowrap'>
+                          Request ID
+                        </TableHead>
+                        <TableHead className='whitespace-nowrap'>
+                          Date
+                        </TableHead>
+                        <TableHead className='whitespace-nowrap'>
+                          Items
+                        </TableHead>
+                        <TableHead className='whitespace-nowrap'>
+                          Total
+                        </TableHead>
+                        <TableHead className='whitespace-nowrap'>
+                          Status
+                        </TableHead>
+                        <TableHead className='text-right whitespace-nowrap'>
+                          Actions
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {purchaseRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell className='font-mono text-sm'>
+                            {request.id.slice(-8)}
+                          </TableCell>
+                          <TableCell className='text-sm whitespace-nowrap'>
+                            {formatDate(request.createdAt)}
+                          </TableCell>
+                          <TableCell>
+                            <span className='text-sm text-muted-foreground'>
+                              {request.items.length} item
+                              {request.items.length !== 1 ? 's' : ''}
+                            </span>
+                          </TableCell>
+                          <TableCell className='font-semibold'>
+                            ${request.total.toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(request.status)}
+                          </TableCell>
+                          <TableCell className='text-right'>
+                            <Button asChild variant='ghost' size='sm'>
+                              <Link href={`/purchase/${request.id}`}>
+                                View Details
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

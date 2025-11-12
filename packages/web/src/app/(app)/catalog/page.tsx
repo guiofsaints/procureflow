@@ -6,8 +6,10 @@ import { CatalogPageContent } from '@/features/catalog/components/CatalogPageCon
  */
 export default function CatalogPage() {
   return (
-    <div className='container mx-auto p-6 max-w-7xl'>
-      <CatalogPageContent />
+    <div className='container mx-auto max-w-7xl'>
+      <div className='p-3 sm:p-4 md:p-6 lg:p-8'>
+        <CatalogPageContent />
+      </div>
     </div>
   );
 }

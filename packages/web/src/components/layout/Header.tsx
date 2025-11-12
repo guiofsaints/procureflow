@@ -81,8 +81,8 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
   return (
     <header
       className={cn(
-        'z-50 h-16',
-        fixed && 'header-fixed peer/header sticky top-0 w-[inherit]',
+        'z-50 h-12 sm:h-14 md:h-16',
+        fixed && 'header-fixed peer/header sticky top-0 w-[inherit] safe-top',
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
         className
       )}
@@ -90,15 +90,15 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
     >
       <div
         className={cn(
-          'relative flex h-full items-center gap-3 p-4 sm:gap-4',
+          'relative flex h-full items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 md:px-4',
           offset > 10 &&
             fixed &&
             'after:bg-background/20 after:absolute after:inset-0 after:-z-10 after:backdrop-blur-lg'
         )}
       >
-        <SidebarTrigger variant='outline' className='max-md:scale-125' />
+        <SidebarTrigger variant='outline' className='h-9 w-9 sm:h-10 sm:w-10' />
         <Separator orientation='vertical' className='h-6' />
-        <Breadcrumb>
+        <Breadcrumb className='hidden min-[480px]:flex'>
           <BreadcrumbList>
             {breadcrumbs.map((crumb, index) => {
               const isLast = index === breadcrumbs.length - 1;

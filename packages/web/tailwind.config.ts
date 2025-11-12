@@ -6,8 +6,18 @@ const config: Config = {
   theme: {
     container: {
       center: true,
-      padding: '2rem',
+      padding: {
+        DEFAULT: '0.75rem', // 12px mobile
+        sm: '1rem', // 16px
+        md: '1.5rem', // 24px
+        lg: '2rem', // 32px
+        xl: '2rem', // 32px
+      },
       screens: {
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
         '2xl': '1400px',
       },
     },

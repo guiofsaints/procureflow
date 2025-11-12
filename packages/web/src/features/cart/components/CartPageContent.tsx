@@ -32,6 +32,7 @@ export function CartPageContent() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
   const { setItemCount } = useCart();
 
   // Load cart from API
@@ -78,6 +79,9 @@ export function CartPageContent() {
       Math.min(999, currentItem.quantity + delta)
     );
 
+    // Mark item as loading
+    setLoadingItems((prev) => new Set(prev).add(itemId));
+
     // Optimistic update
     setCartItems((items) =>
       items.map((item) => {
@@ -108,8 +112,7 @@ export function CartPageContent() {
         throw new Error(`Failed to update quantity: ${errorMessage}`);
       }
 
-      // Reload cart to ensure consistency
-      await loadCart();
+      // Success - no need to reload, optimistic update is correct
     } catch (error) {
       console.error('Error updating quantity:', error);
       toast.error('Failed to update quantity', {
@@ -120,11 +123,21 @@ export function CartPageContent() {
       });
       // Reload cart on error to revert optimistic update
       await loadCart();
+    } finally {
+      // Remove loading state
+      setLoadingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
     }
   };
 
   const handleRemoveItem = async (itemId: string) => {
     const removedItem = cartItems.find((item) => item.itemId === itemId);
+
+    // Mark item as loading
+    setLoadingItems((prev) => new Set(prev).add(itemId));
 
     // Optimistic update
     setCartItems((items) => items.filter((item) => item.itemId !== itemId));
@@ -148,8 +161,7 @@ export function CartPageContent() {
         });
       }
 
-      // Reload cart to ensure consistency
-      await loadCart();
+      // Success - no need to reload, item is already removed
     } catch (error) {
       console.error('Error removing item:', error);
       toast.error('Failed to remove item', {
@@ -160,6 +172,13 @@ export function CartPageContent() {
       });
       // Reload cart on error to revert optimistic update
       await loadCart();
+    } finally {
+      // Remove loading state
+      setLoadingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
     }
   };
 
@@ -221,10 +240,57 @@ export function CartPageContent() {
             Review your items and proceed to checkout
           </p>
         </div>
-        <Card className='p-12 text-center'>
-          <Loader2 className='h-16 w-16 mx-auto text-muted-foreground mb-4 animate-spin' />
-          <p className='text-muted-foreground'>Loading your cart...</p>
-        </Card>
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+          {/* Cart Items Skeleton */}
+          <div className='lg:col-span-2 space-y-4'>
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className='p-4 sm:p-6'>
+                <div className='flex items-start justify-between gap-4'>
+                  <div className='flex-1 space-y-2'>
+                    <div className='h-5 w-3/4 bg-muted rounded animate-pulse' />
+                    <div className='h-4 w-24 bg-muted rounded animate-pulse' />
+                  </div>
+                  <div className='h-10 w-10 bg-muted rounded animate-pulse' />
+                </div>
+                <div className='flex items-center justify-between gap-4 mt-4'>
+                  <div className='flex items-center gap-3'>
+                    <div className='h-4 w-16 bg-muted rounded animate-pulse' />
+                    <div className='flex items-center gap-2'>
+                      <div className='h-8 w-8 bg-muted rounded animate-pulse' />
+                      <div className='h-8 w-12 bg-muted rounded animate-pulse' />
+                      <div className='h-8 w-8 bg-muted rounded animate-pulse' />
+                    </div>
+                  </div>
+                  <div className='space-y-1 text-right'>
+                    <div className='h-4 w-16 bg-muted rounded animate-pulse ml-auto' />
+                    <div className='h-6 w-20 bg-muted rounded animate-pulse ml-auto' />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+          {/* Order Summary Skeleton */}
+          <div className='lg:col-span-1'>
+            <Card className='p-6'>
+              <div className='h-6 w-32 bg-muted rounded animate-pulse mb-4' />
+              <div className='space-y-3 mb-6'>
+                <div className='flex justify-between'>
+                  <div className='h-4 w-16 bg-muted rounded animate-pulse' />
+                  <div className='h-4 w-8 bg-muted rounded animate-pulse' />
+                </div>
+                <div className='flex justify-between'>
+                  <div className='h-4 w-20 bg-muted rounded animate-pulse' />
+                  <div className='h-4 w-16 bg-muted rounded animate-pulse' />
+                </div>
+                <div className='border-t pt-3 flex justify-between'>
+                  <div className='h-6 w-16 bg-muted rounded animate-pulse' />
+                  <div className='h-6 w-20 bg-muted rounded animate-pulse' />
+                </div>
+              </div>
+              <div className='h-10 w-full bg-muted rounded animate-pulse' />
+            </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -259,82 +325,91 @@ export function CartPageContent() {
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           {/* Cart Items */}
           <div className='lg:col-span-2 space-y-4'>
-            {cartItems.map((item) => (
-              <Card key={item.itemId} className='p-4 sm:p-6'>
-                <div className='flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4'>
-                  {/* Item Info */}
-                  <div className='flex-1 min-w-0'>
-                    <h3 className='text-base sm:text-lg font-medium text-foreground truncate'>
-                      {item.name}
-                    </h3>
-                    <p className='text-sm text-muted-foreground mt-1'>
-                      ${item.unitPrice.toFixed(2)} per unit
-                    </p>
+            {cartItems.map((item) => {
+              const isItemLoading = loadingItems.has(item.itemId);
+              return (
+                <Card
+                  key={item.itemId}
+                  className={cn(
+                    'p-4 sm:p-6 transition-opacity',
+                    isItemLoading && 'opacity-50 pointer-events-none'
+                  )}
+                >
+                  <div className='flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4'>
+                    {/* Item Info */}
+                    <div className='flex-1 min-w-0'>
+                      <h3 className='text-base sm:text-lg font-medium text-foreground truncate'>
+                        {item.name}
+                      </h3>
+                      <p className='text-sm text-muted-foreground mt-1'>
+                        ${item.unitPrice.toFixed(2)} per unit
+                      </p>
+                    </div>
+
+                    {/* Remove Button */}
+                    <button
+                      onClick={() => handleRemoveItem(item.itemId)}
+                      className={cn(
+                        'p-2 text-muted-foreground hover:text-destructive',
+                        'hover:bg-accent rounded-lg transition-colors',
+                        'self-start sm:self-auto'
+                      )}
+                      aria-label='Remove item'
+                      title='Remove item'
+                    >
+                      <Trash2 className='h-5 w-5' />
+                    </button>
                   </div>
 
-                  {/* Remove Button */}
-                  <button
-                    onClick={() => handleRemoveItem(item.itemId)}
-                    className={cn(
-                      'p-2 text-muted-foreground hover:text-destructive',
-                      'hover:bg-accent rounded-lg transition-colors',
-                      'self-start sm:self-auto'
-                    )}
-                    aria-label='Remove item'
-                    title='Remove item'
-                  >
-                    <Trash2 className='h-5 w-5' />
-                  </button>
-                </div>
-
-                {/* Quantity Controls and Subtotal */}
-                <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mt-4'>
-                  {/* Quantity Controls */}
-                  <div className='flex items-center gap-2 sm:gap-3'>
-                    <span className='text-sm text-muted-foreground whitespace-nowrap'>
-                      Quantity:
-                    </span>
-                    <div className='flex items-center gap-2'>
-                      <button
-                        onClick={() => handleQuantityChange(item.itemId, -1)}
-                        disabled={item.quantity <= 1}
-                        className={cn(
-                          'p-1.5 rounded-lg border border-input',
-                          'hover:bg-accent transition-colors',
-                          'disabled:opacity-50 disabled:cursor-not-allowed'
-                        )}
-                        aria-label='Decrease quantity'
-                      >
-                        <Minus className='h-4 w-4' />
-                      </button>
-                      <span className='w-10 sm:w-12 text-center font-medium text-foreground'>
-                        {item.quantity}
+                  {/* Quantity Controls and Subtotal */}
+                  <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mt-4'>
+                    {/* Quantity Controls */}
+                    <div className='flex items-center gap-2 sm:gap-3'>
+                      <span className='text-sm text-muted-foreground whitespace-nowrap'>
+                        Quantity:
                       </span>
-                      <button
-                        onClick={() => handleQuantityChange(item.itemId, 1)}
-                        disabled={item.quantity >= 999}
-                        className={cn(
-                          'p-1.5 rounded-lg border border-input',
-                          'hover:bg-accent transition-colors',
-                          'disabled:opacity-50 disabled:cursor-not-allowed'
-                        )}
-                        aria-label='Increase quantity'
-                      >
-                        <Plus className='h-4 w-4' />
-                      </button>
+                      <div className='flex items-center gap-2'>
+                        <button
+                          onClick={() => handleQuantityChange(item.itemId, -1)}
+                          disabled={item.quantity <= 1}
+                          className={cn(
+                            'p-1.5 rounded-lg border border-input',
+                            'hover:bg-accent transition-colors',
+                            'disabled:opacity-50 disabled:cursor-not-allowed'
+                          )}
+                          aria-label='Decrease quantity'
+                        >
+                          <Minus className='h-4 w-4' />
+                        </button>
+                        <span className='w-10 sm:w-12 text-center font-medium text-foreground'>
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleQuantityChange(item.itemId, 1)}
+                          disabled={item.quantity >= 999}
+                          className={cn(
+                            'p-1.5 rounded-lg border border-input',
+                            'hover:bg-accent transition-colors',
+                            'disabled:opacity-50 disabled:cursor-not-allowed'
+                          )}
+                          aria-label='Increase quantity'
+                        >
+                          <Plus className='h-4 w-4' />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Subtotal */}
+                    <div className='flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-0'>
+                      <p className='text-sm text-muted-foreground'>Subtotal</p>
+                      <p className='text-lg font-semibold text-foreground whitespace-nowrap'>
+                        ${item.subtotal.toFixed(2)}
+                      </p>
                     </div>
                   </div>
-
-                  {/* Subtotal */}
-                  <div className='flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-0'>
-                    <p className='text-sm text-muted-foreground'>Subtotal</p>
-                    <p className='text-lg font-semibold text-foreground whitespace-nowrap'>
-                      ${item.subtotal.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
 
           {/* Order Summary */}
