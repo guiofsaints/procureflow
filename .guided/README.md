@@ -16,7 +16,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 
 ### 🛠️ For Platform Engineers
 
-1. **Infrastructure**: [Infrastructure Documentation](./architecture/infrastructure.md) (coming soon)
+1. **Infrastructure**: [Infrastructure Documentation](./architecture/infrastructure.md)
 2. **Deployment**: [Deployment Strategy](./operations/deployment-strategy.md) (coming soon)
 3. **Rollback**: [Rollback Strategy](./operations/rollback-strategy.md) (coming soon)
 4. **Runbooks**: [Operational Runbooks](./operation/runbooks.plan.md) (coming soon)
@@ -27,8 +27,8 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 1. **Features**: [PRD: Objectives and Features](./product/prd.objective-and-features.md)
 2. **Functional Requirements**: [PRD: Functional Requirements](./product/prd.functional-requirements.md)
 3. **Non-Functional Requirements**: [PRD: Non-Functional Requirements](./product/prd.non-functional-requirements.md)
-4. **API Documentation**: [OpenAPI Status](./api/openapi.status-and-plan.md) (coming soon)
-5. **Testing Strategy**: [Testing Strategy](./testing/testing-strategy.md) (coming soon)
+4. **API Documentation**: [OpenAPI Status](./api/openapi.status-and-plan.md)
+5. **Testing Strategy**: [Testing Strategy](./testing/testing-strategy.md)
 
 ---
 
@@ -38,14 +38,14 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 |---------|--------|------------|
 | **Assessment** | ✅ Complete | 100% (2/2 files) |
 | **Product (PRD)** | ✅ Complete | 100% (3/3 files) |
-| **Architecture** | 🚧 In Progress | 20% (1/5 files) |
-| **API** | 📝 Planned | 0% (0/2 files) |
-| **Testing** | 📝 Planned | 0% (0/1 files) |
+| **Architecture** | ✅ Complete | 100% (4/4 files) |
+| **API** | ✅ Complete | 100% (1/1 files) |
+| **Testing** | ✅ Complete | 100% (1/1 files) |
 | **Operations** | 📝 Planned | 0% (0/3 files) |
 | **Runbooks** | 📝 Planned | 0% (0/6 files) |
 
-**Last Updated**: 2025-11-11  
-**Current Phase**: Phase 1 - Foundation Documentation
+**Last Updated**: 2025-11-12  
+**Current Phase**: Phase 2 - Operations and Runbooks
 
 ---
 
@@ -63,15 +63,15 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 │   └── prd.non-functional-requirements.md # ✅ Complete
 ├── architecture/                       # Technical architecture
 │   ├── c4.context.md                   # ✅ Complete
-│   ├── c4.container.md                 # 📝 Planned
+│   ├── c4.container.md                 # ✅ Complete
 │   ├── c4.component.md                 # 📝 Optional
-│   ├── stack-and-patterns.md           # 📝 Planned
-│   └── infrastructure.md               # 📝 Planned
+│   ├── stack-and-patterns.md           # ✅ Complete
+│   └── infrastructure.md               # ✅ Complete
 ├── api/                                # API documentation
-│   ├── openapi.status-and-plan.md      # 📝 Planned
-│   └── openapi.yaml                    # 📝 Planned (generated)
+│   ├── openapi.status-and-plan.md      # ✅ Complete
+│   └── openapi.yaml                    # 📝 Future (automated generation)
 ├── testing/                            # Testing documentation
-│   └── testing-strategy.md             # 📝 Planned
+│   └── testing-strategy.md             # ✅ Complete
 ├── operations/                         # Deployment and operations
 │   ├── deployment-strategy.md          # 📝 Planned
 │   ├── rollback-strategy.md            # 📝 Planned
@@ -134,7 +134,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 - Scalability: Horizontal scaling, connection pooling, stateless architecture
 - Cost: < $50/month infrastructure budget, OpenAI cost control
 
-### Architecture (20% Complete)
+### Architecture (100% Complete)
 
 **[c4.context.md](./architecture/c4.context.md)**
 - Level 1 C4 diagram with Mermaid syntax
@@ -143,36 +143,73 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 - External dependencies (MongoDB Atlas, OpenAI API)
 - Assumptions and limitations
 
+**[c4.container.md](./architecture/c4.container.md)**
+- Level 2 C4 diagram showing Next.js app, MongoDB, OpenAI interactions
+- Container-level architecture (Web App, API Routes, Agent Service, Database)
+- Sequence diagrams for key workflows (catalog search, agent chat, checkout)
+- Inter-container communication patterns
+- Technology choices for each container
+
+**[stack-and-patterns.md](./architecture/stack-and-patterns.md)**
+- Complete technology stack with versions
+- 6 architectural patterns (feature-based, service layer, domain-driven design, agent-first, reliability patterns, observability)
+- Decision log with 18 architectural decisions
+- Technology constraints and trade-offs
+
+**[infrastructure.md](./architecture/infrastructure.md)**
+- Environment matrix (dev/staging/prod configuration)
+- Deployment architecture (Docker Compose local, Cloud Run dev/prod)
+- CI/CD pipeline with GitHub Actions
+- Secrets management with GCP Secret Manager
+- Observability stack (structured logging, health checks, Prometheus metrics future)
+- Autoscaling policies and cost management
+
+### API (100% Complete)
+
+**[openapi.status-and-plan.md](./api/openapi.status-and-plan.md)**
+- Current OpenAPI 3.0 specification analysis
+- 13 documented endpoints across 5 domains
+- 15 schema definitions with validation rules
+- 9 coverage gaps identified (versioning, rate limiting, pagination, etc.)
+- 4 validation gaps (CI validation, breaking change detection, Zod sync)
+- 4-phase consolidation plan (Foundation v1.1 → External Clients v3.0)
+- Automated generation roadmap with effort estimates
+
+### Testing (100% Complete)
+
+**[testing-strategy.md](./testing/testing-strategy.md)**
+- Testing pyramid: 70% unit / 25% integration / 5% e2e
+- Tooling: Vitest 4.0.8 + Testing Library + mongodb-memory-server
+- Current state: 1 test file with 6 tests
+- Target state: 100 tests achieving 60% coverage by Q1 2025
+- CI gates: test execution, coverage thresholds, linting
+- Flakiness mitigation strategies
+
 ---
 
 ## Pending Documentation (Next Steps)
 
-### Priority 1: Architecture Completion
+### Priority 1: Operations Documentation (CURRENT PHASE)
 
-1. **c4.container.md** - Level 2 C4 diagram showing Next.js app, MongoDB, OpenAI interactions
-2. **stack-and-patterns.md** - Technology stack with versions, design patterns, decision log
-3. **infrastructure.md** - Environments (dev/prod), deploy targets, secrets handling, observability
+1. **operations/deployment-strategy.md** - Deploy flow, promotion model, required checks, smoke tests
+2. **operations/rollback-strategy.md** - Rollback decision tree, data migration handling, validation checks
+3. **operations/autoscaling-policy.md** - Metrics/triggers, min/max instances, cost guardrails, load test baselines
 
-### Priority 2: API and Testing
+### Priority 2: Runbooks
 
-4. **api/openapi.status-and-plan.md** - OpenAPI source of truth, generation strategy, coverage gaps
-5. **api/openapi.yaml** - Generated OpenAPI 3.0 spec (from `lib/openapi.ts`)
-6. **testing/testing-strategy.md** - Testing layers, tooling, coverage goals, CI gates
+4. **operation/runbooks.plan.md** - Initial runbook inventory with format and ownership
+5. **operation/runbooks/local-dev.md** - Local development setup procedure
+6. **operation/runbooks/build-and-deploy.md** - CI/CD workflow execution
+7. **operation/runbooks/rollback.md** - Execute rollback procedure
+8. **operation/runbooks/autoscaling-check.md** - Monitor and adjust autoscaling
+9. **operation/runbooks/troubleshooting.md** - Common failures and resolutions
 
-### Priority 3: Operations
+### Priority 3: Quality Check and Cross-linking
 
-7. **operations/deployment-strategy.md** - Deploy flow, promotion model, required checks
-8. **operations/rollback-strategy.md** - Rollback decision tree, data migration handling, validation
-9. **operations/autoscaling-policy.md** - Metrics/triggers, min/max instances, cost guardrails
-
-### Priority 4: Runbooks
-
-10. **operation/runbooks.plan.md** - Initial runbook inventory
-11. **operation/runbooks/local-dev.md** - Local development setup procedure
-12. **operation/runbooks/build-and-deploy.md** - CI/CD workflow execution
-13. **operation/runbooks/rollback.md** - Execute rollback procedure
-14. **operation/runbooks/autoscaling-check.md** - Monitor and adjust autoscaling
-15. **operation/runbooks/troubleshooting.md** - Common failures and resolutions
+10. **Cross-linking pass** - Link PRD ↔ C4 ↔ Infrastructure ↔ Testing ↔ Operations ↔ Runbooks
+11. **Executive Summary verification** - Ensure all summaries ≤8 lines
+12. **Mermaid diagram testing** - Verify rendering in VSCode and GitHub
+13. **Update docs.discovery-summary.md** - Add post-completion section with remaining gaps
 
 ---
 
@@ -260,11 +297,11 @@ When modifying .guided/ documentation:
 
 - **Owner**: Tech Lead
 - **Maintainers**: Engineering Team
-- **Last Major Update**: 2025-11-11 (Phase 1 completion)
+- **Last Major Update**: 2025-11-12 (Phase 2: Operations and Runbooks)
 
 ---
 
-**README Version**: 1.0.0  
-**Phase**: 1 - Foundation Documentation  
-**Completion**: 40% (6/15 core documents complete)  
-**Next Milestone**: Complete Architecture section (5 documents)
+**README Version**: 2.0.0  
+**Phase**: 2 - Operations and Runbooks  
+**Completion**: 73% (11/15 core documents complete)  
+**Next Milestone**: Complete Operations section (3 documents)
