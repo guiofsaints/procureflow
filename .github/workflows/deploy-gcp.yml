@@ -188,7 +188,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🚀 Deployment Successful\n\n- **Environment**: ${{ github.event.inputs.environment || 'dev' }}\n- **Service URL**: ${serviceUrl}\n- **Image Tag**: ${imageTag}\n\nYou can test the deployment at the service URL above.`
+              body: `## Deployment Successful\n\n- **Environment**: ${{ github.event.inputs.environment || 'dev' }}\n- **Service URL**: ${serviceUrl}\n- **Image Tag**: ${imageTag}\n\nYou can test the deployment at the service URL above.`
             })
 
   # ==============================================================================
@@ -251,13 +251,31 @@ jobs:
 # Setup Instructions:
 # ==============================================================================
 # 
+# OPTION 1: Automated Setup (Recommended)
+# ----------------------------------------
+# Run the setup script to configure all permissions:
+# 
+#   PowerShell:
+#   cd packages/infra/pulumi/gcp/scripts/setup
+#   .\setup-github-actions-permissions.ps1
+# 
+#   Bash:
+#   cd packages/infra/pulumi/gcp/scripts/setup
+#   chmod +x setup-github-actions-permissions.sh
+#   ./setup-github-actions-permissions.sh
+# 
+# OPTION 2: Manual Setup
+# ----------------------
+# 
 # 1. Create GCP Service Account:
-#    gcloud iam service-accounts create github-actions --display-name="GitHub Actions"
+#    gcloud iam service-accounts create github-actions \
+#      --display-name="GitHub Actions CI/CD"
 #    
-# 2. Grant permissions:
+# 2. Grant all required permissions:
 #    PROJECT_ID=$(gcloud config get-value project)
 #    SA_EMAIL="github-actions@$PROJECT_ID.iam.gserviceaccount.com"
 #    
+#    # Cloud Run permissions
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/run.admin"
@@ -266,22 +284,37 @@ jobs:
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/iam.serviceAccountUser"
 #    
+#    # Artifact Registry permissions
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/artifactregistry.writer"
 #    
+#    # Secret Manager permissions
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/secretmanager.admin"
 #    
-# 3. Create key:
+#    # Service Account permissions (to update service accounts)
+#    gcloud projects add-iam-policy-binding $PROJECT_ID \
+#      --member="serviceAccount:$SA_EMAIL" \
+#      --role="roles/iam.serviceAccountAdmin"
+#    
+#    # Compute Engine permissions (for regions list)
+#    gcloud projects add-iam-policy-binding $PROJECT_ID \
+#      --member="serviceAccount:$SA_EMAIL" \
+#      --role="roles/compute.viewer"
+#    
+# 3. Create and download key:
 #    gcloud iam service-accounts keys create github-actions-key.json \
 #      --iam-account=$SA_EMAIL
 #    
-# 4. Add github-actions-key.json content to GitHub Secret GCP_SA_KEY
-#    (Copy the entire JSON, do NOT base64 encode)
+# 4. Add key to GitHub Secrets:
+#    - Go to: https://github.com/USER/REPO/settings/secrets/actions
+#    - Create secret: GCP_SA_KEY
+#    - Value: Copy entire content of github-actions-key.json (not base64-encoded)
+#    - Delete local key file: rm github-actions-key.json
 #    
-# 5. Add other secrets to GitHub:
+# 5. Add application secrets to GitHub:
 #    https://github.com/USER/REPO/settings/secrets/actions
 #    
 #    NEXTAUTH_SECRET: openssl rand -base64 32
