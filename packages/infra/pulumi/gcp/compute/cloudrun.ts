@@ -1,20 +1,20 @@
 /**
  * Cloud Run Service Configuration
- * 
+ *
  * Deploys ProcureFlow Next.js app on Cloud Run with FREE TIER optimizations.
- * 
+ *
  * **FREE TIER Limits:**
  * - Always Free: 2M requests/month
  * - Always Free: 360,000 GB-seconds/month
  * - Always Free: 180,000 vCPU-seconds/month
  * - minScale: 0 (scales to zero when idle = $0.00)
- * 
+ *
  * **Resources Created:**
  * - Cloud Run Service (gen2, public access)
  * - Service Account (least-privilege IAM)
  * - IAM Policy (allUsers invoker role)
  * - Artifact Registry Repository (Docker images)
- * 
+ *
  * @module compute/cloudrun
  */
 
@@ -27,24 +27,24 @@ import * as pulumi from '@pulumi/pulumi';
 interface CloudRunConfig {
   /** GCP Project ID */
   projectId: string;
-  
+
   /** GCP region (e.g., 'us-central1') */
   region: string;
-  
+
   /** Environment name (dev/staging/prod) */
   environment: string;
-  
+
   /** Docker image tag to deploy */
   imageTag: string;
-  
+
   /** Secret Manager secret IDs for environment variables */
   secrets: {
     /** NextAuth.js session encryption secret */
     nextauthSecretId: pulumi.Input<string>;
-    
+
     /** OpenAI API key (optional) */
     openaiApiKeyId: pulumi.Input<string>;
-    
+
     /** MongoDB connection string */
     mongodbUriId: pulumi.Input<string>;
   };
@@ -52,17 +52,17 @@ interface CloudRunConfig {
 
 /**
  * Creates a Cloud Run service for ProcureFlow web application.
- * 
+ *
  * Provisions a fully-configured Cloud Run service with:
  * - Auto-scaling (0-2 instances)
  * - Secret Manager integration
  * - Public HTTPS access
  * - Dedicated service account
  * - FREE TIER optimizations
- * 
+ *
  * @param config - Cloud Run service configuration
  * @returns Cloud Run service, service account, IAM policy, and outputs
- * 
+ *
  * @example
  * ```typescript
  * const cloudRun = createCloudRunService({
@@ -72,7 +72,7 @@ interface CloudRunConfig {
  *   imageTag: 'latest',
  *   secrets: { ... }
  * });
- * 
+ *
  * export const url = cloudRun.serviceUrl;
  * ```
  */
@@ -88,7 +88,8 @@ export function createCloudRunService(config: CloudRunConfig) {
   const serviceAccount = new gcp.serviceaccount.Account('cloudrun-sa', {
     accountId: 'procureflow-cloudrun',
     displayName: 'ProcureFlow Cloud Run Service Account',
-    description: 'Service account for ProcureFlow Cloud Run service with secret access',
+    description:
+      'Service account for ProcureFlow Cloud Run service with secret access',
   });
 
   // Build fully-qualified image URL from Artifact Registry
@@ -107,13 +108,13 @@ export function createCloudRunService(config: CloudRunConfig) {
         annotations: {
           // ⚡ Scale to zero when idle (FREE TIER: $0 when no traffic)
           'autoscaling.knative.dev/minScale': '0',
-          
+
           // 🔒 Prevent runaway costs (max 2 concurrent instances)
           'autoscaling.knative.dev/maxScale': '2',
-          
+
           // 💰 Throttle CPU when idle (reduce costs)
           'run.googleapis.com/cpu-throttling': 'true',
-          
+
           // 🚀 Use gen2 execution environment (faster cold starts)
           'run.googleapis.com/execution-environment': 'gen2',
         },
@@ -121,10 +122,10 @@ export function createCloudRunService(config: CloudRunConfig) {
 
       spec: {
         serviceAccountName: serviceAccount.email,
-        
+
         // Allow 80 concurrent requests per container instance
         containerConcurrency: 80,
-        
+
         // Timeout after 5 minutes (max allowed)
         timeoutSeconds: 300,
 
@@ -142,7 +143,7 @@ export function createCloudRunService(config: CloudRunConfig) {
             // Resource limits (FREE TIER optimized)
             resources: {
               limits: {
-                cpu: '1000m',    // 1 vCPU (within 180k vCPU-seconds/month free)
+                cpu: '1000m', // 1 vCPU (within 180k vCPU-seconds/month free)
                 memory: '512Mi', // 512 MB (within 360k GB-seconds/month free)
               },
             },
@@ -153,16 +154,16 @@ export function createCloudRunService(config: CloudRunConfig) {
                 name: 'NODE_ENV',
                 value: 'production',
               },
-              
+
               // Disable Next.js telemetry
               {
                 name: 'NEXT_TELEMETRY_DISABLED',
                 value: '1',
               },
-              
+
               // NOTE: NEXTAUTH_URL must be set via gcloud after deployment
               // See: docs/SETUP.md for post-deployment configuration
-              
+
               // 🔐 Secrets from Secret Manager (injected at runtime)
               {
                 name: 'NEXTAUTH_SECRET',
@@ -231,7 +232,7 @@ export function createCloudRunService(config: CloudRunConfig) {
     iamPolicy,
 
     // Outputs for stack exports
-    serviceUrl: service.statuses.apply(s => s[0]?.url || ''),
+    serviceUrl: service.statuses.apply((s) => s[0]?.url || ''),
     serviceName: service.name,
     serviceAccountEmail: serviceAccount.email,
   };
@@ -243,23 +244,23 @@ export function createCloudRunService(config: CloudRunConfig) {
 interface ArtifactRegistryConfig {
   /** GCP Project ID */
   projectId: string;
-  
+
   /** GCP region for repository */
   region: string;
-  
+
   /** Environment name (dev/staging/prod) */
   environment: string;
 }
 
 /**
  * Creates an Artifact Registry repository for Docker images.
- * 
+ *
  * Provisions a Docker repository for storing container images.
  * Images are automatically scanned for vulnerabilities.
- * 
+ *
  * @param config - Artifact Registry configuration
  * @returns Repository resource and fully-qualified URL
- * 
+ *
  * @example
  * ```typescript
  * const registry = createArtifactRegistry({
@@ -267,7 +268,7 @@ interface ArtifactRegistryConfig {
  *   region: 'us-central1',
  *   environment: 'dev'
  * });
- * 
+ *
  * export const repoUrl = registry.repositoryUrl;
  * ```
  */
@@ -297,21 +298,21 @@ export function createArtifactRegistry(config: ArtifactRegistryConfig) {
 
 /**
  * Cloud Run Pricing (FREE TIER):
- * 
+ *
  * ✅ Always Free (per month):
  * - 2,000,000 requests
  * - 360,000 GB-seconds memory
  * - 180,000 vCPU-seconds
  * - 1 GB network egress (North America)
- * 
+ *
  * With minScale: 0, service scales to zero when idle = $0.00
- * 
+ *
  * Example calculation for 10,000 requests/month:
  * - Requests: 10k (within 2M free) = $0.00
  * - Memory: ~50 GB-seconds (within 360k free) = $0.00
  * - vCPU: ~25 vCPU-seconds (within 180k free) = $0.00
  * - Total: $0.00 ✅
- * 
+ *
  * 💰 Paid (if exceeded free tier):
  * - Additional requests: $0.40/million
  * - Additional memory: $0.0000025/GB-second

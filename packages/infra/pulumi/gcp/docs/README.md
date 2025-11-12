@@ -13,34 +13,40 @@
 ### Infraestrutura (Pulumi)
 
 ✅ **`packages/infra/pulumi/gcp/package.json`**
+
 - Atualizado para última versão do Pulumi (3.140.0)
 - Adicionado `@pulumi/mongodbatlas` (3.19.0)
 - Adicionado `@pulumi/random` (4.16.7)
 - Scripts simplificados (`preview`, `deploy`, `destroy`)
 
 ✅ **`packages/infra/pulumi/gcp/index.ts`**
+
 - Refatorado para arquitetura modular
 - Configuração FREE TIER otimizada
 - Outputs detalhados com instruções
 
 ✅ **`packages/infra/pulumi/gcp/mongodb-atlas.ts`** (NOVO)
+
 - MongoDB Atlas M0 (FREE) cluster
 - IP whitelist (0.0.0.0/0 para Cloud Run)
 - Database user com permissões mínimas
 - Documentação de limitações M0
 
 ✅ **`packages/infra/pulumi/gcp/secrets.ts`** (NOVO)
+
 - Secret Manager (3 secrets FREE)
 - NEXTAUTH_SECRET, MONGODB_URI, OPENAI_API_KEY
 - IAM bindings automáticos para Cloud Run
 
 ✅ **`packages/infra/pulumi/gcp/cloudrun.ts`** (NOVO)
+
 - Cloud Run v2 API
 - minScale: 0 (escala a zero = $0)
 - Health checks configurados
 - Artifact Registry integration
 
 ✅ **`packages/infra/pulumi/gcp/SETUP.md`** (NOVO)
+
 - Guia passo a passo completo (700+ linhas)
 - Troubleshooting detalhado
 - Scripts PowerShell prontos para uso
@@ -48,6 +54,7 @@
 ### CI/CD (GitHub Actions)
 
 ✅ **`.github/workflows/deploy-gcp.yml`** (NOVO)
+
 - Workflow completo de build + deploy
 - 3 jobs: build, deploy, health-check
 - Free tier GitHub Actions (2000 min/mês)
@@ -56,6 +63,7 @@
 ### Scripts (Root)
 
 ✅ **`package.json`** (root)
+
 - `pnpm run infra:install` - Instala dependências
 - `pnpm run infra:preview` - Preview de mudanças
 - `pnpm run infra:deploy` - Deploy completo
@@ -66,6 +74,7 @@
 ### Documentação
 
 ✅ **`INFRAESTRUTURA_GCP_RELATORIO.md`** (Atualizado)
+
 - Seção FREE TIER Edition
 - Diagrama de arquitetura ASCII
 - Plano de implementação única (2-3h)
@@ -199,26 +208,26 @@ git push origin main
 
 ### FREE TIER Breakdown
 
-| Serviço | Quota FREE | Uso Esperado | Custo |
-|---------|------------|--------------|-------|
-| **Cloud Run** | 2M req/mês | ~10k req/mês | $0.00 ✅ |
-| **Cloud Run Memory** | 360k GB-sec | ~50 GB-sec | $0.00 ✅ |
-| **Cloud Run CPU** | 180k vCPU-sec | ~25 vCPU-sec | $0.00 ✅ |
-| **Secret Manager** | 6 secrets | 3 secrets | $0.00 ✅ |
-| **MongoDB Atlas M0** | 512 MB | Ilimitado | $0.00 ✅ |
-| **GitHub Actions** | 2000 min | ~30 min/mês | $0.00 ✅ |
-| **Pulumi Cloud** | 1 stack | 1 stack | $0.00 ✅ |
-| **Artifact Registry** | - | 2 GB | **$0.30** ⚠️ |
-| **TOTAL** | | | **$0.30/mês** |
+| Serviço               | Quota FREE    | Uso Esperado | Custo         |
+| --------------------- | ------------- | ------------ | ------------- |
+| **Cloud Run**         | 2M req/mês    | ~10k req/mês | $0.00 ✅      |
+| **Cloud Run Memory**  | 360k GB-sec   | ~50 GB-sec   | $0.00 ✅      |
+| **Cloud Run CPU**     | 180k vCPU-sec | ~25 vCPU-sec | $0.00 ✅      |
+| **Secret Manager**    | 6 secrets     | 3 secrets    | $0.00 ✅      |
+| **MongoDB Atlas M0**  | 512 MB        | Ilimitado    | $0.00 ✅      |
+| **GitHub Actions**    | 2000 min      | ~30 min/mês  | $0.00 ✅      |
+| **Pulumi Cloud**      | 1 stack       | 1 stack      | $0.00 ✅      |
+| **Artifact Registry** | -             | 2 GB         | **$0.30** ⚠️  |
+| **TOTAL**             |               |              | **$0.30/mês** |
 
 ### Custo de 1 Dia de Teste
 
 Com `minScale: 0` (escala a zero quando idle):
 
-| Período | Custo |
-|---------|-------|
-| 1 hora | ~$0.01 |
-| 8 horas | ~$0.05 |
+| Período  | Custo  |
+| -------- | ------ |
+| 1 hora   | ~$0.01 |
+| 8 horas  | ~$0.05 |
 | 24 horas | ~$0.15 |
 
 **Destruição completa:** $0.00 (sem custos residuais)
@@ -300,12 +309,12 @@ pulumi stack rm dev
 
 ## 📚 Documentação
 
-| Arquivo | Propósito |
-|---------|-----------|
-| `SETUP.md` | Guia passo a passo completo (700+ linhas) |
-| `INFRAESTRUTURA_GCP_RELATORIO.md` | Análise detalhada e plano |
-| `README.md` | Visão geral do projeto |
-| `.github/workflows/deploy-gcp.yml` | CI/CD com comentários inline |
+| Arquivo                            | Propósito                                 |
+| ---------------------------------- | ----------------------------------------- |
+| `SETUP.md`                         | Guia passo a passo completo (700+ linhas) |
+| `INFRAESTRUTURA_GCP_RELATORIO.md`  | Análise detalhada e plano                 |
+| `README.md`                        | Visão geral do projeto                    |
+| `.github/workflows/deploy-gcp.yml` | CI/CD com comentários inline              |
 
 ---
 
@@ -338,6 +347,7 @@ pulumi stack rm dev
 ✅ **Documentação completa** (700+ linhas)
 
 **Próximos passos:**
+
 1. Seguir `SETUP.md` passo a passo
 2. Deploy manual primeiro
 3. Configurar GitHub Actions

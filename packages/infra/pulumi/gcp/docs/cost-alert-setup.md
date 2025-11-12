@@ -34,11 +34,11 @@ Click **CREATE BUDGET** and fill:
 
 Configure 3 alert rules:
 
-| Threshold | Amount | Action |
-|-----------|--------|--------|
-| 50% | $2.50 | Email notification |
-| 90% | $4.50 | Email notification |
-| 100% | $5.00 | Email notification |
+| Threshold | Amount | Action             |
+| --------- | ------ | ------------------ |
+| 50%       | $2.50  | Email notification |
+| 90%       | $4.50  | Email notification |
+| 100%      | $5.00  | Email notification |
 
 **Alert recipients**: Add your email address
 
@@ -50,7 +50,8 @@ Configure 3 alert rules:
 
 Click **FINISH** to create budget.
 
-**Expected result**: 
+**Expected result**:
+
 - You'll receive email confirmation
 - Alerts will trigger if monthly costs exceed thresholds
 - Dashboard will show budget status
@@ -79,11 +80,13 @@ gcloud billing budgets create \
 **Current costs**: $0.30/month (Artifact Registry only)
 
 **Free tier coverage**: 99%
+
 - Cloud Run: $0 (within free tier)
 - Secret Manager: $0 (within free tier)
 - MongoDB Atlas: $0 (M0 free cluster, external)
 
 **$5 threshold reasoning**:
+
 - 10x current spend = early warning
 - Still extremely low cost
 - Catches accidental resource creation
@@ -97,7 +100,8 @@ gcloud billing budgets create \
 
 **Check status**: https://console.cloud.google.com/billing/budgets
 
-**View current spend**: 
+**View current spend**:
+
 ```bash
 gcloud billing accounts list
 ```
@@ -109,6 +113,7 @@ Then navigate to Reports in Console for detailed breakdown.
 ## What Triggers Alerts?
 
 **Potential causes of cost increase**:
+
 1. Cloud Run exceeding free tier (2M requests/month)
 2. Artifact Registry storage growth (>0.5GB)
 3. Secret Manager exceeding free tier (10k accesses/month)
@@ -122,12 +127,14 @@ Then navigate to Reports in Console for detailed breakdown.
 ## Cost Alert Actions
 
 **If you receive 50% alert ($2.50)**:
+
 1. Check GCP Console → Billing → Reports
 2. Identify which service increased
 3. Verify it's expected (e.g., increased traffic)
 4. Investigate if unexpected
 
 **If you receive 100% alert ($5.00)**:
+
 1. Immediately check Console for unexpected resources
 2. Stop/delete any accidental VMs or resources
 3. Review Cloud Run logs for traffic spikes
@@ -146,6 +153,7 @@ gcloud billing budgets list \
 ```
 
 Expected output:
+
 ```
 BUDGET_NAME                      AMOUNT
 procureflow-dev-monthly-budget   5.00

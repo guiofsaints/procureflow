@@ -238,6 +238,7 @@ pulumi config
 ```
 
 Expected output:
+
 ```
 KEY                              VALUE
 environment                      dev
@@ -264,6 +265,7 @@ pnpm run infra:preview
 ```
 
 This will show all resources that will be created:
+
 - MongoDB Atlas M0 cluster
 - GCP Secret Manager secrets (3)
 - GCP Cloud Run service
@@ -376,17 +378,17 @@ Write-Output $KEY_BASE64 > github-key-base64.txt
 2. Click **New repository secret**
 3. Add these secrets:
 
-| Secret Name | Value | How to get |
-|-------------|-------|------------|
-| `GCP_PROJECT_ID` | `procureflow-dev-1234` | From `$PROJECT_ID` |
-| `GCP_SA_KEY` | Base64 key | From `github-key-base64.txt` |
-| `PULUMI_ACCESS_TOKEN` | Token value | From Pulumi dashboard |
-| `NEXTAUTH_SECRET` | Secret value | From `pulumi config` |
-| `MONGODB_PASSWORD` | Password value | From `pulumi config` |
-| `MONGODB_ATLAS_PUBLIC_KEY` | Public key | From MongoDB Atlas |
-| `MONGODB_ATLAS_PRIVATE_KEY` | Private key | From MongoDB Atlas |
-| `MONGODB_ATLAS_ORG_ID` | Org ID | From MongoDB Atlas |
-| `OPENAI_API_KEY` | API key (optional) | From OpenAI |
+| Secret Name                 | Value                  | How to get                   |
+| --------------------------- | ---------------------- | ---------------------------- |
+| `GCP_PROJECT_ID`            | `procureflow-dev-1234` | From `$PROJECT_ID`           |
+| `GCP_SA_KEY`                | Base64 key             | From `github-key-base64.txt` |
+| `PULUMI_ACCESS_TOKEN`       | Token value            | From Pulumi dashboard        |
+| `NEXTAUTH_SECRET`           | Secret value           | From `pulumi config`         |
+| `MONGODB_PASSWORD`          | Password value         | From `pulumi config`         |
+| `MONGODB_ATLAS_PUBLIC_KEY`  | Public key             | From MongoDB Atlas           |
+| `MONGODB_ATLAS_PRIVATE_KEY` | Private key            | From MongoDB Atlas           |
+| `MONGODB_ATLAS_ORG_ID`      | Org ID                 | From MongoDB Atlas           |
+| `OPENAI_API_KEY`            | API key (optional)     | From OpenAI                  |
 
 ### 4. Test GitHub Actions
 
@@ -483,6 +485,7 @@ gcloud secrets list
 **Error:** `TENANT provider not available in region`
 
 **Solution:** Change region in `mongodb-atlas.ts`:
+
 ```typescript
 providerRegionName: 'CENTRAL_US', // Try: EASTERN_US, WESTERN_US
 ```
@@ -492,6 +495,7 @@ providerRegionName: 'CENTRAL_US', // Try: EASTERN_US, WESTERN_US
 **Error:** `Container failed to start`
 
 **Check:**
+
 ```powershell
 # View logs
 gcloud run logs tail procureflow-web --region us-central1
@@ -507,6 +511,7 @@ gcloud run logs tail procureflow-web --region us-central1
 **Error:** `secret not found`
 
 **Solution:**
+
 ```powershell
 # Re-add secret
 pulumi config set --secret nextauth-secret $(openssl rand -base64 32)
@@ -517,6 +522,7 @@ pulumi config set --secret nextauth-secret $(openssl rand -base64 32)
 **Error:** `denied: Permission "artifactregistry.repositories.uploadArtifacts" denied`
 
 **Solution:**
+
 ```powershell
 # Re-authenticate
 gcloud auth configure-docker us-central1-docker.pkg.dev
@@ -526,11 +532,13 @@ gcloud auth login
 ### Issue: High costs
 
 **Check free tier limits:**
+
 - Cloud Run: 2M requests/month (within free tier?)
 - Artifact Registry: Only ~$0.30/month expected
 - MongoDB Atlas: M0 is always free
 
 **Solution:**
+
 ```powershell
 # Check current usage
 gcloud run services describe procureflow-web --region us-central1 --format="value(status.traffic.percent)"
@@ -576,6 +584,7 @@ gcloud billing projects describe $PROJECT_ID
 - ✅ Application running
 
 **Production Readiness:**
+
 1. Add custom domain
 2. Configure HTTPS/SSL
 3. Set up monitoring alerts

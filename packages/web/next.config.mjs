@@ -16,9 +16,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: process.env.npm_package_version || '0.1.0',
     NEXT_PUBLIC_GIT_COMMIT_SHA:
-      process.env.GIT_COMMIT_SHA ||
-      process.env.VERCEL_GIT_COMMIT_SHA ||
-      'dev',
+      process.env.GIT_COMMIT_SHA || process.env.VERCEL_GIT_COMMIT_SHA || 'dev',
   },
 
   // Skip TypeScript checks during build (run separately with tsc)

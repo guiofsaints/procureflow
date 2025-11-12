@@ -48,6 +48,7 @@ gcloud artifacts repositories list --location=us-central1
 **Symptoms**: `pulumi up` returns error, deployment incomplete
 
 **Quick Check**:
+
 ```bash
 # 1. Verify GCP authentication
 gcloud auth list
@@ -63,6 +64,7 @@ gcloud projects describe procureflow-dev
 **Common Causes**:
 
 **A. GCP Credentials Expired**
+
 ```bash
 # Fix: Re-authenticate
 gcloud auth login
@@ -70,6 +72,7 @@ gcloud auth application-default login
 ```
 
 **B. State File Locked**
+
 ```bash
 # Fix: Cancel conflicting operation or wait for timeout
 pulumi cancel
@@ -80,6 +83,7 @@ pulumi stack import < backup.json
 ```
 
 **C. Resource Quota Exceeded**
+
 ```bash
 # Fix: Check quotas
 gcloud compute project-info describe --project=procureflow-dev
@@ -95,6 +99,7 @@ gcloud run services list --region=us-central1
 **Symptoms**: Service URL returns 404, 503, or timeout
 
 **Quick Check**:
+
 ```bash
 # 1. Verify service is running
 gcloud run services describe procureflow-web --region=us-central1 --format='value(status.url)'
@@ -109,6 +114,7 @@ curl -I https://procureflow-web-592353558869.us-central1.run.app/api/health
 **Common Causes**:
 
 **A. Service Failed to Deploy**
+
 ```bash
 # Fix: Check deployment logs
 gcloud run services describe procureflow-web --region=us-central1
@@ -118,6 +124,7 @@ gcloud run revisions list --service=procureflow-web --region=us-central1
 ```
 
 **B. Container Image Missing**
+
 ```bash
 # Fix: Rebuild and push image
 cd ../../../../
@@ -136,6 +143,7 @@ pulumi up
 ```
 
 **C. Environment Variables Misconfigured**
+
 ```bash
 # Fix: Update env vars
 gcloud run services update procureflow-web \
@@ -150,6 +158,7 @@ gcloud run services update procureflow-web \
 **Symptoms**: Application can't read secrets, auth fails, database connection error
 
 **Quick Check**:
+
 ```bash
 # 1. Verify secrets exist
 gcloud secrets list
@@ -164,6 +173,7 @@ pulumi config --show-secrets
 **Common Causes**:
 
 **A. Secret Not Created**
+
 ```bash
 # Fix: Create missing secret via Pulumi
 pulumi up
@@ -173,6 +183,7 @@ gcloud secrets create my-secret --data-file=/path/to/secret.txt
 ```
 
 **B. Permission Denied**
+
 ```bash
 # Fix: Grant Cloud Run service account access
 gcloud secrets add-iam-policy-binding nextauth-secret \
@@ -181,6 +192,7 @@ gcloud secrets add-iam-policy-binding nextauth-secret \
 ```
 
 **C. Secret Version Disabled**
+
 ```bash
 # Fix: Enable latest version
 gcloud secrets versions enable latest --secret=nextauth-secret
@@ -193,6 +205,7 @@ gcloud secrets versions enable latest --secret=nextauth-secret
 **Symptoms**: `MongoServerSelectionError`, `ECONNREFUSED`, timeout
 
 **Quick Check**:
+
 ```bash
 # 1. Verify MongoDB Atlas cluster is running
 # Visit: https://cloud.mongodb.com
@@ -207,6 +220,7 @@ mongosh "mongodb+srv://your-connection-string"
 **Common Causes**:
 
 **A. IP Not Whitelisted**
+
 ```bash
 # Fix: Add Cloud Run IP range to MongoDB Atlas Network Access
 # 1. Go to MongoDB Atlas Console
@@ -215,6 +229,7 @@ mongosh "mongodb+srv://your-connection-string"
 ```
 
 **B. Credentials Changed**
+
 ```bash
 # Fix: Update secret
 pulumi config set --secret mongodb-connection-string "mongodb+srv://new-connection-string"
@@ -222,6 +237,7 @@ pulumi up
 ```
 
 **C. Cluster Paused (M0 Free Tier)**
+
 ```bash
 # Fix: Resume cluster in MongoDB Atlas Console
 # M0 clusters auto-pause after 60 days of inactivity
@@ -234,6 +250,7 @@ pulumi up
 **Symptoms**: `pulumi up` hangs, timeout after 10+ minutes
 
 **Quick Check**:
+
 ```bash
 # 1. Check operation status
 pulumi stack --show-urns
@@ -248,6 +265,7 @@ gcloud run operations list --region=us-central1
 **Common Causes**:
 
 **A. Large Docker Image**
+
 ```bash
 # Fix: Optimize Dockerfile
 # Add .dockerignore to exclude node_modules, .git, etc.
@@ -258,6 +276,7 @@ gcloud artifacts docker images describe \
 ```
 
 **B. Network Issues**
+
 ```bash
 # Fix: Retry deployment
 pulumi up
@@ -274,6 +293,7 @@ pulumi up
 **Symptoms**: Received email alert that budget threshold exceeded
 
 **Immediate Actions**:
+
 ```bash
 # 1. Check current billing
 gcloud billing accounts list
@@ -290,6 +310,7 @@ gcloud sql instances list
 **Common Causes**:
 
 **A. Accidental Resource Creation**
+
 ```bash
 # Fix: Delete unwanted resources
 gcloud compute instances delete INSTANCE_NAME --zone=us-central1-a
@@ -299,6 +320,7 @@ pulumi destroy --target urn:pulumi:dev::procureflow-gcp::resource-type::resource
 ```
 
 **B. Traffic Spike (Cloud Run)**
+
 ```bash
 # Fix: Check request volume
 gcloud run services describe procureflow-web --region=us-central1
@@ -316,6 +338,7 @@ gcloud run services update procureflow-web \
 **Symptoms**: Pulumi commands fail with state errors, inconsistent state
 
 **Quick Check**:
+
 ```bash
 # Export current state
 pulumi stack export > state-backup-$(date +%Y%m%d).json
@@ -325,6 +348,7 @@ cat state-backup-*.json | jq .
 ```
 
 **Fix**:
+
 ```bash
 # 1. Restore from backup
 pulumi stack import < state-backup-YYYYMMDD.json
@@ -404,9 +428,11 @@ gcloud run logs tail procureflow-web --region=us-central1 --log-filter='severity
 ### Metrics
 
 Visit Cloud Run Metrics Dashboard:
+
 - https://console.cloud.google.com/run/detail/us-central1/procureflow-web/metrics
 
 **Key metrics to monitor**:
+
 - Request count
 - Request latency
 - Error rate (4xx, 5xx)
@@ -421,6 +447,7 @@ Visit Cloud Run Metrics Dashboard:
 ### Slow Response Times
 
 **Quick Check**:
+
 ```bash
 # Check current resource allocation
 gcloud run services describe procureflow-web --region=us-central1 \
@@ -428,6 +455,7 @@ gcloud run services describe procureflow-web --region=us-central1 \
 ```
 
 **Fix**: Increase Cloud Run resources
+
 ```bash
 gcloud run services update procureflow-web \
   --region=us-central1 \
@@ -440,6 +468,7 @@ gcloud run services update procureflow-web \
 ### Cold Start Issues
 
 **Fix**: Set minimum instances
+
 ```bash
 gcloud run services update procureflow-web \
   --region=us-central1 \
@@ -482,11 +511,13 @@ gcloud billing accounts list
 ## When to Escalate
 
 **Contact GCP Support** if:
+
 - Persistent platform issues (GCP services down)
 - Quota increase requests
 - Billing disputes
 
 **Contact Pulumi Support** if:
+
 - State corruption beyond recovery
 - Provider bugs
 - Complex migration issues

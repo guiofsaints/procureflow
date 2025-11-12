@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
  * Generate Build Info Script
- * 
+ *
  * Automatically generates build-time metadata including:
  * - Version from package.json
  * - Git commit SHA (full and short)
  * - Build date/time
  * - Git branch
- * 
+ *
  * This script is called during:
  * - Docker builds (via Dockerfile)
  * - Local development (via package.json scripts)
  * - CI/CD pipelines (GitHub Actions)
- * 
+ *
  * Output formats:
  * - Environment variables (for runtime)
  * - JSON file (for static imports)
@@ -95,7 +95,7 @@ NEXT_PUBLIC_BUILD_TIMESTAMP=${buildInfo.buildTimestamp}
  */
 function main() {
   const buildInfo = generateBuildInfo();
-  
+
   // Output to console
   console.log('📦 Build Information Generated:');
   console.log('================================');
@@ -108,11 +108,7 @@ function main() {
 
   // Write to JSON file (for static imports if needed)
   const buildInfoPath = path.join(__dirname, '..', 'build-info.json');
-  fs.writeFileSync(
-    buildInfoPath,
-    JSON.stringify(buildInfo, null, 2),
-    'utf8'
-  );
+  fs.writeFileSync(buildInfoPath, JSON.stringify(buildInfo, null, 2), 'utf8');
   console.log(`✅ Build info written to: ${buildInfoPath}`);
 
   // Write to .env.buildinfo file
@@ -124,8 +120,12 @@ function main() {
   if (process.argv.includes('--export')) {
     console.log('\n# Export these variables in your shell:');
     console.log(`export NEXT_PUBLIC_APP_VERSION="${buildInfo.version}"`);
-    console.log(`export NEXT_PUBLIC_GIT_COMMIT_SHA="${buildInfo.gitCommitSHA}"`);
-    console.log(`export NEXT_PUBLIC_GIT_COMMIT_SHA_SHORT="${buildInfo.gitCommitSHAShort}"`);
+    console.log(
+      `export NEXT_PUBLIC_GIT_COMMIT_SHA="${buildInfo.gitCommitSHA}"`
+    );
+    console.log(
+      `export NEXT_PUBLIC_GIT_COMMIT_SHA_SHORT="${buildInfo.gitCommitSHAShort}"`
+    );
     console.log(`export NEXT_PUBLIC_GIT_BRANCH="${buildInfo.gitBranch}"`);
     console.log(`export NEXT_PUBLIC_BUILD_DATE="${buildInfo.buildDate}"`);
   }

@@ -9,6 +9,7 @@ Automated scripts to configure GCP service accounts and GitHub Actions for Procu
 Configures the GitHub Actions service account with all necessary IAM roles for CI/CD deployments.
 
 **Permissions Granted:**
+
 - `roles/run.admin` - Deploy Cloud Run services
 - `roles/iam.serviceAccountUser` - Use service accounts
 - `roles/artifactregistry.writer` - Push Docker images
@@ -59,14 +60,14 @@ Go to: `https://github.com/YOUR_ORG/procureflow/settings/secrets/actions`
 
 Create the following secrets:
 
-| Secret Name | Value | Notes |
-|-------------|-------|-------|
-| `GCP_PROJECT_ID` | Your GCP project ID | e.g., `procureflow-dev` |
-| `GCP_SA_KEY` | Content of `github-actions-key.json` | Copy entire JSON, not base64 |
-| `PULUMI_ACCESS_TOKEN` | Pulumi token | From https://app.pulumi.com/account/tokens |
-| `NEXTAUTH_SECRET` | Random string | Generate: `openssl rand -base64 32` |
-| `OPENAI_API_KEY` | OpenAI API key | Or `"not-set"` if not using AI features |
-| `MONGODB_CONNECTION_STRING` | MongoDB URI | `mongodb+srv://...` |
+| Secret Name                 | Value                                | Notes                                      |
+| --------------------------- | ------------------------------------ | ------------------------------------------ |
+| `GCP_PROJECT_ID`            | Your GCP project ID                  | e.g., `procureflow-dev`                    |
+| `GCP_SA_KEY`                | Content of `github-actions-key.json` | Copy entire JSON, not base64               |
+| `PULUMI_ACCESS_TOKEN`       | Pulumi token                         | From https://app.pulumi.com/account/tokens |
+| `NEXTAUTH_SECRET`           | Random string                        | Generate: `openssl rand -base64 32`        |
+| `OPENAI_API_KEY`            | OpenAI API key                       | Or `"not-set"` if not using AI features    |
+| `MONGODB_CONNECTION_STRING` | MongoDB URI                          | `mongodb+srv://...`                        |
 
 ### 3. Delete Local Key File
 

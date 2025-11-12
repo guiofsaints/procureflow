@@ -1,24 +1,24 @@
 /**
  * Secret Manager Configuration
- * 
+ *
  * Creates and manages application secrets for ProcureFlow.
- * 
+ *
  * **FREE TIER Limits:**
  * - First 6 secret versions: FREE
  * - First 10,000 access operations/month: FREE
  * - Current usage: 3 secrets = $0.00 ✅
- * 
+ *
  * **Secrets Created:**
  * - nextauth-secret: NextAuth.js session encryption key
  * - openai-api-key: OpenAI API key (optional, agent features)
  * - mongodb-uri: MongoDB Atlas connection string
- * 
+ *
  * **Security Notes:**
  * - Automatic replication across regions
  * - Encrypted at rest and in transit
  * - IAM-based access control (least-privilege)
  * - Version history maintained
- * 
+ *
  * @module security/secrets
  */
 
@@ -31,42 +31,47 @@ import * as pulumi from '@pulumi/pulumi';
 interface SecretConfig {
   /** GCP Project ID */
   projectId: string;
-  
+
   /** Environment name (dev/staging/prod) */
   environment: string;
 }
 
 /**
  * Creates Secret Manager secrets for ProcureFlow application.
- * 
+ *
  * Provisions three secrets with automatic replication:
  * 1. NEXTAUTH_SECRET - Session encryption (required)
  * 2. OPENAI_API_KEY - AI features (optional)
  * 3. MONGODB_URI - Database connection (required)
- * 
+ *
  * Secrets are sourced from Pulumi config (encrypted at rest in state file).
- * 
+ *
  * @param config - Secret Manager configuration
  * @param mongodbConnectionString - MongoDB Atlas connection string (from config)
  * @returns Secret resources, versions, and secret IDs for Cloud Run
- * 
+ *
  * @example
  * ```typescript
  * const secrets = createSecrets(
  *   { projectId: 'my-project', environment: 'dev' },
  *   pulumi.output('mongodb+srv://...')
  * );
- * 
+ *
  * // Use in Cloud Run
  * const cloudRun = createCloudRunService({
  *   secrets: secrets.secrets
  * });
  * ```
  */
-export function createSecrets(config: SecretConfig, mongodbConnectionString: pulumi.Output<string>) {
+export function createSecrets(
+  config: SecretConfig,
+  mongodbConnectionString: pulumi.Output<string>
+) {
   // Validate configuration
   if (!config.projectId || !config.environment) {
-    throw new Error('projectId and environment are required for Secret Manager');
+    throw new Error(
+      'projectId and environment are required for Secret Manager'
+    );
   }
 
   const pulumiConfig = new pulumi.Config();
@@ -157,20 +162,20 @@ export function createSecrets(config: SecretConfig, mongodbConnectionString: pul
 
 /**
  * Grants Secret Manager access to a service account.
- * 
+ *
  * Creates IAM bindings that allow the specified service account
  * to read secret values at runtime. Uses least-privilege model
  * (secretAccessor role, not admin).
- * 
+ *
  * @param secrets - Secrets created by createSecrets()
  * @param serviceAccountEmail - Service account email (from Cloud Run)
  * @returns IAM member bindings for each secret
- * 
+ *
  * @example
  * ```typescript
  * const secrets = createSecrets(...);
  * const cloudRun = createCloudRunService(...);
- * 
+ *
  * const secretAccess = grantSecretAccess(
  *   secrets,
  *   cloudRun.serviceAccountEmail
@@ -219,14 +224,14 @@ export function grantSecretAccess(
 
 /**
  * Secret Manager Pricing (FREE TIER):
- * 
+ *
  * ✅ Free:
  * - First 6 secret versions: $0.00
  * - First 10,000 access operations/month: $0.00
- * 
+ *
  * 💰 Paid (if exceeded):
  * - Additional secrets: $0.06/secret version/month
  * - Additional access: $0.03/10,000 operations
- * 
+ *
  * Current usage: 3 secrets = FREE ✅
  */

@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image-tag: ${{ steps.image-tag.outputs.tag }}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -89,7 +89,7 @@ jobs:
     needs: build
     outputs:
       serviceUrl: ${{ steps.pulumi-up.outputs.serviceUrl }}
-    environment: 
+    environment:
       name: ${{ github.event.inputs.environment || 'dev' }}
       url: ${{ steps.pulumi-up.outputs.serviceUrl }}
 
@@ -142,11 +142,11 @@ jobs:
           # GCP Configuration
           pulumi config set gcp:project ${{ secrets.GCP_PROJECT_ID }}
           pulumi config set gcp:region ${{ env.GCP_REGION }}
-          
+
           # Application Configuration
           pulumi config set environment ${{ github.event.inputs.environment || 'dev' }}
           pulumi config set image-tag ${{ needs.build.outputs.image-tag }}
-          
+
           # Application Secrets (encrypted in Pulumi state)
           pulumi config set --secret nextauth-secret "${{ secrets.NEXTAUTH_SECRET }}"
           pulumi config set --secret openai-api-key "${{ secrets.OPENAI_API_KEY }}"
@@ -165,7 +165,7 @@ jobs:
         working-directory: packages/infra/pulumi/gcp
         run: |
           pulumi up --yes
-          
+
           # Export service URL
           SERVICE_URL=$(pulumi stack output serviceUrl)
           echo "serviceUrl=$SERVICE_URL" >> $GITHUB_OUTPUT
@@ -187,7 +187,7 @@ jobs:
           script: |
             const serviceUrl = '${{ steps.pulumi-up.outputs.serviceUrl }}';
             const imageTag = '${{ needs.build.outputs.image-tag }}';
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -202,7 +202,7 @@ jobs:
     name: Health Check
     runs-on: ubuntu-latest
     needs: deploy
-    
+
     steps:
       - name: Wait for service to be ready
         run: sleep 30
@@ -210,10 +210,10 @@ jobs:
       - name: Check service health
         run: |
           SERVICE_URL="${{ needs.deploy.outputs.serviceUrl }}"
-          
+
           # Try health endpoint
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/api/health")
-          
+
           if [ $HTTP_CODE -eq 200 ]; then
             echo "✅ Health check passed (HTTP $HTTP_CODE)"
           else
@@ -224,10 +224,10 @@ jobs:
       - name: Test root endpoint
         run: |
           SERVICE_URL="${{ needs.deploy.outputs.serviceUrl }}"
-          
+
           # Try root endpoint
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL")
-          
+
           if [ $HTTP_CODE -eq 200 ] || [ $HTTP_CODE -eq 302 ]; then
             echo "✅ Root endpoint accessible (HTTP $HTTP_CODE)"
           else
@@ -237,92 +237,92 @@ jobs:
 # ==============================================================================
 # Required GitHub Secrets:
 # ==============================================================================
-# 
+#
 # GCP Credentials:
 # - GCP_PROJECT_ID: GCP project ID (e.g., procureflow-dev)
 # - GCP_SA_KEY: Service account key JSON (not base64-encoded)
-# 
+#
 # Pulumi:
 # - PULUMI_ACCESS_TOKEN: Pulumi access token from https://app.pulumi.com/account/tokens
-# 
+#
 # Application Secrets:
 # - NEXTAUTH_SECRET: Generated with `openssl rand -base64 32`
 # - OPENAI_API_KEY: OpenAI API key (optional, use "not-set" if not available)
 # - MONGODB_CONNECTION_STRING: MongoDB Atlas connection string
 #   Format: mongodb+srv://username:password@cluster.mongodb.net/dbname?retryWrites=true&w=majority
-# 
+#
 # ==============================================================================
 # Setup Instructions:
 # ==============================================================================
-# 
+#
 # OPTION 1: Automated Setup (Recommended)
 # ----------------------------------------
 # Run the setup script to configure all permissions:
-# 
+#
 #   PowerShell:
 #   cd packages/infra/pulumi/gcp/scripts/setup
 #   .\setup-github-actions-permissions.ps1
-# 
+#
 #   Bash:
 #   cd packages/infra/pulumi/gcp/scripts/setup
 #   chmod +x setup-github-actions-permissions.sh
 #   ./setup-github-actions-permissions.sh
-# 
+#
 # OPTION 2: Manual Setup
 # ----------------------
-# 
+#
 # 1. Create GCP Service Account:
 #    gcloud iam service-accounts create github-actions \
 #      --display-name="GitHub Actions CI/CD"
-#    
+#
 # 2. Grant all required permissions:
 #    PROJECT_ID=$(gcloud config get-value project)
 #    SA_EMAIL="github-actions@$PROJECT_ID.iam.gserviceaccount.com"
-#    
+#
 #    # Cloud Run permissions
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/run.admin"
-#    
+#
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/iam.serviceAccountUser"
-#    
+#
 #    # Artifact Registry permissions
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/artifactregistry.writer"
-#    
+#
 #    # Secret Manager permissions
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/secretmanager.admin"
-#    
+#
 #    # Service Account permissions (to update service accounts)
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/iam.serviceAccountAdmin"
-#    
+#
 #    # Compute Engine permissions (for regions list)
 #    gcloud projects add-iam-policy-binding $PROJECT_ID \
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/compute.viewer"
-#    
+#
 # 3. Create and download key:
 #    gcloud iam service-accounts keys create github-actions-key.json \
 #      --iam-account=$SA_EMAIL
-#    
+#
 # 4. Add key to GitHub Secrets:
 #    - Go to: https://github.com/USER/REPO/settings/secrets/actions
 #    - Create secret: GCP_SA_KEY
 #    - Value: Copy entire content of github-actions-key.json (not base64-encoded)
 #    - Delete local key file: rm github-actions-key.json
-#    
+#
 # 5. Add application secrets to GitHub:
 #    https://github.com/USER/REPO/settings/secrets/actions
-#    
+#
 #    NEXTAUTH_SECRET: openssl rand -base64 32
 #    OPENAI_API_KEY: sk-... (or "not-set")
 #    MONGODB_CONNECTION_STRING: mongodb+srv://...
-# 
+#
 # ==============================================================================

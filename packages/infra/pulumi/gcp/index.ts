@@ -1,45 +1,48 @@
 /**
  * ProcureFlow GCP Infrastructure - FREE TIER Edition
- * 
+ *
  * **Architecture:**
  * - MongoDB Atlas M0 (free tier, existing cluster)
  * - GCP Cloud Run (free tier: 2M requests/month)
  * - GCP Secret Manager (free tier: 6 secrets)
  * - GCP Artifact Registry (~$0.30/month)
- * 
+ *
  * **Estimated Cost:** $0.30 - $0.50/month
- * 
+ *
  * **Prerequisites:**
  * 1. MongoDB Atlas account (free M0 cluster)
  * 2. GCP account with billing enabled
  * 3. Pulumi Cloud account (free tier)
  * 4. GitHub account (for CI/CD)
- * 
+ *
  * **Quick Start:**
  * ```bash
  * # Initialize stack
  * pulumi stack init dev
  * pulumi config set gcp:project YOUR_PROJECT_ID
  * pulumi config set gcp:region us-central1
- * 
+ *
  * # Set secrets
  * pulumi config set --secret nextauth-secret $(openssl rand -base64 32)
  * pulumi config set --secret mongodb-connection-string "mongodb+srv://..."
  * pulumi config set --secret openai-api-key "sk-..."
- * 
+ *
  * # Deploy
  * pnpm install
  * pnpm run deploy
  * ```
- * 
+ *
  * See: docs/SETUP.md for detailed setup instructions
- * 
+ *
  * @module index
  */
 
 import * as pulumi from '@pulumi/pulumi';
 import { createSecrets, grantSecretAccess } from './security/secrets';
-import { createCloudRunService, createArtifactRegistry } from './compute/cloudrun';
+import {
+  createCloudRunService,
+  createArtifactRegistry,
+} from './compute/cloudrun';
 
 // ==============================================================================
 // Configuration
@@ -57,14 +60,17 @@ const environment = config.get('environment') || 'dev';
 const imageTag = config.get('image-tag') || 'latest';
 
 // MongoDB Configuration (using existing cluster)
-const mongoAtlasProjectId = config.get('mongodb-project-id') || '6913b7cf8e8db76c8799c1ea';
+const mongoAtlasProjectId =
+  config.get('mongodb-project-id') || '6913b7cf8e8db76c8799c1ea';
 
 // ==============================================================================
 // Infrastructure Components
 // ==============================================================================
 
 // 1. MongoDB Connection String (using existing cluster)
-const mongodbConnectionString = config.requireSecret('mongodb-connection-string');
+const mongodbConnectionString = config.requireSecret(
+  'mongodb-connection-string'
+);
 
 // 2. Artifact Registry (for Docker images)
 const registry = createArtifactRegistry({
@@ -107,7 +113,7 @@ export const outputs = {
 
   // Artifact Registry
   artifactRegistryUrl: registry.repositoryUrl,
-  
+
   // Cloud Run
   serviceUrl: cloudrun.serviceUrl,
   serviceName: cloudrun.serviceName,

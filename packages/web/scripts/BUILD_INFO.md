@@ -5,6 +5,7 @@ Automated system for injecting version and build metadata into the application.
 ## 📋 What It Does
 
 Automatically generates and injects build-time information:
+
 - **Version**: From `package.json`
 - **Git Commit SHA**: Full and short hash
 - **Git Branch**: Current branch name
@@ -14,6 +15,7 @@ Automatically generates and injects build-time information:
 ## 🎯 Where It's Used
 
 ### 1. **Login Page Footer**
+
 ```tsx
 version 0.1.0 | a82db4c
 ```
@@ -23,7 +25,9 @@ Displays version and short commit hash below the login card.
 **File**: `packages/web/src/app/(public)/page.tsx`
 
 ### 2. **Environment Variables**
+
 Available at runtime via `process.env`:
+
 - `NEXT_PUBLIC_APP_VERSION`
 - `NEXT_PUBLIC_GIT_COMMIT_SHA`
 - `NEXT_PUBLIC_GIT_COMMIT_SHA_SHORT`
@@ -32,9 +36,11 @@ Available at runtime via `process.env`:
 - `NEXT_PUBLIC_BUILD_TIMESTAMP`
 
 ### 3. **Build Info JSON**
+
 Static file for server-side imports:
 
 **File**: `packages/web/build-info.json`
+
 ```json
 {
   "version": "0.1.0",
@@ -76,6 +82,7 @@ pnpm generate-build-info --export
 ### 1. **Local Development**
 
 **File**: `packages/web/package.json`
+
 ```json
 {
   "scripts": {
@@ -87,6 +94,7 @@ pnpm generate-build-info --export
 ### 2. **Docker Build**
 
 **File**: `packages/infra/docker/Dockerfile.web`
+
 ```dockerfile
 ARG GIT_COMMIT_SHA=unknown
 ARG BUILD_DATE
@@ -100,6 +108,7 @@ ENV NEXT_PUBLIC_APP_VERSION=${VERSION}
 ### 3. **Docker Compose**
 
 **File**: `packages/infra/compose.yaml`
+
 ```yaml
 web:
   build:
@@ -110,6 +119,7 @@ web:
 ```
 
 Run with:
+
 ```bash
 GIT_COMMIT_SHA=$(git rev-parse HEAD) \
 BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
@@ -120,6 +130,7 @@ docker compose --profile prod up --build
 ### 4. **GitHub Actions**
 
 **File**: `.github/workflows/deploy-gcp.yml`
+
 ```yaml
 - name: Build Docker image
   run: |
@@ -134,6 +145,7 @@ docker compose --profile prod up --build
 ### 5. **Next.js Config**
 
 **File**: `packages/web/next.config.mjs`
+
 ```javascript
 env: {
   NEXT_PUBLIC_APP_VERSION: process.env.npm_package_version || '0.1.0',
@@ -146,6 +158,7 @@ env: {
 ### Fallback Values
 
 If Git is not available or commands fail:
+
 - `gitCommitSHA`: `"dev"`
 - `gitCommitSHAShort`: `"dev"`
 - `gitBranch`: `"unknown"`
@@ -160,6 +173,7 @@ If Git is not available or commands fail:
 ## 📁 Generated Files
 
 ### `.env.buildinfo`
+
 ```bash
 # Auto-generated build info - DO NOT EDIT MANUALLY
 NEXT_PUBLIC_APP_VERSION=0.1.0
@@ -171,6 +185,7 @@ NEXT_PUBLIC_BUILD_TIMESTAMP=1731369600000
 ```
 
 ### `build-info.json`
+
 ```json
 {
   "version": "0.1.0",
@@ -255,6 +270,7 @@ docker run --rm test:latest env | grep NEXT_PUBLIC
 ### Update Version
 
 Edit `packages/web/package.json`:
+
 ```json
 {
   "version": "0.2.0"
