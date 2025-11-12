@@ -143,15 +143,10 @@ jobs:
           pulumi config set environment ${{ github.event.inputs.environment || 'dev' }}
           pulumi config set image-tag ${{ needs.build.outputs.image-tag }}
           
-          # Secrets (encrypted in Pulumi state)
+          # Application Secrets (encrypted in Pulumi state)
           pulumi config set --secret nextauth-secret "${{ secrets.NEXTAUTH_SECRET }}"
           pulumi config set --secret openai-api-key "${{ secrets.OPENAI_API_KEY }}"
-          pulumi config set --secret mongodb-password "${{ secrets.MONGODB_PASSWORD }}"
-          
-          # MongoDB Atlas Configuration
-          pulumi config set --secret mongodb-atlas:publicKey "${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}"
-          pulumi config set --secret mongodb-atlas:privateKey "${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}"
-          pulumi config set mongodb-atlas:orgId "${{ secrets.MONGODB_ATLAS_ORG_ID }}"
+          pulumi config set --secret mongodb-connection-string "${{ secrets.MONGODB_CONNECTION_STRING }}"
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
@@ -241,20 +236,16 @@ jobs:
 # 
 # GCP Credentials:
 # - GCP_PROJECT_ID: GCP project ID (e.g., procureflow-dev)
-# - GCP_SA_KEY: Base64-encoded service account key JSON
+# - GCP_SA_KEY: Service account key JSON (not base64-encoded)
 # 
 # Pulumi:
 # - PULUMI_ACCESS_TOKEN: Pulumi access token from https://app.pulumi.com/account/tokens
 # 
 # Application Secrets:
 # - NEXTAUTH_SECRET: Generated with `openssl rand -base64 32`
-# - OPENAI_API_KEY: OpenAI API key (or leave empty)
-# - MONGODB_PASSWORD: MongoDB user password
-# 
-# MongoDB Atlas:
-# - MONGODB_ATLAS_PUBLIC_KEY: Atlas API public key
-# - MONGODB_ATLAS_PRIVATE_KEY: Atlas API private key
-# - MONGODB_ATLAS_ORG_ID: Atlas organization ID
+# - OPENAI_API_KEY: OpenAI API key (optional, use "not-set" if not available)
+# - MONGODB_CONNECTION_STRING: MongoDB Atlas connection string
+#   Format: mongodb+srv://username:password@cluster.mongodb.net/dbname?retryWrites=true&w=majority
 # 
 # ==============================================================================
 # Setup Instructions:
@@ -279,15 +270,22 @@ jobs:
 #      --member="serviceAccount:$SA_EMAIL" \
 #      --role="roles/artifactregistry.writer"
 #    
+#    gcloud projects add-iam-policy-binding $PROJECT_ID \
+#      --member="serviceAccount:$SA_EMAIL" \
+#      --role="roles/secretmanager.admin"
+#    
 # 3. Create key:
 #    gcloud iam service-accounts keys create github-actions-key.json \
 #      --iam-account=$SA_EMAIL
 #    
-# 4. Base64 encode (PowerShell):
-#    $KEY_BASE64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes("github-actions-key.json"))
-#    Write-Output $KEY_BASE64
+# 4. Add github-actions-key.json content to GitHub Secret GCP_SA_KEY
+#    (Copy the entire JSON, do NOT base64 encode)
 #    
-# 5. Add to GitHub Secrets:
+# 5. Add other secrets to GitHub:
 #    https://github.com/USER/REPO/settings/secrets/actions
+#    
+#    NEXTAUTH_SECRET: openssl rand -base64 32
+#    OPENAI_API_KEY: sk-... (or "not-set")
+#    MONGODB_CONNECTION_STRING: mongodb+srv://...
 # 
 # ==============================================================================
