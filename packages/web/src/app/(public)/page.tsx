@@ -109,9 +109,9 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card className='py-2 dark:backdrop-blur-sm bg-card/80 dark:bg-background/80'>
+        <Card className='py-4 dark:backdrop-blur-sm bg-card/80 dark:bg-background/80'>
           <CardHeader>
-            <CardTitle className='text-xl'>Sign in to your account</CardTitle>
+            <CardTitle className='text-xl -mt-2'>Sign in to your account</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className='space-y-5'>
