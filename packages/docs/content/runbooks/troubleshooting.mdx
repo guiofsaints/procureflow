@@ -19,22 +19,22 @@ flowchart TD
     Start --> DB[Database Error]
     Start --> Deploy[Deployment Failure]
     Start --> Perf[Performance Issue]
-    
+
     App --> App1{HTTP Status?}
     App1 -->|500| App500[Internal Server Error]
     App1 -->|404| App404[Not Found]
     App1 -->|401/403| AppAuth[Authentication Issue]
-    
+
     DB --> DB1{Connection?}
     DB1 -->|Refused| DBConn[Connection Refused]
     DB1 -->|Timeout| DBTimeout[Connection Timeout]
     DB1 -->|Auth| DBAuth[Authentication Failed]
-    
+
     Deploy --> Deploy1{Stage?}
     Deploy1 -->|Build| DeployBuild[Build Failure]
     Deploy1 -->|Deploy| DeployDeploy[Deployment Failure]
     Deploy1 -->|Health| DeployHealth[Health Check Failed]
-    
+
     Perf --> Perf1{Metric?}
     Perf1 -->|Latency| PerfLatency[High Latency]
     Perf1 -->|Memory| PerfMemory[Memory Issues]
@@ -50,6 +50,7 @@ flowchart TD
 **Symptom**: `Error: ECONNREFUSED 127.0.0.1:27017`
 
 **Diagnosis**:
+
 ```powershell
 # Check if MongoDB container running
 docker ps | Select-String "mongo"
@@ -59,6 +60,7 @@ Get-Service -Name "Docker Desktop Service"
 ```
 
 **Solution**:
+
 ```powershell
 # Restart MongoDB
 pnpm docker:down
@@ -75,12 +77,14 @@ mongosh mongodb://localhost:27017/procureflow
 **Symptom**: Catalog search returns empty results
 
 **Diagnosis**:
+
 ```powershell
 # Check if text index exists
 mongosh mongodb://localhost:27017/procureflow --eval "db.items.getIndexes()"
 ```
 
 **Solution**:
+
 ```powershell
 # Create text index
 pnpm --filter web db:create-text-index
@@ -96,6 +100,7 @@ mongosh mongodb://localhost:27017/procureflow --eval "db.items.find({$text: {$se
 **Symptom**: `Error: Invalid session` or redirected to login repeatedly
 
 **Diagnosis**:
+
 ```powershell
 # Check NEXTAUTH_SECRET in .env.local
 cat packages\web\.env.local | Select-String "NEXTAUTH_SECRET"
@@ -105,6 +110,7 @@ cat packages\web\.env.local | Select-String "NEXTAUTH_URL"
 ```
 
 **Solution**:
+
 ```powershell
 # Generate new secret
 openssl rand -base64 32
@@ -123,12 +129,14 @@ NEXTAUTH_URL=http://localhost:3000
 **Symptom**: `Error: Port 3000 is already in use`
 
 **Diagnosis**:
+
 ```powershell
 # Find process using port 3000
 Get-NetTCPConnection -LocalPort 3000 | Select-Object OwningProcess
 ```
 
 **Solution**:
+
 ```powershell
 # Kill process
 Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process -Force
@@ -144,6 +152,7 @@ pnpm dev -- -p 3001
 **Symptom**: Agent chat returns errors or no response
 
 **Diagnosis**:
+
 ```powershell
 # Check OPENAI_API_KEY
 cat packages\web\.env.local | Select-String "OPENAI_API_KEY"
@@ -154,6 +163,7 @@ curl https://api.openai.com/v1/models `
 ```
 
 **Solution**:
+
 ```powershell
 # Option 1: Set valid API key
 OPENAI_API_KEY=sk-...
@@ -171,11 +181,13 @@ OPENAI_API_KEY=not-set
 **Symptom**: GitHub Actions workflow fails at deploy step
 
 **Diagnosis**:
+
 1. Check GitHub Actions logs
 2. Look for Pulumi errors
 3. Verify GCP quotas and permissions
 
 **Solution**:
+
 ```powershell
 # Manual deployment
 cd packages\infra\pulumi\gcp
@@ -193,6 +205,7 @@ gcloud run services logs read procureflow-web --region=us-central1
 **Symptom**: `/api/health` returns non-200 status
 
 **Diagnosis**:
+
 ```powershell
 # Test health endpoint
 curl http://localhost:3000/api/health -v
@@ -202,6 +215,7 @@ curl http://localhost:3000/api/health -v
 ```
 
 **Solution**:
+
 - If database check fails → Fix MongoDB connection
 - If service unhealthy → Check application logs
 - If route not found → Verify API routes exist
@@ -213,6 +227,7 @@ curl http://localhost:3000/api/health -v
 **Symptom**: Application slow, memory growing over time
 
 **Diagnosis**:
+
 ```powershell
 # Check memory usage (local)
 Get-Process node | Select-Object WS, PM
@@ -223,6 +238,7 @@ gcloud monitoring time-series list \
 ```
 
 **Solution**:
+
 1. Restart application (clears memory)
 2. Check for memory leaks in code
 3. Increase Cloud Run memory limit
@@ -235,6 +251,7 @@ gcloud monitoring time-series list \
 **Symptom**: Search takes >2 seconds
 
 **Diagnosis**:
+
 ```powershell
 # Test search performance
 Measure-Command {
@@ -246,6 +263,7 @@ mongosh --eval "db.items.getIndexes()"
 ```
 
 **Solution**:
+
 ```powershell
 # Ensure text index exists
 pnpm --filter web db:create-text-index
@@ -261,6 +279,7 @@ mongosh --eval "db.items.find({$text: {$search: 'chair'}}).explain()"
 **Symptom**: `pnpm build` fails with errors
 
 **Diagnosis**:
+
 ```powershell
 # Check TypeScript errors
 pnpm --filter web build
@@ -270,6 +289,7 @@ pnpm --filter web lint
 ```
 
 **Solution**:
+
 ```powershell
 # Fix TypeScript errors
 # (Check error messages and fix code)
@@ -286,12 +306,12 @@ pnpm --filter web build
 
 ## Escalation Matrix
 
-| Issue Severity | Response Time | Escalation Path |
-|----------------|---------------|-----------------|
-| 🟢 **Low** (dev only) | 24 hours | #dev-support Slack |
-| 🟡 **Medium** (affects dev) | 4 hours | Platform Team lead |
-| 🔴 **High** (affects prod) | 1 hour | Tech Lead + on-call |
-| 🔴 **Critical** (service down) | 15 minutes | Page on-call engineer |
+| Issue Severity                 | Response Time | Escalation Path       |
+| ------------------------------ | ------------- | --------------------- |
+| 🟢 **Low** (dev only)          | 24 hours      | #dev-support Slack    |
+| 🟡 **Medium** (affects dev)    | 4 hours       | Platform Team lead    |
+| 🔴 **High** (affects prod)     | 1 hour        | Tech Lead + on-call   |
+| 🔴 **Critical** (service down) | 15 minutes    | Page on-call engineer |
 
 ---
 

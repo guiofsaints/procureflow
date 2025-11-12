@@ -1,16 +1,17 @@
-import nextra from 'nextra'
+import nextra from 'nextra';
 
 const withNextra = nextra({
-  // No theme or themeConfig in Nextra 4 - configured in app/layout.jsx
+  // Theme configuration moved to app/layout.jsx in Nextra 4
   defaultShowCopyCode: true,
   latex: true,
-})
+});
 
 export default withNextra({
+  basePath: '/docs',
+  assetPrefix: '/docs',
   output: 'export',
   images: {
     unoptimized: true,
   },
-  basePath: '',
   trailingSlash: true,
-})
+});

@@ -13,11 +13,13 @@
 This document outlines a safe, reversible plan to rewrite the ProcureFlow Git repository history into a single commit whose message is derived from the CHANGELOG.md. This operation is **optional** and **destructive**, so it requires explicit approval via an environment variable flag before execution.
 
 **Why Rewrite History?**
+
 - Clean slate: Single commit representing the v1.0.0 baseline
 - Simplified history: No intermediate development commits
 - Clear provenance: Commit message derived from comprehensive changelog
 
 **Why NOT Rewrite History?**
+
 - Loss of granular commit history (useful for debugging and understanding evolution)
 - May break existing clones/forks (requires re-clone)
 - Complex operation with potential for mistakes if not executed correctly
@@ -35,6 +37,7 @@ This document outlines a safe, reversible plan to rewrite the ProcureFlow Git re
 **Total Commits**: (to be counted at execution time)
 
 **Verification Command**:
+
 ```powershell
 git log --oneline --all | Measure-Object -Line
 ```
@@ -46,6 +49,7 @@ git log --oneline --all | Measure-Object -Line
 **Expected State**: Clean working directory with all release changes committed.
 
 **If Not Clean**: Stash or commit changes before proceeding:
+
 ```powershell
 git add .
 git commit -m "chore(release): prepare v1.0.0 release"
@@ -64,6 +68,7 @@ git commit -m "chore(release): prepare v1.0.0 release"
 **Example**: `backup/pre-rewrite-20251111-1430`
 
 **Command**:
+
 ```powershell
 $backupTag = "backup/pre-rewrite-$(Get-Date -Format 'yyyyMMdd-HHmm')"
 git tag -a $backupTag -m "Backup before history rewrite to single commit for v1.0.0 release
@@ -80,6 +85,7 @@ git tag -n5 $backupTag
 ```
 
 **Verification**:
+
 ```powershell
 git tag | Select-String "backup/pre-rewrite"
 git show $backupTag --stat
@@ -94,6 +100,7 @@ git show $backupTag --stat
 **Bundle Path**: `.guided/backups/pre-rewrite-YYYYMMDD-HHMM.bundle`
 
 **Command**:
+
 ```powershell
 $bundleDir = ".guided/backups"
 if (-not (Test-Path $bundleDir)) {
@@ -110,6 +117,7 @@ Write-Host "Bundle size: $((Get-Item $bundlePath).Length / 1MB) MB"
 ```
 
 **Verification**:
+
 ```powershell
 # Verify bundle is valid
 git bundle verify $bundlePath
@@ -118,7 +126,8 @@ git bundle verify $bundlePath
 git bundle list-heads $bundlePath
 ```
 
-**Expected Output**: 
+**Expected Output**:
+
 ```
 The bundle contains these 1 refs:
 <commit-hash> refs/heads/main
@@ -130,6 +139,7 @@ The bundle records a complete history
 **File**: `.guided/operation/rewrite.pre-state.md`
 
 **Content**:
+
 ```powershell
 @"
 # Pre-Rewrite Repository State
@@ -143,33 +153,43 @@ The bundle records a complete history
 
 ## Commit History (Last 20)
 
-``````
+```
+
 $(git log --oneline -20)
-``````
+
+```
 
 ## All Branches
 
-``````
+```
+
 $(git branch -a)
-``````
+
+```
 
 ## All Tags
 
-``````
+```
+
 $(git tag)
-``````
+
+```
 
 ## Remote URLs
 
-``````
+```
+
 $(git remote -v)
-``````
+
+```
 
 ## Repository Size
 
-``````
+```
+
 $(git count-objects -vH)
-``````
+
+````
 "@ | Out-File -FilePath ".guided/operation/rewrite.pre-state.md" -Encoding utf8
 
 Write-Host "Pre-rewrite state documented in .guided/operation/rewrite.pre-state.md"
@@ -236,7 +256,7 @@ Write-Host "Created orphan branch: $tempBranch"
 git status
 ```
 
-**Expected Output**: 
+**Expected Output**:
 ```
 On branch temp/single-commit
 
@@ -262,7 +282,7 @@ Write-Host "Single commit created on $tempBranch"
 git log --oneline
 ```
 
-**Expected Output**: 
+**Expected Output**:
 ```
 <commit-hash> chore(release): release v1.0.0 - first stable release
 ```
@@ -293,7 +313,7 @@ Write-Host "Main branch replaced with single-commit branch"
 git log --oneline --all
 ```
 
-**Expected Output**: 
+**Expected Output**:
 ```
 <commit-hash> chore(release): release v1.0.0 - first stable release
 ```
@@ -324,7 +344,7 @@ git push origin main --force-with-lease --tags
 Write-Host "Force-pushed main branch to remote with lease protection"
 ```
 
-**Expected Output**: 
+**Expected Output**:
 ```
 To https://github.com/guiofsaints/procureflow.git
  + <old-hash>...<new-hash> main -> main (forced update)
@@ -607,6 +627,7 @@ $env:APPROVE_HISTORY_REWRITE = "yes"
 3. If Execute: Set `APPROVE_HISTORY_REWRITE=yes` and run script
 4. If Skip: Proceed with standard Git tag and push workflow
 
-**Prepared By**: Release Engineering Agent  
-**Date**: November 11, 2025  
+**Prepared By**: Release Engineering Agent
+**Date**: November 11, 2025
 **Document Version**: 1.0.0
+````

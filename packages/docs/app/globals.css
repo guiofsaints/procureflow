@@ -1,0 +1,110 @@
+/* ProcureFlow Documentation - Custom Theme */
+
+:root {
+  /* Primary colors - Purple gradient theme */
+  --nextra-primary-hue: 250deg;
+  --nextra-primary-saturation: 90%;
+
+  /* Custom accent colors */
+  --procure-purple: #667eea;
+  --procure-violet: #764ba2;
+  --procure-blue: #4299e1;
+}
+
+/* Enhanced code blocks */
+pre {
+  border-radius: 0.5rem !important;
+  border: 1px solid rgba(148, 163, 184, 0.1) !important;
+}
+
+/* Mermaid diagrams styling */
+.mermaid {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  background: transparent;
+}
+
+/* Enhanced callouts */
+.nextra-callout {
+  border-radius: 0.5rem !important;
+  border-left-width: 3px !important;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced sidebar */
+.nextra-sidebar-container {
+  border-right: 1px solid rgba(148, 163, 184, 0.1) !important;
+}
+
+/* Better table styling */
+table {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Enhanced search */
+.nextra-search input {
+  border-radius: 0.5rem !important;
+}
+
+/* TOC enhancements */
+.nextra-toc {
+  border-left: 1px solid rgba(148, 163, 184, 0.1) !important;
+}
+
+/* Enhanced links */
+a {
+  transition: color 0.2s ease;
+}
+
+/* Dark mode adjustments */
+.dark {
+  --nextra-bg: rgb(15, 23, 42);
+}
+
+/* Light mode adjustments */
+.light {
+  --nextra-bg: rgb(255, 255, 255);
+}
+
+/* Gradient text for headings */
+.nextra-content h1 {
+  background: linear-gradient(
+    135deg,
+    var(--procure-purple) 0%,
+    var(--procure-violet) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Enhanced focus states */
+*:focus-visible {
+  outline: 2px solid var(--procure-purple);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Navbar shadow */
+.nextra-nav-container {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+/* Footer styling */
+footer {
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  padding: 2rem 0;
+}

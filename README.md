@@ -56,11 +56,13 @@ pnpm --filter web db:seed-initial-user    # Admin user
 ### Development
 
 ```powershell
-# Start development server
+# Start development server (app + docs)
 pnpm dev
 
 # Access application
-# http://localhost:3000
+# Web App: http://localhost:3000
+# Documentation: http://localhost:3000/docs
+# API Docs (Swagger): http://localhost:3000/api/docs
 
 # MongoDB UI (mongo-express)
 # http://localhost:8081 (admin/password)
@@ -79,17 +81,29 @@ procureflow/
 │   ├── web/                        # Next.js application
 │   │   ├── src/
 │   │   │   ├── app/                # Next.js App Router pages
+│   │   │   │   ├── api/            # API routes + Swagger UI
+│   │   │   │   ├── (app)/          # Authenticated app pages
+│   │   │   │   └── (public)/       # Public pages (login, landing)
 │   │   │   ├── features/           # Feature modules (catalog, cart, agent, etc.)
 │   │   │   ├── components/         # Shared UI components
-│   │   │   ├── lib/                # Shared libraries (db, auth, ai, utils)
+│   │   │   ├── lib/                # Shared libraries (db, auth, ai, utils, openapi)
 │   │   │   └── domain/             # Domain entities and types
-│   │   └── scripts/                # Database migration and seeding scripts
+│   │   ├── scripts/                # Database migration and seeding scripts
+│   │   └── public/docs/            # Built documentation (static export)
+│   ├── docs/                       # Nextra documentation site (MDX)
+│   │   ├── content/                # Documentation content
+│   │   │   ├── prd/                # Product requirements
+│   │   │   ├── tech/               # Technical architecture
+│   │   │   ├── openapi/            # API documentation
+│   │   │   ├── testing/            # Testing strategy
+│   │   │   ├── operations/         # Deployment guides
+│   │   │   └── runbooks/           # Operational procedures
+│   │   └── app/                    # Nextra app configuration
 │   ├── infra/                      # Infrastructure as Code
 │   │   ├── compose.yaml            # Docker Compose for local dev
-│   │   ├── docker/                 # Dockerfiles
+│   │   ├── docker/                 # Dockerfiles (multi-stage with docs build)
 │   │   └── pulumi/gcp/             # Pulumi GCP deployment
-│   └── docs/                       # Documentation site (future)
-├── .guided/                        # Comprehensive documentation
+├── .guided/                        # Legacy documentation archive
 │   ├── assessment/                 # Discovery and IA
 │   ├── product/                    # PRD (features, requirements)
 │   ├── architecture/               # C4 diagrams, tech stack, infrastructure
@@ -103,26 +117,31 @@ procureflow/
 ## Core Features
 
 ### Catalog Management
+
 - Search items with full-text search (MongoDB text index)
 - Register new items with duplicate detection
 - Filter by category, supplier, price range
 
 ### Shopping Cart
+
 - Add/remove/update items with quantity validation
 - Real-time total cost calculation
 - Persistent cart per user session
 
 ### Checkout
+
 - Create purchase requests from cart
 - Generate unique PR numbers (PR-20251112-001)
 - View purchase request history
 
 ### AI Agent (Conversational Interface)
+
 - Natural language procurement assistance
 - Function calling: search catalog, add to cart, checkout
 - Conversation history with metadata tracking
 
 ### Authentication
+
 - Session-based authentication (NextAuth.js)
 - Credentials provider (demo user)
 - Protected API routes and pages
@@ -153,6 +172,7 @@ Business logic lives in `*.service.ts` files, not route handlers:
 **Example**: `features/catalog/lib/catalog.service.ts` exports `searchItems()`, `createItem()`, `getItemById()`
 
 Route handlers in `app/api/**/route.ts` are thin wrappers:
+
 1. Extract/validate request data
 2. Get authenticated user from session
 3. Call service function
@@ -160,7 +180,58 @@ Route handlers in `app/api/**/route.ts` are thin wrappers:
 
 ## Documentation
 
-Comprehensive documentation available in `.guided/` directory:
+### Interactive Documentation
+
+ProcureFlow includes a comprehensive **Nextra-powered documentation site** with:
+
+- **Product Requirements**: Features, objectives, and business rules
+- **Technical Architecture**: C4 diagrams, infrastructure, stack decisions
+- **API Reference**: Interactive OpenAPI/Swagger specification
+- **Operations Guides**: Deployment, rollback, troubleshooting runbooks
+- **Testing Strategy**: Coverage goals, tooling, and best practices
+
+**Access Documentation**:
+
+```powershell
+# Start documentation site (auto-starts with main app)
+pnpm dev
+
+# Access at http://localhost:3000/docs
+# Or build standalone: pnpm --filter docs build
+```
+
+**Key Documentation Pages**:
+
+- **API Specification**: `/docs/openapi` - Interactive Swagger UI with all endpoints
+- **Architecture**: `/docs/tech` - C4 diagrams and infrastructure
+- **Runbooks**: `/docs/runbooks` - Operational procedures
+- **PRD**: `/docs/prd` - Product requirements and features
+
+### OpenAPI/Swagger Specification
+
+Full REST API documentation available via OpenAPI 3.0 specification:
+
+**View API Docs**:
+
+- **Interactive UI**: http://localhost:3000/api/docs (Swagger UI)
+- **JSON Spec**: http://localhost:3000/api/docs/openapi.json
+- **Source**: `packages/web/src/lib/openapi.ts`
+
+**Key Endpoints**:
+
+- `GET /api/health` - Health check (public)
+- `GET /api/items` - Search catalog (public)
+- `POST /api/items` - Register item (authenticated)
+- `GET /api/cart` - View cart (authenticated)
+- `POST /api/cart/items` - Add to cart (authenticated)
+- `POST /api/checkout` - Create purchase request (authenticated)
+- `POST /api/agent/chat` - AI agent chat (authenticated)
+
+**Schema Alignment**: OpenAPI schemas are synchronized with domain entities (`domain/entities.ts`) and MongoDB documents (`domain/documents.ts`) for consistency.
+
+### Legacy Documentation Archive
+
+Historical documentation available in `.guided/` directory:
 
 - **[Discovery Summary](.guided/assessment/docs.discovery-summary.md)** - Repository overview and key findings
 - **[PRD: Objectives and Features](.guided/product/prd.objective-and-features.md)** - Product vision and features
@@ -252,6 +323,7 @@ pnpm docker:up
 ```
 
 Services:
+
 - **Web**: http://localhost:3000
 - **MongoDB**: localhost:27017
 - **Mongo Express**: http://localhost:8081
@@ -266,6 +338,7 @@ Automated deployment via GitHub Actions on push to `main`:
 4. Run health checks
 
 Manual deployment:
+
 ```powershell
 # Preview infrastructure changes
 pnpm infra:preview
@@ -330,6 +403,7 @@ Current test coverage: ~5% (1 test file with 6 tests)
 Target coverage: 60% across all metrics (lines, functions, branches, statements)
 
 Testing strategy:
+
 - **70% unit tests**: Service layer, utilities (Vitest + mocks)
 - **25% integration tests**: API routes + database (mongodb-memory-server)
 - **5% e2e tests**: Critical user flows (Playwright, future)
@@ -343,6 +417,7 @@ See [Testing Strategy](.guided/testing/testing-strategy.md) for details.
 **Error**: `ECONNREFUSED` or `MongooseServerSelectionError`
 
 **Solution**: Ensure MongoDB is running:
+
 ```powershell
 pnpm docker:db
 ```
@@ -352,6 +427,7 @@ pnpm docker:db
 **Error**: Catalog search returns empty or `IndexNotFound`
 
 **Solution**: Create MongoDB text index:
+
 ```powershell
 pnpm --filter web db:create-text-index
 ```
@@ -359,6 +435,7 @@ pnpm --filter web db:create-text-index
 ### Agent Search Returns No Results
 
 **Causes**:
+
 1. No items in database → Run `pnpm --filter web db:seed-office-items`
 2. No text index → Run `pnpm --filter web db:create-text-index`
 3. Missing OpenAI API key → Set `OPENAI_API_KEY` in `.env.local`
@@ -368,6 +445,7 @@ pnpm --filter web db:create-text-index
 **Error**: `Port 3000 is already in use`
 
 **Solution**: Kill process using port or change Next.js port:
+
 ```powershell
 # Find process using port 3000
 netstat -ano | findstr :3000

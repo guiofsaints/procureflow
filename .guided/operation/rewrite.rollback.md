@@ -12,6 +12,7 @@
 This document provides step-by-step instructions for rolling back a Git history rewrite if issues are discovered after execution. The rollback process uses either the backup Git tag or the Git bundle file created during the pre-rewrite backup phase.
 
 **When to Rollback**:
+
 - Post-rewrite build fails unexpectedly
 - Files are missing or corrupted after rewrite
 - Team members object to the history change
@@ -27,15 +28,19 @@ This document provides step-by-step instructions for rolling back a Git history 
 Before attempting rollback, verify:
 
 1. **Backup Tag Exists**:
+
    ```powershell
    git tag | Select-String "backup/pre-rewrite"
    ```
+
    **Expected**: One or more tags like `backup/pre-rewrite-20251111-1430`
 
 2. **Bundle File Exists**:
+
    ```powershell
    Get-ChildItem .guided/backups/*.bundle
    ```
+
    **Expected**: One or more `.bundle` files
 
 3. **Pre-State Documentation Exists**:
@@ -71,6 +76,7 @@ git tag -n10 $latestBackup
 ```
 
 **Expected Output**:
+
 ```
 Latest backup tag: backup/pre-rewrite-20251111-1430
 
@@ -98,12 +104,14 @@ Write-Host "Total commits: $(git rev-list --count HEAD)"
 ```
 
 **What This Does**:
+
 - Moves `HEAD` to the backup tag commit
 - Discards the rewritten single-commit history
 - Restores all original commits
 - Keeps working directory clean (all files match the backup state)
 
 **Expected Output**:
+
 ```
 Current branch: main
 Current commit: <new-single-commit-hash>
@@ -128,13 +136,13 @@ $remoteHash = git rev-parse origin/main
 
 if ($localHash -ne $remoteHash) {
     Write-Host "Local and remote differ. Force-push required to complete rollback."
-    
+
     # Temporarily disable branch protection if enabled
     # (Manual step on GitHub: Settings → Branches → Edit main → Uncheck protection)
-    
+
     # Force-push with lease (safer than --force)
     git push origin main --force-with-lease --tags
-    
+
     Write-Host "Remote updated to match rolled-back local state"
 } else {
     Write-Host "Local and remote match. No force-push needed."
@@ -142,6 +150,7 @@ if ($localHash -ne $remoteHash) {
 ```
 
 **Expected Output**:
+
 ```
 Local and remote differ. Force-push required to complete rollback.
 To https://github.com/guiofsaints/procureflow.git
@@ -179,6 +188,7 @@ if (-not $status) {
 ```
 
 **Expected Output**:
+
 ```
 Commit count after rollback: 47
 <commit-hash> chore(release): prepare v1.0.0 release
@@ -215,6 +225,7 @@ if ($bundlePath) {
 ```
 
 **Expected Output**:
+
 ```
 Found bundle: C:\Workspace\procureflow\.guided\backups\pre-rewrite-20251111-1430.bundle
 Bundle size: 15.43 MB
@@ -232,6 +243,7 @@ git bundle list-heads $bundlePath.FullName
 ```
 
 **Expected Output**:
+
 ```
 The bundle contains these refs:
 <commit-hash> refs/heads/main
@@ -255,6 +267,7 @@ Write-Host "Restored branch commit count: $restoredCommitCount"
 ```
 
 **Expected Output**:
+
 ```
 From C:\Workspace\procureflow\.guided\backups\pre-rewrite-20251111-1430.bundle
  * [new branch]      main       -> main-restored
@@ -279,6 +292,7 @@ git log --oneline -5
 ```
 
 **Expected Output**:
+
 ```
 Switched to branch 'main-restored'
 Deleted branch main (was <rewritten-commit-hash>)
@@ -312,6 +326,7 @@ Write-Host "All tags restored and pushed to remote"
 ```
 
 **Expected Output**:
+
 ```
 From C:\Workspace\procureflow\.guided\backups\pre-rewrite-20251111-1430.bundle
  * [new tag]         v1.0.0     -> v1.0.0
@@ -340,6 +355,7 @@ git reflog show --all | Select-Object -First 50
 ```
 
 **Expected Output**:
+
 ```
 <hash1> HEAD@{0}: reset: moving to <single-commit-hash>
 <hash2> HEAD@{1}: commit: chore(release): prepare v1.0.0 release
@@ -458,7 +474,8 @@ Write-Host "`n=== Verification Complete ===" -ForegroundColor Cyan
 
 **Situation**: Rewrite executed and pushed to remote. Team members may have pulled.
 
-**Solution**: 
+**Solution**:
+
 1. Use Method 1 (Backup Tag) including Step 3 (force-push)
 2. Notify team members to re-fetch:
    ```powershell
@@ -485,6 +502,7 @@ Write-Host "`n=== Verification Complete ===" -ForegroundColor Cyan
 **Situation**: Backup tag and bundle file both deleted or corrupted.
 
 **Solution**: Use Method 3 (Reflog) if repository is recent. Otherwise:
+
 1. Check GitHub repository for unmerged branches with history
 2. Check other team members' clones for original history
 3. Contact GitHub support for advice on recovering repository state
@@ -497,7 +515,8 @@ Write-Host "`n=== Verification Complete ===" -ForegroundColor Cyan
 
 **Situation**: Rewrite executed, new commits added, then rollback needed.
 
-**Solution**: 
+**Solution**:
+
 1. Create a temporary branch to preserve new commits:
    ```powershell
    git branch temp/preserve-new-commits
@@ -537,7 +556,7 @@ If branch protection was disabled for force-push, re-enable it:
 ```
 Team,
 
-We have rolled back the ProcureFlow repository history to the state before 
+We have rolled back the ProcureFlow repository history to the state before
 the v1.0.0 rewrite. This was done due to [REASON].
 
 Action Required:
@@ -553,7 +572,7 @@ Action Required:
 3. If you encounter issues, re-clone the repository:
    git clone https://github.com/guiofsaints/procureflow.git
 
-No code changes were lost. The repository is now in the same state as 
+No code changes were lost. The repository is now in the same state as
 before the rewrite.
 
 If you have questions, please reply to this message.
@@ -584,7 +603,7 @@ If you have questions, please reply to this message.
 param(
     [ValidateSet("tag", "bundle")]
     [string]$Method = "tag",
-    
+
     [switch]$PushRemote
 )
 
@@ -602,27 +621,27 @@ if ($confirm -ne "yes") {
 if ($Method -eq "tag") {
     # Method 1: Backup Tag
     $backupTag = git tag | Select-String "backup/pre-rewrite" | Select-Object -Last 1
-    
+
     if (-not $backupTag) {
         Write-Error "No backup tag found. Try -Method bundle"
         exit 1
     }
-    
+
     Write-Host "`nRolling back to tag: $backupTag" -ForegroundColor Green
     git reset --hard $backupTag
-    
+
 } elseif ($Method -eq "bundle") {
     # Method 2: Bundle
     $bundlePath = Get-ChildItem .guided/backups/*.bundle | Select-Object -Last 1
-    
+
     if (-not $bundlePath) {
         Write-Error "No bundle file found"
         exit 1
     }
-    
+
     Write-Host "`nVerifying bundle..." -ForegroundColor Green
     git bundle verify $bundlePath.FullName
-    
+
     Write-Host "`nRestoring from bundle..." -ForegroundColor Green
     git fetch $bundlePath.FullName main:main-restored
     git checkout main-restored
@@ -647,6 +666,7 @@ Write-Host "`n=== Rollback Complete ===" -ForegroundColor Cyan
 ```
 
 **Usage**:
+
 ```powershell
 # Local rollback only
 .\scripts\rollback-from-backup.ps1
@@ -665,6 +685,7 @@ Write-Host "`n=== Rollback Complete ===" -ForegroundColor Cyan
 This rollback procedure provides multiple safe methods to restore repository history after a rewrite. The backup tag and bundle ensure complete recoverability with minimal risk.
 
 **Key Takeaways**:
+
 - Backup tag is fastest and simplest (Method 1)
 - Bundle file is most portable and complete (Method 2)
 - Reflog is last resort for emergency recovery (Method 3)

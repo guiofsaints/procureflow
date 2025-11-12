@@ -20,11 +20,13 @@ The Service Layer container is organized into 6 components (services):
 ### 1. Catalog Service
 
 **Responsibilities**:
+
 - Search catalog items with full-text index
 - Register new items with duplicate detection
 - Retrieve single items by ID
 
 **Methods**:
+
 - `searchItems(query, limit)`
 - `createItem(data, userId, confirmDuplicate?)`
 - `getItemById(id)`
@@ -32,6 +34,7 @@ The Service Layer container is organized into 6 components (services):
 ### 2. Cart Service
 
 **Responsibilities**:
+
 - Add items to cart with price snapshots
 - Update item quantities
 - Remove items from cart
@@ -39,6 +42,7 @@ The Service Layer container is organized into 6 components (services):
 - Clear cart (called by checkout service)
 
 **Methods**:
+
 - `addToCart(userId, itemId, quantity)`
 - `updateCartItem(userId, itemId, quantity)`
 - `removeFromCart(userId, itemId)`
@@ -48,11 +52,13 @@ The Service Layer container is organized into 6 components (services):
 ### 3. Checkout Service
 
 **Responsibilities**:
+
 - Validate cart before checkout
 - Generate purchase requests with immutable snapshots
 - Retrieve purchase request list and details
 
 **Methods**:
+
 - `createPurchaseRequest(userId, notes?)`
 - `getPurchaseRequests(userId)`
 - `getPurchaseRequestById(userId, id)`
@@ -60,17 +66,20 @@ The Service Layer container is organized into 6 components (services):
 ### 4. Agent Service
 
 **Responsibilities**:
+
 - Handle agent chat messages
 - Execute tools (search, register, add_to_cart, etc.)
 - Manage conversation persistence
 - Integrate with OpenAI via LangChain
 
 **Methods**:
+
 - `handleAgentMessage(userId, message, conversationId?)`
 - `getConversations(userId)`
 - `deleteConversation(userId, conversationId)`
 
 **Tool Execution**:
+
 - Calls catalog service for `search_catalog`, `register_item`
 - Calls cart service for `add_to_cart`, `view_cart`, `remove_from_cart`
 - Calls checkout service for `checkout`, `get_purchase_history`
@@ -78,11 +87,13 @@ The Service Layer container is organized into 6 components (services):
 ### 5. Auth Service
 
 **Responsibilities**:
+
 - Register new users with bcrypt hashing
 - Validate login credentials
 - Create NextAuth.js sessions
 
 **Methods**:
+
 - `registerUser(email, password, name)`
 - `validateCredentials(email, password)`
 - `createSession(userId)`
@@ -90,10 +101,12 @@ The Service Layer container is organized into 6 components (services):
 ### 6. Settings Service
 
 **Responsibilities**:
+
 - Retrieve user profile
 - Update user settings (future)
 
 **Methods**:
+
 - `getUserProfile(userId)`
 - `updateUserProfile(userId, updates)` (future)
 
@@ -109,16 +122,16 @@ graph TD
     CheckoutService[Checkout Service]
     AuthService[Auth Service]
     SettingsService[Settings Service]
-    
+
     AgentService -->|search, register| CatalogService
     AgentService -->|add, update, remove, view| CartService
     AgentService -->|checkout, history| CheckoutService
     CheckoutService -->|clear cart| CartService
     CheckoutService -->|get item details| CatalogService
     CartService -->|get item details| CatalogService
-    
+
     classDef service fill:#438DD5,stroke:#2E6295,color:#fff
-    class AgentService,CatalogService,CartService,CheckoutService,AuthService,SettingsService service
+    class AgentService,CatalogService,CartService,CheckoutService,AuthService,SettingsService service;
 ```
 
 ---

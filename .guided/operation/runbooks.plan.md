@@ -18,26 +18,26 @@
 
 ### Available Runbooks
 
-| Runbook | Purpose | Frequency | Audience | Complexity | Status |
-|---------|---------|-----------|----------|------------|--------|
-| **[Local Development](./runbooks/local-dev.md)** | Set up local development environment with Docker Compose | Daily (new developers) | Developers | 🟢 Low | ✅ Available |
-| **[Build and Deploy](./runbooks/build-and-deploy.md)** | Execute deployment to GCP Cloud Run (dev/staging/prod) | Weekly (releases) | Platform Engineers | 🟡 Medium | ✅ Available |
-| **[Rollback](./runbooks/rollback.md)** | Rollback failed deployment using Cloud Run or Pulumi | As-needed (incidents) | Platform Engineers, On-Call | 🔴 High | ✅ Available |
-| **[Autoscaling Check](./runbooks/autoscaling-check.md)** | Monitor and verify Cloud Run autoscaling behavior | Weekly (ops review) | Platform Engineers | 🟢 Low | ✅ Available |
-| **[Troubleshooting](./runbooks/troubleshooting.md)** | Diagnose and resolve common failures (10 scenarios) | As-needed (incidents) | All Engineers, On-Call | 🟡 Medium | ✅ Available |
+| Runbook                                                  | Purpose                                                  | Frequency              | Audience                    | Complexity | Status       |
+| -------------------------------------------------------- | -------------------------------------------------------- | ---------------------- | --------------------------- | ---------- | ------------ |
+| **[Local Development](./runbooks/local-dev.md)**         | Set up local development environment with Docker Compose | Daily (new developers) | Developers                  | 🟢 Low     | ✅ Available |
+| **[Build and Deploy](./runbooks/build-and-deploy.md)**   | Execute deployment to GCP Cloud Run (dev/staging/prod)   | Weekly (releases)      | Platform Engineers          | 🟡 Medium  | ✅ Available |
+| **[Rollback](./runbooks/rollback.md)**                   | Rollback failed deployment using Cloud Run or Pulumi     | As-needed (incidents)  | Platform Engineers, On-Call | 🔴 High    | ✅ Available |
+| **[Autoscaling Check](./runbooks/autoscaling-check.md)** | Monitor and verify Cloud Run autoscaling behavior        | Weekly (ops review)    | Platform Engineers          | 🟢 Low     | ✅ Available |
+| **[Troubleshooting](./runbooks/troubleshooting.md)**     | Diagnose and resolve common failures (10 scenarios)      | As-needed (incidents)  | All Engineers, On-Call      | 🟡 Medium  | ✅ Available |
 
 ---
 
 ### Planned Runbooks (Future)
 
-| Runbook | Purpose | Priority | Target Version | Status |
-|---------|---------|----------|----------------|--------|
-| **Database Migration** | Execute schema migration with rollback plan | 🔴 High | v1.2 (Q1 2026) | ⏸️ Planned |
-| **Secrets Rotation** | Rotate NEXTAUTH_SECRET, OPENAI_API_KEY, MongoDB credentials | 🟡 Medium | v1.2 (Q1 2026) | ⏸️ Planned |
-| **Incident Response** | Incident management workflow (detect → mitigate → resolve → postmortem) | 🔴 High | v1.3 (Q2 2026) | ⏸️ Planned |
-| **Backup and Restore** | MongoDB backup to GCS, restore from backup | 🟡 Medium | v1.2 (Q1 2026) | ⏸️ Planned |
-| **Load Testing** | Execute k6 load tests, analyze results | 🟢 Low | v1.3 (Q2 2026) | ⏸️ Planned |
-| **Cost Analysis** | Review GCP billing, identify cost optimization opportunities | 🟢 Low | v1.4 (Q3 2026) | ⏸️ Planned |
+| Runbook                | Purpose                                                                 | Priority  | Target Version | Status     |
+| ---------------------- | ----------------------------------------------------------------------- | --------- | -------------- | ---------- |
+| **Database Migration** | Execute schema migration with rollback plan                             | 🔴 High   | v1.2 (Q1 2026) | ⏸️ Planned |
+| **Secrets Rotation**   | Rotate NEXTAUTH_SECRET, OPENAI_API_KEY, MongoDB credentials             | 🟡 Medium | v1.2 (Q1 2026) | ⏸️ Planned |
+| **Incident Response**  | Incident management workflow (detect → mitigate → resolve → postmortem) | 🔴 High   | v1.3 (Q2 2026) | ⏸️ Planned |
+| **Backup and Restore** | MongoDB backup to GCS, restore from backup                              | 🟡 Medium | v1.2 (Q1 2026) | ⏸️ Planned |
+| **Load Testing**       | Execute k6 load tests, analyze results                                  | 🟢 Low    | v1.3 (Q2 2026) | ⏸️ Planned |
+| **Cost Analysis**      | Review GCP billing, identify cost optimization opportunities            | 🟢 Low    | v1.4 (Q3 2026) | ⏸️ Planned |
 
 ---
 
@@ -47,7 +47,7 @@
 
 All runbooks follow a consistent format for readability and usability:
 
-```markdown
+````markdown
 # Runbook: [Title]
 
 **Executive Summary**: [1-2 sentences describing purpose and key steps]
@@ -80,17 +80,21 @@ All runbooks follow a consistent format for readability and usability:
 **Description**: [What this step does and why]
 
 **Commands**:
+
 ```powershell
 # Command with comments explaining each flag
 command --flag=value --other-flag
 ```
+````
 
 **Expected Output**:
+
 ```
 Expected output from command
 ```
 
 **Verification**:
+
 - [ ] Verification check 1
 - [ ] Verification check 2
 
@@ -105,10 +109,12 @@ Expected output from command
 ## Verification
 
 **Final Checks**:
+
 - [ ] Check 1: [Expected outcome]
 - [ ] Check 2: [Expected outcome]
 
 **Success Criteria**:
+
 - ✅ Criterion 1 met
 - ✅ Criterion 2 met
 
@@ -122,6 +128,7 @@ Expected output from command
 2. [Rollback step 2]
 
 **Escalation Path**:
+
 - First: [Action or person to contact]
 - Second: [Next escalation level]
 
@@ -136,6 +143,7 @@ Expected output from command
 
 **Last Updated**: [Date]
 **Status**: ✅ Verified / ⚠️ Needs Verification / ❌ Deprecated
+
 ```
 
 ---
@@ -250,8 +258,9 @@ Expected output from command
 
 ---
 
-**Last Updated**: 2025-11-12  
-**Owner**: Platform Team  
-**Reviewers**: Engineering Team  
-**Next Review**: Quarterly (2026-02-01)  
+**Last Updated**: 2025-11-12
+**Owner**: Platform Team
+**Reviewers**: Engineering Team
+**Next Review**: Quarterly (2026-02-01)
 **Status**: ✅ Complete
+```

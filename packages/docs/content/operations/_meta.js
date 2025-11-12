@@ -1,5 +1,5 @@
 export default {
   deploy: 'Deployment Strategy',
   rollback: 'Rollback Strategy',
-  autoscaling: 'Autoscaling Policy'
-}
+  autoscaling: 'Autoscaling Policy',
+};

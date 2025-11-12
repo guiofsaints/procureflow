@@ -4,12 +4,12 @@
 
 ✅ **`package.json`** (root)
 
-* `pnpm run infra:install` – Install dependencies
-* `pnpm run infra:preview` – Preview changes
-* `pnpm run infra:deploy` – Full deploy
-* `pnpm run infra:destroy` – Destroy infrastructure
-* `pnpm run infra:output` – Show outputs
-* `pnpm run infra:config` – Configure secrets
+- `pnpm run infra:install` – Install dependencies
+- `pnpm run infra:preview` – Preview changes
+- `pnpm run infra:deploy` – Full deploy
+- `pnpm run infra:destroy` – Destroy infrastructure
+- `pnpm run infra:output` – Show outputs
+- `pnpm run infra:config` – Configure secrets
 
 ---
 
@@ -70,9 +70,9 @@ pnpm run infra:install
 
 ### 2. Create Accounts (30 min)
 
-* ✅ MongoDB Atlas → [https://cloud.mongodb.com](https://cloud.mongodb.com) (FREE)
-* ✅ GCP → [https://console.cloud.google.com](https://console.cloud.google.com) (FREE tier)
-* ✅ Pulumi Cloud → [https://app.pulumi.com](https://app.pulumi.com) (FREE)
+- ✅ MongoDB Atlas → [https://cloud.mongodb.com](https://cloud.mongodb.com) (FREE)
+- ✅ GCP → [https://console.cloud.google.com](https://console.cloud.google.com) (FREE tier)
+- ✅ Pulumi Cloud → [https://app.pulumi.com](https://app.pulumi.com) (FREE)
 
 ### 3. Configure Secrets (15 min)
 
@@ -140,13 +140,13 @@ git push origin main
 
 | Service               | FREE Quota    | Expected Usage | Cost            |
 | --------------------- | ------------- | -------------- | --------------- |
-| **Cloud Run**         | 2M req/month  | ~10k req/month | $0.00 ✅         |
-| **Cloud Run Memory**  | 360k GB-sec   | ~50 GB-sec     | $0.00 ✅         |
-| **Cloud Run CPU**     | 180k vCPU-sec | ~25 vCPU-sec   | $0.00 ✅         |
-| **Secret Manager**    | 6 secrets     | 3 secrets      | $0.00 ✅         |
-| **MongoDB Atlas M0**  | 512 MB        | Unlimited      | $0.00 ✅         |
-| **GitHub Actions**    | 2000 min      | ~30 min/month  | $0.00 ✅         |
-| **Pulumi Cloud**      | 1 stack       | 1 stack        | $0.00 ✅         |
+| **Cloud Run**         | 2M req/month  | ~10k req/month | $0.00 ✅        |
+| **Cloud Run Memory**  | 360k GB-sec   | ~50 GB-sec     | $0.00 ✅        |
+| **Cloud Run CPU**     | 180k vCPU-sec | ~25 vCPU-sec   | $0.00 ✅        |
+| **Secret Manager**    | 6 secrets     | 3 secrets      | $0.00 ✅        |
+| **MongoDB Atlas M0**  | 512 MB        | Unlimited      | $0.00 ✅        |
+| **GitHub Actions**    | 2000 min      | ~30 min/month  | $0.00 ✅        |
+| **Pulumi Cloud**      | 1 stack       | 1 stack        | $0.00 ✅        |
 | **Artifact Registry** | -             | 2 GB           | **$0.30** ⚠️    |
 | **TOTAL**             |               |                | **$0.30/month** |
 
@@ -250,15 +250,15 @@ pulumi stack rm dev
 
 ## ✅ Implementation Checklist
 
-* [x] Update Pulumi package.json
-* [x] Create MongoDB Atlas module (`mongodb-atlas.ts`)
-* [x] Create Secret Manager module (`secrets.ts`)
-* [x] Create Cloud Run module (`cloudrun.ts`)
-* [x] Refactor modular `index.ts`
-* [x] Create GitHub Actions workflow
-* [x] Add scripts to root `package.json`
-* [x] Create full setup guide (`SETUP.md`)
-* [x] Update report with FREE TIER plan
+- [x] Update Pulumi package.json
+- [x] Create MongoDB Atlas module (`mongodb-atlas.ts`)
+- [x] Create Secret Manager module (`secrets.ts`)
+- [x] Create Cloud Run module (`cloudrun.ts`)
+- [x] Refactor modular `index.ts`
+- [x] Create GitHub Actions workflow
+- [x] Add scripts to root `package.json`
+- [x] Create full setup guide (`SETUP.md`)
+- [x] Update report with FREE TIER plan
 
 ---
 

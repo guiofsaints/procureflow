@@ -1,5 +1,5 @@
 export default {
   index: 'OpenAPI Overview',
   specification: 'API Specification',
-  'generation-and-validation': 'Generation & Validation'
-}
+  'generation-and-validation': 'Generation & Validation',
+};

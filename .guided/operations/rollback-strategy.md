@@ -27,39 +27,39 @@ flowchart TD
     Start --> BadDeploy{Bad deployment<br/>detected?}
     Start --> DBFail{Database migration<br/>failed?}
     Start --> SecretFail{Secrets<br/>corrupted?}
-    
+
     HealthFail -->|Yes| AutoRollback[Automatic Cloud Run Rollback<br/>Previous revision serves traffic]
     HealthFail -->|No| Monitor[Continue monitoring]
-    
+
     BadDeploy -->|Critical bug| ManualRollback[Manual Traffic Split<br/>gcloud or Cloud Console]
     BadDeploy -->|Minor issue| Hotfix{Hotfix<br/>feasible?}
     Hotfix -->|Yes| DeployFix[Deploy hotfix<br/>Push to main]
     Hotfix -->|No| ManualRollback
-    
+
     DBFail -->|Yes| RestoreDB[Restore MongoDB Backup<br/>mongodump/mongorestore]
     DBFail -->|No| CheckInfra{Pulumi state<br/>corrupted?}
     CheckInfra -->|Yes| PulumiRollback[Pulumi Stack Rollback<br/>Import previous state]
     CheckInfra -->|No| Monitor
-    
+
     SecretFail -->|Yes| RestoreSecret[Restore Secret Manager Version<br/>gcloud secrets versions access]
     SecretFail -->|No| Monitor
-    
+
     AutoRollback --> Validate[Post-Rollback Validation]
     ManualRollback --> Validate
     RestoreDB --> Validate
     PulumiRollback --> Validate
     RestoreSecret --> Validate
     DeployFix --> Validate
-    
+
     Validate --> HealthCheck{Health check<br/>200?}
     HealthCheck -->|Yes| SmokeTest{Smoke tests<br/>pass?}
     HealthCheck -->|No| Escalate[Escalate to Tech Lead<br/>Incident response]
-    
+
     SmokeTest -->|Yes| Success([✅ Rollback successful])
     SmokeTest -->|No| Escalate
-    
+
     Monitor --> End([Continue deployment])
-    
+
     style AutoRollback fill:#FFA500,stroke:#CC8400,color:#fff
     style ManualRollback fill:#FFA500,stroke:#CC8400,color:#fff
     style RestoreDB fill:#FF6B6B,stroke:#CC5555,color:#fff
@@ -73,15 +73,15 @@ flowchart TD
 
 ### Rollback Triggers
 
-| Trigger | Severity | Rollback Type | Automated? | Max Acceptable Downtime |
-|---------|----------|---------------|------------|-------------------------|
-| **Health check fails** (HTTP non-200) | 🔴 Critical | Cloud Run revision rollback | ✅ Yes (Cloud Run auto-serves previous revision) | 0s (zero downtime) |
-| **Error rate > 1%** for 5 minutes | 🔴 Critical | Manual traffic split | ❌ No | 2-5 min |
-| **P95 latency > 3s** for 5 minutes | 🟡 High | Manual traffic split or hotfix | ❌ No | 5-10 min |
-| **Critical feature broken** (e.g., checkout fails) | 🔴 Critical | Manual traffic split | ❌ No | 2-5 min |
-| **Database migration failed** (schema corruption) | 🔴 Critical | Restore backup + Pulumi rollback | ❌ No | 10-30 min |
-| **Secrets corrupted** (NextAuth login fails) | 🔴 Critical | Restore Secret Manager version | ❌ No | 2-5 min |
-| **Pulumi state corrupted** (infrastructure drift) | 🟡 High | Pulumi import previous state | ❌ No | 10-30 min |
+| Trigger                                            | Severity    | Rollback Type                    | Automated?                                       | Max Acceptable Downtime |
+| -------------------------------------------------- | ----------- | -------------------------------- | ------------------------------------------------ | ----------------------- |
+| **Health check fails** (HTTP non-200)              | 🔴 Critical | Cloud Run revision rollback      | ✅ Yes (Cloud Run auto-serves previous revision) | 0s (zero downtime)      |
+| **Error rate > 1%** for 5 minutes                  | 🔴 Critical | Manual traffic split             | ❌ No                                            | 2-5 min                 |
+| **P95 latency > 3s** for 5 minutes                 | 🟡 High     | Manual traffic split or hotfix   | ❌ No                                            | 5-10 min                |
+| **Critical feature broken** (e.g., checkout fails) | 🔴 Critical | Manual traffic split             | ❌ No                                            | 2-5 min                 |
+| **Database migration failed** (schema corruption)  | 🔴 Critical | Restore backup + Pulumi rollback | ❌ No                                            | 10-30 min               |
+| **Secrets corrupted** (NextAuth login fails)       | 🔴 Critical | Restore Secret Manager version   | ❌ No                                            | 2-5 min                 |
+| **Pulumi state corrupted** (infrastructure drift)  | 🟡 High     | Pulumi import previous state     | ❌ No                                            | 10-30 min               |
 
 ---
 
@@ -102,6 +102,7 @@ Cloud Run maintains **revision history** (up to 1,000 revisions). Each deploymen
 **Trigger**: New revision fails health check (container crashes, port not listening, `/api/health` returns non-200)
 
 **Cloud Run Behavior**:
+
 1. New revision created with tag `sha-abc123f`
 2. Cloud Run attempts to start container (expose port 3000)
 3. **If container crashes**: Cloud Run immediately routes all traffic to previous healthy revision
@@ -110,6 +111,7 @@ Cloud Run maintains **revision history** (up to 1,000 revisions). Each deploymen
 **Zero Downtime**: Previous revision continues serving 100% traffic during health check failure.
 
 **GitHub Actions Failure**:
+
 ```bash
 # Job 3: Health Check
 ❌ Health check failed (HTTP 500)
@@ -117,6 +119,7 @@ exit 1  # Workflow fails, no traffic routed to new revision
 ```
 
 **Cloud Run Console**:
+
 ```
 procureflow-web-00042-xyz  ❌ Unhealthy  0% traffic
 procureflow-web-00041-abc  ✅ Healthy   100% traffic  (previous revision)
@@ -218,11 +221,13 @@ gcloud run services update-traffic procureflow-web \
 Pulumi stores infrastructure state in **Pulumi Cloud** (remote backend). Each `pulumi up` creates a new state checkpoint. Rollback = revert to previous state checkpoint.
 
 **Use Cases**:
+
 - Cloud Run service configuration changed (CPU, memory, env vars) and needs revert
 - Secret Manager secrets corrupted and need restore
 - IAM bindings changed incorrectly
 
 **Not Applicable For**:
+
 - Application code bugs (use Cloud Run revision rollback instead)
 - Database data corruption (use MongoDB backup restore)
 
@@ -519,15 +524,16 @@ pnpm --filter web test:e2e:smoke
 
 **Critical Flows** (Manual Testing, 5 minutes):
 
-| Flow | Test Case | Expected Outcome | Priority |
-|------|-----------|------------------|----------|
-| **Login** | Navigate to service URL, login with test account | Redirect to `/catalog`, no errors | 🔴 Critical |
-| **Catalog Search** | Search for "pen" | 5+ results displayed | 🔴 Critical |
-| **Add to Cart** | Add 1 item with quantity 5 | Cart displays item, total cost correct | 🔴 Critical |
-| **Checkout** | Complete checkout from cart | PR number displayed, cart cleared | 🔴 Critical |
-| **Agent Chat** | Send "search for notebooks" | Agent responds with results | 🟡 High |
+| Flow               | Test Case                                        | Expected Outcome                       | Priority    |
+| ------------------ | ------------------------------------------------ | -------------------------------------- | ----------- |
+| **Login**          | Navigate to service URL, login with test account | Redirect to `/catalog`, no errors      | 🔴 Critical |
+| **Catalog Search** | Search for "pen"                                 | 5+ results displayed                   | 🔴 Critical |
+| **Add to Cart**    | Add 1 item with quantity 5                       | Cart displays item, total cost correct | 🔴 Critical |
+| **Checkout**       | Complete checkout from cart                      | PR number displayed, cart cleared      | 🔴 Critical |
+| **Agent Chat**     | Send "search for notebooks"                      | Agent responds with results            | 🟡 High     |
 
 **Failure Action**:
+
 - 🔴 Critical test fails → **Escalate** to tech lead, investigate infrastructure issue (not just rollback)
 - 🟡 High test fails → Create bug ticket, monitor for 30 minutes
 
@@ -537,12 +543,12 @@ pnpm --filter web test:e2e:smoke
 
 **Prometheus Metrics** (Grafana dashboard):
 
-| Metric | Baseline (Pre-Rollback) | Post-Rollback | Status |
-|--------|-------------------------|---------------|--------|
-| **Error rate** | < 0.1% | < 0.1% | ✅ Pass |
-| **P95 latency** | < 1s | < 1s | ✅ Pass |
-| **Request rate** | ~100 req/min | ~100 req/min | ✅ Pass |
-| **Active users** | ~10 | ~10 | ✅ Pass |
+| Metric           | Baseline (Pre-Rollback) | Post-Rollback | Status  |
+| ---------------- | ----------------------- | ------------- | ------- |
+| **Error rate**   | < 0.1%                  | < 0.1%        | ✅ Pass |
+| **P95 latency**  | < 1s                    | < 1s          | ✅ Pass |
+| **Request rate** | ~100 req/min            | ~100 req/min  | ✅ Pass |
+| **Active users** | ~10                     | ~10           | ✅ Pass |
 
 **Query Examples** (Prometheus):
 
@@ -558,6 +564,7 @@ rate(http_requests_total[5m])
 ```
 
 **Validation Criteria**:
+
 - ✅ Error rate < baseline + 0.05%
 - ✅ P95 latency < baseline + 200ms
 - ✅ Request rate > 50% of baseline (allows for gradual traffic recovery)

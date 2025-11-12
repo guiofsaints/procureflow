@@ -73,6 +73,7 @@ git push origin main
 ```
 
 **Expected Output**:
+
 ```
 Enumerating objects: 5, done.
 Counting objects: 100% (5/5), done.
@@ -83,6 +84,7 @@ To https://github.com/guiofsaints/procureflow.git
 ```
 
 **Verification**:
+
 - [ ] `git status` shows "nothing to commit, working tree clean"
 - [ ] `git push` completed successfully
 - [ ] Changes visible on GitHub: https://github.com/guiofsaints/procureflow/commits/main
@@ -94,11 +96,13 @@ To https://github.com/guiofsaints/procureflow.git
 **Description**: Watch deployment progress in GitHub Actions UI
 
 **Navigate To**:
+
 ```
 https://github.com/guiofsaints/procureflow/actions
 ```
 
 **Workflow Triggered**:
+
 - **Name**: "Deploy to GCP (FREE TIER)"
 - **Trigger**: Push to `main` branch
 - **Duration**: ~5-8 minutes
@@ -127,6 +131,7 @@ https://github.com/guiofsaints/procureflow/actions
    - ✅ Check `/` (HTTP 200 or 302)
 
 **Verification**:
+
 - [ ] All 3 jobs show ✅ green checkmark
 - [ ] Total workflow time: ~5-8 minutes
 - [ ] No red ❌ failures
@@ -138,21 +143,25 @@ https://github.com/guiofsaints/procureflow/actions
 **Description**: Confirm new revision deployed and serving traffic
 
 **Navigate To**:
+
 ```
 https://console.cloud.google.com/run/detail/us-central1/procureflow-web
 ```
 
 **Check Revision**:
+
 - **Latest Revision**: Should show new tag (e.g., `procureflow-web-00042-sha-abc123f`)
 - **Traffic**: Should show **100%** traffic to new revision
 - **Status**: Should show ✅ **Healthy**
 
 **Check Logs**:
+
 ```
 Click "Logs" tab → Filter by "Severity: Error" → Should see no errors in last 5 minutes
 ```
 
 **Verification**:
+
 - [ ] New revision deployed (matches git commit SHA)
 - [ ] New revision serving 100% traffic
 - [ ] Status shows ✅ Healthy
@@ -165,6 +174,7 @@ Click "Logs" tab → Filter by "Severity: Error" → Should see no errors in las
 **Description**: Manually test critical user flows to ensure deployment successful
 
 **Test 1: Health Check** (Automated in Job 3, verify manually):
+
 ```powershell
 # Get service URL from Cloud Run console or Pulumi output
 $SERVICE_URL = "https://procureflow-web-xyz.run.app"
@@ -176,25 +186,30 @@ curl -s $SERVICE_URL/api/health
 ```
 
 **Test 2: Login Flow**:
+
 1. Navigate to: $SERVICE_URL
 2. Login with: `demo@procureflow.com` / `demo123`
 3. Expected: Redirect to `/catalog`
 
 **Test 3: Catalog Search**:
+
 1. Search for: "pen"
 2. Expected: 5+ results displayed
 
 **Test 4: Add to Cart**:
+
 1. Click "Add to Cart" on any item
 2. Enter quantity: 5
 3. Expected: Cart badge shows "1"
 
 **Test 5: Checkout**:
+
 1. Navigate to Cart
 2. Click "Checkout"
 3. Expected: PR number displayed, cart cleared
 
 **Verification**:
+
 - [ ] Health check returns 200
 - [ ] Login successful
 - [ ] Catalog search works
@@ -225,6 +240,7 @@ gcloud auth list
 ```
 
 **Verification**:
+
 - [ ] `gcloud auth list` shows active account
 - [ ] `gcloud config get-value project` returns `procureflow-dev`
 
@@ -247,6 +263,7 @@ pulumi whoami
 ```
 
 **Verification**:
+
 - [ ] `pulumi whoami` returns your username
 - [ ] No "not logged in" error
 
@@ -289,6 +306,7 @@ gcloud artifacts docker images list us-central1-docker.pkg.dev/$GCP_PROJECT_ID/p
 ```
 
 **Expected Output**:
+
 ```
 Successfully built abc123def456
 Successfully tagged us-central1-docker.pkg.dev/procureflow-dev/procureflow/web:manual-abc123f
@@ -298,6 +316,7 @@ Pushed: manual-abc123f
 ```
 
 **Verification**:
+
 - [ ] Docker build completed successfully
 - [ ] Docker push completed (2 tags: manual-abc123f, latest)
 - [ ] Image visible in Artifact Registry console
@@ -343,13 +362,14 @@ pulumi up
 ```
 
 **Expected Output**:
+
 ```
 Updating (dev)
 
 View Live: https://app.pulumi.com/...
 
      Type                           Name                   Status
-     pulumi:pulumi:Stack            procureflow-dev        
+     pulumi:pulumi:Stack            procureflow-dev
  ~   └─ gcp:cloudrun:Service        procureflow-web        updated (2)
 
 Outputs:
@@ -363,6 +383,7 @@ Duration: 45s
 ```
 
 **Verification**:
+
 - [ ] `pulumi preview` shows expected changes (1-2 resources updated)
 - [ ] `pulumi up` completes successfully
 - [ ] Service URL output displayed
@@ -391,6 +412,7 @@ gcloud run services describe procureflow-web `
 ```
 
 **Expected Output**:
+
 ```
 Deploying container to Cloud Run service [procureflow-web]...
 ✓ Deploying... Done.
@@ -400,6 +422,7 @@ Done.
 ```
 
 **Verification**:
+
 - [ ] Env var update completed
 - [ ] `NEXTAUTH_URL` matches service URL
 
@@ -425,6 +448,7 @@ curl -s $SERVICE_URL/api/health
 **Manual Smoke Tests**: Follow Step 4 from Procedure A
 
 **Verification**:
+
 - [ ] Health check returns 200
 - [ ] Smoke tests pass (login, search, cart, checkout)
 
@@ -435,17 +459,20 @@ curl -s $SERVICE_URL/api/health
 ### Final Checks
 
 **Deployment Status**:
+
 - [ ] GitHub Actions workflow shows ✅ all jobs passed (Procedure A) OR Pulumi up succeeded (Procedure B)
 - [ ] Cloud Run console shows new revision deployed
 - [ ] New revision serving 100% traffic
 - [ ] Service status shows ✅ Healthy
 
 **Application Health**:
+
 - [ ] Health endpoint returns 200: `GET /api/health`
 - [ ] Root endpoint returns 200 or 302: `GET /`
 - [ ] Smoke tests passed: Login, search, cart, checkout all working
 
 **Monitoring**:
+
 - [ ] Cloud Run logs show no errors in last 5 minutes
 - [ ] No alerts triggered (if monitoring configured)
 
@@ -456,10 +483,13 @@ curl -s $SERVICE_URL/api/health
 ### If Deployment Fails
 
 **GitHub Actions Job 3 (Health Check) Failed**:
+
 ```
 ❌ Health check failed (HTTP 500)
 ```
+
 **Action**:
+
 1. GitHub Actions workflow stops (no traffic routed to new revision)
 2. Cloud Run automatically serves previous revision (zero downtime)
 3. Investigate failure: Check Cloud Run logs for errors
@@ -468,10 +498,13 @@ curl -s $SERVICE_URL/api/health
 ---
 
 **Pulumi Up Failed**:
+
 ```
 error: update failed
 ```
+
 **Action**:
+
 1. Review error message (Pulumi output shows detailed error)
 2. Fix infrastructure code or configuration
 3. Re-run `pulumi up`
@@ -480,10 +513,13 @@ error: update failed
 ---
 
 **Deployment Succeeded but Application Broken**:
+
 ```
 ✅ Health check passed, but critical feature broken (e.g., checkout fails)
 ```
+
 **Action**:
+
 1. Execute [Rollback Runbook](./rollback.md) → Cloud Run traffic split to previous revision
 2. Rollback time: ~2-5 minutes
 3. Investigate issue in rolled-back environment
@@ -496,10 +532,13 @@ error: update failed
 ### Common Issues
 
 **Issue 1: "Docker build failed"**
+
 ```
 ERROR: failed to solve: dockerfile parse error
 ```
+
 **Solution**:
+
 ```powershell
 # Check Dockerfile syntax
 cat packages/infra/docker/Dockerfile.web
@@ -513,11 +552,14 @@ Test-Path packages/infra/docker/Dockerfile.web
 ---
 
 **Issue 2: "Pulumi preview shows unexpected changes"**
+
 ```
 ~ 5 to update
 - 2 to delete
 ```
+
 **Solution**:
+
 ```powershell
 # Review detailed preview
 pulumi preview --diff
@@ -533,10 +575,13 @@ pulumi preview --diff
 ---
 
 **Issue 3: "Health check failed (HTTP 500)"**
+
 ```
 ❌ Health check failed (HTTP 500)
 ```
+
 **Solution**:
+
 ```powershell
 # Check Cloud Run logs
 gcloud run services logs read procureflow-web `
@@ -550,10 +595,13 @@ gcloud run services logs read procureflow-web `
 ---
 
 **Issue 4: "NEXTAUTH_URL not updated"**
+
 ```
 Login redirects to wrong URL (old service URL)
 ```
+
 **Solution**:
+
 ```powershell
 # Get correct service URL
 $SERVICE_URL = pulumi stack output serviceUrl

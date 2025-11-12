@@ -3,5 +3,5 @@ export default {
   objective: 'Objective & Vision',
   features: 'Features',
   'functional-requirements': 'Functional Requirements',
-  'non-functional-requirements': 'Non-Functional Requirements'
-}
+  'non-functional-requirements': 'Non-Functional Requirements',
+};

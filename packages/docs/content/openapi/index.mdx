@@ -1,123 +1,51 @@
 # OpenAPI Documentation
 
-API specification, generation process, and validation strategies.
+Complete API specification, generation process, and validation strategies for ProcureFlow.
 
-For complete OpenAPI details, see: [`.guided/api/openapi.status-and-plan.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/api/openapi.status-and-plan.md)
+## Overview
 
-## Executive Summary
+ProcureFlow provides a complete OpenAPI 3.0 specification documenting all 13 API endpoints across 5 domains:
 
-ProcureFlow provides a complete OpenAPI 3.0 specification documenting all 13 API endpoints across 5 domains (catalog, cart, checkout, agent, auth). Specification is manually maintained and served at `/api/openapi`. Future phases include automated generation from Zod schemas, CI validation, and breaking change detection.
+- **Catalog** - Item search and management
+- **Cart** - Shopping cart operations
+- **Checkout** - Purchase processing
+- **Agent** - AI chat interface
+- **Auth** - Authentication endpoints
 
----
+The specification is manually maintained and served at `/api/openapi`. Future phases include automated generation from Zod schemas, CI validation, and breaking change detection.
 
 ## Quick Links
 
 - **[API Specification](/openapi/specification)** - Complete OpenAPI 3.0 spec
 - **[Generation & Validation](/openapi/generation-and-validation)** - How to generate and validate the spec
 
----
+## Current State
 
-## Overview
-
-### Current State (v1.0)
-
-- **Specification Format**: OpenAPI 3.0.3
-- **Endpoints Documented**: 13 (100% coverage)
-- **Schemas Defined**: 15 with validation rules
+- **Format**: OpenAPI 3.0.3
+- **Endpoints**: 13 (100% coverage)
+- **Schemas**: 15 with validation rules
 - **Maintenance**: Manual updates per API change
-- **Access**: Live at http://localhost:3000/api/openapi
 
-### Coverage
+## Access the Specification
 
-| Domain | Endpoints | Status |
-|--------|-----------|--------|
-| **Catalog** | GET, POST /api/items<br/>GET /api/items/{id} | ✅ Documented |
-| **Cart** | GET, POST, PATCH, DELETE /api/cart | ✅ Documented |
-| **Checkout** | GET, POST /api/purchase<br/>GET /api/purchase/{id} | ✅ Documented |
-| **Agent** | POST /api/agent/chat | ✅ Documented |
-| **Auth** | POST /api/auth/* (NextAuth.js) | ✅ Documented |
-| **Health** | GET /api/health | ✅ Documented |
-| **OpenAPI** | GET /api/openapi | ✅ Documented |
-
----
-
-## Accessing the Specification
-
-### Live Endpoint
+### Development
 
 ```bash
-# Development
 curl http://localhost:3000/api/openapi | jq
+```
 
-# Production
+### Production
+
+```bash
 curl https://procureflow.app/api/openapi | jq
 ```
 
-### Swagger UI (Future)
-
-Potential integration with Swagger UI for interactive API exploration:
-
-```bash
-docker run -p 8080:8080 \
-  -e SWAGGER_JSON=/openapi.json \
-  -v $(pwd)/openapi.json:/openapi.json \
-  swaggerapi/swagger-ui
-```
-
----
-
-## Example: Item Search Endpoint
-
-```yaml
-/api/items:
-  get:
-    summary: Search catalog items
-    operationId: searchItems
-    tags:
-      - Catalog
-    parameters:
-      - name: search
-        in: query
-        description: Search query (full-text)
-        schema:
-          type: string
-      - name: limit
-        in: query
-        description: Maximum results (default 50)
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 100
-    responses:
-      '200':
-        description: Successful response
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Item'
-                count:
-                  type: integer
-      '500':
-        description: Internal server error
-```
-
----
-
 ## References
 
-- **[API Specification](/openapi/specification)** - Full OpenAPI spec
-- **[Generation Process](/openapi/generation-and-validation)** - How to update spec
-- **[Functional Requirements](/prd/functional-requirements)** - FR for each endpoint
-- **[Infrastructure](/tech/infrastructure)** - API deployment
-
-**Complete OpenAPI Status**: [`.guided/api/openapi.status-and-plan.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/api/openapi.status-and-plan.md)
+- [Functional Requirements](/prd/functional-requirements) - FR for each endpoint
+- [Technical Infrastructure](/tech/infrastructure) - API deployment details
 
 ---
 
-**Last Updated**: 2025-11-12  
+**Last Updated**: 2025-01-12  
 **Owner**: API Team

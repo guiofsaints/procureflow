@@ -37,11 +37,56 @@ const nextConfig = {
 
   // Redirects and rewrites can be added here
   async redirects() {
-    return [];
+    return [
+      {
+        source: '/docs',
+        destination: '/docs/index.html',
+        permanent: false,
+      },
+      {
+        source: '/docs/',
+        destination: '/docs/index.html',
+        permanent: false,
+      },
+    ];
   },
 
   async rewrites() {
-    return [];
+    return {
+      beforeFiles: [
+        // Intercept Nextra metadata files BEFORE Next.js processes them
+        {
+          source: '/docs/:path*.txt',
+          destination: '/api/docs-metadata',
+        },
+        {
+          source: '/docs/:path*/__next.:file*',
+          destination: '/api/docs-metadata',
+        },
+      ],
+      afterFiles: [
+        // Rewrite clean URLs to /index.html for static docs
+        {
+          source: '/docs/:path((?!_next|.*\\.[^/]+$).*)',
+          destination: '/docs/:path/index.html',
+        },
+      ],
+    };
+  },
+
+  async headers() {
+    return [
+      {
+        // Return 204 for Nextra metadata files that don't exist in static export
+        source: '/docs/:path*/__next.:file*.txt',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
   },
 };
 export default nextConfig;

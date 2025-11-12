@@ -30,6 +30,7 @@ cd procureflow
 ```
 
 **Verification**:
+
 - [ ] Repository cloned successfully
 - [ ] In procureflow directory
 
@@ -43,6 +44,7 @@ pnpm install
 **Expected Output**: `✓ XX packages installed`
 
 **Verification**:
+
 - [ ] node_modules created
 - [ ] pnpm-lock.yaml present
 
@@ -58,6 +60,7 @@ notepad .env.local
 ```
 
 **Required Variables**:
+
 ```bash
 MONGODB_URI=mongodb://localhost:27017/procureflow
 NEXTAUTH_SECRET=generate-with-openssl-rand-base64-32
@@ -66,6 +69,7 @@ OPENAI_API_KEY=sk-... # or "not-set"
 ```
 
 **Verification**:
+
 - [ ] .env.local file created
 - [ ] All required variables set
 
@@ -78,6 +82,7 @@ pnpm docker:up
 ```
 
 **Expected Output**:
+
 ```
 [+] Running 2/2
  ✔ Container procureflow-mongo   Started
@@ -85,6 +90,7 @@ pnpm docker:up
 ```
 
 **Verification**:
+
 - [ ] MongoDB running on port 27017
 - [ ] mongo-express accessible at http://localhost:8081
 
@@ -102,6 +108,7 @@ pnpm --filter web db:seed-initial-user
 ```
 
 **Verification**:
+
 - [ ] Text index created
 - [ ] 200 items in database
 - [ ] Demo user created
@@ -115,6 +122,7 @@ pnpm dev
 ```
 
 **Expected Output**:
+
 ```
 ▲ Next.js 16.0.1 (Turbopack)
 - Local:        http://localhost:3000
@@ -122,6 +130,7 @@ pnpm dev
 ```
 
 **Verification**:
+
 - [ ] Server running at http://localhost:3000
 - [ ] No compilation errors
 
@@ -140,6 +149,7 @@ Open browser and test:
    - Try: "search for ergonomic chairs"
 
 **Verification**:
+
 - [ ] Login successful
 - [ ] Catalog loads items
 - [ ] Agent responds to queries
@@ -149,6 +159,7 @@ Open browser and test:
 ## Verification
 
 **Final Checks**:
+
 - [ ] Application accessible at http://localhost:3000
 - [ ] MongoDB accessible at http://localhost:8081 (mongo-express)
 - [ ] Catalog search returns results
@@ -156,6 +167,7 @@ Open browser and test:
 - [ ] No console errors
 
 **Success Criteria**:
+
 - ✅ All services running
 - ✅ Database seeded
 - ✅ Application functional
@@ -167,11 +179,13 @@ Open browser and test:
 **If Procedure Fails**:
 
 1. **Stop all services**:
+
    ```powershell
    pnpm docker:down
    ```
 
 2. **Clean dependencies**:
+
    ```powershell
    Remove-Item -Recurse -Force node_modules, pnpm-lock.yaml
    pnpm install
@@ -183,6 +197,7 @@ Open browser and test:
    ```
 
 **Escalation Path**:
+
 - Check [Troubleshooting](/runbooks/troubleshooting)
 - Ask in #dev-support Slack channel
 - Contact Platform Team lead
@@ -196,6 +211,7 @@ Open browser and test:
 **Symptom**: `Error: ECONNREFUSED 127.0.0.1:27017`
 
 **Solution**:
+
 ```powershell
 # Ensure Docker Desktop is running
 # Restart MongoDB container
@@ -208,6 +224,7 @@ pnpm docker:up
 **Symptom**: Catalog search returns empty
 
 **Solution**:
+
 ```powershell
 pnpm --filter web db:create-text-index
 ```
@@ -217,6 +234,7 @@ pnpm --filter web db:create-text-index
 **Symptom**: `Error: Port 3000 is already in use`
 
 **Solution**:
+
 ```powershell
 # Find and kill process using port 3000
 Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process -Force

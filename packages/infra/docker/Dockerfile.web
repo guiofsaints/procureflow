@@ -17,6 +17,26 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # ============================================================================
+# Docs Builder Stage: Build documentation with Nextra
+# ============================================================================
+FROM base AS docs-builder
+
+# Copy monorepo manifests for dependency installation
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/docs/package.json ./packages/docs/
+
+# Install docs dependencies with pnpm cache mount
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+  pnpm install --filter @procureflow/docs --frozen-lockfile
+
+# Copy documentation source
+COPY packages/docs ./packages/docs
+
+# Build documentation (outputs to packages/docs/out)
+WORKDIR /app/packages/docs
+RUN pnpm build:prod
+
+# ============================================================================
 # Builder Stage: Install dependencies and build application
 # ============================================================================
 FROM base AS builder
@@ -35,6 +55,9 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 
 # Copy application source code
 COPY packages/web ./packages/web
+
+# Copy built documentation from docs-builder stage
+COPY --from=docs-builder /app/packages/docs/out ./packages/web/public/docs
 
 # Build arguments for version info
 ARG GIT_COMMIT_SHA=unknown

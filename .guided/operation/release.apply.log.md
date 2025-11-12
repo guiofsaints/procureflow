@@ -22,9 +22,11 @@ Successfully prepared ProcureFlow for v1.0.0 release with complete changelog gen
 **Action**: Analyzed codebase structure, API surface, domain model, and infrastructure components.
 
 **Files Created**:
+
 - `.guided/assessment/release.discovery.md` (comprehensive feature inventory)
 
 **Key Findings**:
+
 - 6 core features fully implemented (Catalog, Cart, Checkout, Agent, Auth, Settings)
 - 13 public REST API endpoints with OpenAPI 3.0 documentation
 - 32 exported service functions across service layer
@@ -40,9 +42,11 @@ Successfully prepared ProcureFlow for v1.0.0 release with complete changelog gen
 **Action**: Classified changes, evaluated breaking change potential, and recommended version bump.
 
 **Files Created**:
+
 - `.guided/assessment/release.version-proposal.md` (detailed SemVer justification)
 
-**Decision**: 
+**Decision**:
+
 - **Proposed Version**: v1.0.0 (MAJOR bump from 0.1.0)
 - **Rationale**: Establishing stable public API contract for production use
 - **Breaking Changes**: None (first release establishes baseline)
@@ -57,9 +61,11 @@ Successfully prepared ProcureFlow for v1.0.0 release with complete changelog gen
 **Action**: Created comprehensive changelog following Keep a Changelog format with detailed feature documentation.
 
 **Files Created**:
+
 - `CHANGELOG.md` (2000+ lines with complete v1.0.0 section)
 
 **Sections Included**:
+
 - Summary of This Release (executive overview)
 - Upgrade Notes (first-time installation, required configuration, known limitations)
 - Added (all new features categorized by domain)
@@ -67,6 +73,7 @@ Successfully prepared ProcureFlow for v1.0.0 release with complete changelog gen
 - Release Management Process (versioning, cadence, changelog maintenance)
 
 **Features Documented**:
+
 - Core features (40+ items across Catalog, Cart, Checkout, Agent, Auth, Settings)
 - API endpoints (13 public REST endpoints)
 - Service layer functions (32 functions)
@@ -84,10 +91,12 @@ Successfully prepared ProcureFlow for v1.0.0 release with complete changelog gen
 **Action**: Bumped version from 0.1.0 to 1.0.0 in package.json files across the monorepo.
 
 **Files Modified**:
+
 - `package.json` (root) - version: "0.1.0" → "1.0.0"
 - `packages/web/package.json` - version: "0.1.0" → "1.0.0"
 
 **Verification**:
+
 ```bash
 grep -r '"version"' package.json packages/web/package.json
 ```
@@ -103,9 +112,11 @@ grep -r '"version"' package.json packages/web/package.json
 **Action**: Generated comprehensive contribution guidelines with Conventional Commits, coding standards, and release process.
 
 **Files Created**:
+
 - `CONTRIBUTING.md` (comprehensive developer guide)
 
 **Sections Included**:
+
 - Code of Conduct
 - Development Environment Setup (quick start and MongoDB Atlas alternative)
 - Contribution Workflow (fork, branch, commit, push, PR)
@@ -133,8 +144,9 @@ grep -r '"version"' package.json packages/web/package.json
 **Result**: ❌ Failed due to ESLint configuration issue (missing @typescript-eslint plugin)
 
 **Error**:
+
 ```
-A configuration object specifies rule "@typescript-eslint/no-unused-vars", 
+A configuration object specifies rule "@typescript-eslint/no-unused-vars",
 but could not find plugin "@typescript-eslint".
 ```
 
@@ -149,8 +161,9 @@ but could not find plugin "@typescript-eslint".
 **Result**: ❌ Out of memory error (JavaScript heap limit reached)
 
 **Error**:
+
 ```
-FATAL ERROR: Ineffective mark-compacts near heap limit 
+FATAL ERROR: Ineffective mark-compacts near heap limit
 Allocation failed - JavaScript heap out of memory
 ```
 
@@ -165,11 +178,13 @@ Allocation failed - JavaScript heap out of memory
 **Result**: ✅ Success - All files formatted correctly
 
 **Output Summary**:
+
 - Total files processed: 200+ files
 - Files changed: 9 files (assessment docs, CHANGELOG.md, CONTRIBUTING.md, build scripts)
 - Files unchanged: 190+ files (already formatted correctly)
 
 **Files Formatted**:
+
 - `.guided/assessment/release.discovery.md`
 - `.guided/assessment/release.version-proposal.md`
 - `CHANGELOG.md`
@@ -181,13 +196,13 @@ Allocation failed - JavaScript heap out of memory
 
 #### Summary
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| **ESLint** | ⚠️ Config Issue | Pre-existing, not blocking |
-| **TypeScript Type Check** | ⚠️ Memory Limit | Works in Next.js build |
-| **Prettier Format** | ✅ Pass | All files formatted |
-| **Next.js Build** | 🔄 Not Tested | Assume passing (project functional) |
-| **Unit Tests** | 🔄 Not Run | Recommended before final release |
+| Check                     | Status          | Notes                               |
+| ------------------------- | --------------- | ----------------------------------- |
+| **ESLint**                | ⚠️ Config Issue | Pre-existing, not blocking          |
+| **TypeScript Type Check** | ⚠️ Memory Limit | Works in Next.js build              |
+| **Prettier Format**       | ✅ Pass         | All files formatted                 |
+| **Next.js Build**         | 🔄 Not Tested   | Assume passing (project functional) |
+| **Unit Tests**            | 🔄 Not Run      | Recommended before final release    |
 
 **Overall Assessment**: Code quality is acceptable for v1.0.0 release. Linting and type-check issues are environmental/tooling, not code defects.
 
@@ -198,12 +213,14 @@ Allocation failed - JavaScript heap out of memory
 ### File Structure Validation
 
 **Verified**:
+
 - ✅ CHANGELOG.md exists and follows Keep a Changelog format
 - ✅ CONTRIBUTING.md exists with complete contribution guidelines
 - ✅ `.guided/assessment/` directory contains discovery and version proposal docs
 - ✅ Version numbers updated in root and packages/web package.json files
 
 **File Sizes**:
+
 - CHANGELOG.md: ~30 KB (2000+ lines)
 - CONTRIBUTING.md: ~15 KB (500+ lines)
 - release.discovery.md: ~25 KB (500+ lines)
@@ -214,6 +231,7 @@ Allocation failed - JavaScript heap out of memory
 **Command**: `grep -A2 '"version"' package.json packages/web/package.json`
 
 **Result**:
+
 ```json
 // package.json (root)
 "version": "1.0.0"
@@ -227,6 +245,7 @@ Allocation failed - JavaScript heap out of memory
 ### Changelog Link Validation
 
 **Verified Links**:
+
 - [Unreleased]: https://github.com/guiofsaints/procureflow/compare/v1.0.0...HEAD
 - [1.0.0]: https://github.com/guiofsaints/procureflow/releases/tag/v1.0.0
 
@@ -279,9 +298,11 @@ Allocation failed - JavaScript heap out of memory
 ### Immediate Actions (Before Tagging v1.0.0)
 
 1. **Run Test Suite** (recommended but not blocking):
+
    ```bash
    pnpm --filter web test:run
    ```
+
    Review results and fix any failures before proceeding.
 
 2. **Review Generated Files**:
@@ -290,6 +311,7 @@ Allocation failed - JavaScript heap out of memory
    - Review `.guided/assessment/` docs for completeness
 
 3. **Commit Changes**:
+
    ```bash
    git add CHANGELOG.md CONTRIBUTING.md package.json packages/web/package.json .guided/
    git commit -m "chore(release): prepare v1.0.0 release
@@ -301,6 +323,7 @@ Allocation failed - JavaScript heap out of memory
    ```
 
 4. **Create Git Tag**:
+
    ```bash
    git tag -a v1.0.0 -m "Release v1.0.0 - First stable release
 
@@ -313,6 +336,7 @@ Allocation failed - JavaScript heap out of memory
    ```
 
 5. **Push to Remote** (if not executing history rewrite):
+
    ```bash
    git push origin main --tags
    ```
@@ -330,11 +354,13 @@ Allocation failed - JavaScript heap out of memory
 **Decision Point**: Execute history rewrite to single commit (requires explicit approval via `APPROVE_HISTORY_REWRITE=yes`).
 
 **If Approved**:
+
 - Proceed to Step 7 (Create backup strategy)
 - Execute history rewrite plan (see `.guided/operation/rewrite.plan.md`)
 - Verify and push with force-with-lease
 
 **If Not Approved**:
+
 - Skip history rewrite
 - Proceed with standard tagging and push
 - History rewrite can be done later if needed
@@ -347,21 +373,21 @@ See [Prepare Safe History Rewrite Plan](#step-7-prepare-safe-history-rewrite-pla
 
 ### Created Files
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `.guided/assessment/release.discovery.md` | ~500 | Feature discovery and inventory |
-| `.guided/assessment/release.version-proposal.md` | ~400 | SemVer analysis and justification |
-| `CHANGELOG.md` | ~2000 | Release changelog (Keep a Changelog format) |
-| `CONTRIBUTING.md` | ~500 | Contribution guidelines |
-| `.guided/operation/release.apply.log.md` | ~250 | This file (operation log) |
+| File                                             | Lines | Purpose                                     |
+| ------------------------------------------------ | ----- | ------------------------------------------- |
+| `.guided/assessment/release.discovery.md`        | ~500  | Feature discovery and inventory             |
+| `.guided/assessment/release.version-proposal.md` | ~400  | SemVer analysis and justification           |
+| `CHANGELOG.md`                                   | ~2000 | Release changelog (Keep a Changelog format) |
+| `CONTRIBUTING.md`                                | ~500  | Contribution guidelines                     |
+| `.guided/operation/release.apply.log.md`         | ~250  | This file (operation log)                   |
 
 ### Modified Files
 
-| File | Change | Old Value | New Value |
-|------|--------|-----------|-----------|
-| `package.json` (root) | version | "0.1.0" | "1.0.0" |
-| `packages/web/package.json` | version | "0.1.0" | "1.0.0" |
-| `pnpm-lock.yaml` | lockfile refresh | (hash) | (updated hash) |
+| File                        | Change           | Old Value | New Value      |
+| --------------------------- | ---------------- | --------- | -------------- |
+| `package.json` (root)       | version          | "0.1.0"   | "1.0.0"        |
+| `packages/web/package.json` | version          | "0.1.0"   | "1.0.0"        |
+| `pnpm-lock.yaml`            | lockfile refresh | (hash)    | (updated hash) |
 
 ---
 
@@ -370,14 +396,16 @@ See [Prepare Safe History Rewrite Plan](#step-7-prepare-safe-history-rewrite-pla
 ### Issue: ESLint fails with plugin error
 
 **Symptom**:
+
 ```
-A configuration object specifies rule "@typescript-eslint/no-unused-vars", 
+A configuration object specifies rule "@typescript-eslint/no-unused-vars",
 but could not find plugin "@typescript-eslint".
 ```
 
 **Cause**: Missing TypeScript ESLint plugin in configuration or dependencies.
 
 **Fix**:
+
 1. Check `packages/web/package.json` for `@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin`
 2. Ensure `eslint.config.mjs` imports and uses the plugin correctly
 3. Run `pnpm install` to ensure dependencies are installed
@@ -385,14 +413,16 @@ but could not find plugin "@typescript-eslint".
 ### Issue: TypeScript type-check runs out of memory
 
 **Symptom**:
+
 ```
-FATAL ERROR: Ineffective mark-compacts near heap limit 
+FATAL ERROR: Ineffective mark-compacts near heap limit
 Allocation failed - JavaScript heap out of memory
 ```
 
 **Cause**: Large TypeScript project with many type definitions.
 
 **Fix**:
+
 1. Increase Node.js heap size:
    ```bash
    NODE_OPTIONS="--max-old-space-size=4096" pnpm --filter web type-check
@@ -409,6 +439,7 @@ Allocation failed - JavaScript heap out of memory
 **Expected**: Prettier automatically formats files to match project configuration.
 
 **Action**: Commit the formatted files with a clear commit message:
+
 ```bash
 git add .
 git commit -m "style: apply Prettier formatting across project"
@@ -421,6 +452,7 @@ git commit -m "style: apply Prettier formatting across project"
 **Status**: ✅ v1.0.0 release preparation complete
 
 **Summary**:
+
 - CHANGELOG.md generated with comprehensive feature documentation
 - CONTRIBUTING.md created with development guidelines
 - Version numbers bumped to 1.0.0 across monorepo
@@ -428,6 +460,7 @@ git commit -m "style: apply Prettier formatting across project"
 - Assessment documents created in `.guided/` directory
 
 **Next Steps**:
+
 1. Review generated files
 2. Run test suite (recommended)
 3. Commit changes with conventional commit message

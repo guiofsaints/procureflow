@@ -20,12 +20,12 @@ ProcureFlow deploys to GCP Cloud Run via GitHub Actions CI/CD with Pulumi IaC. O
 
 ## Environments Overview
 
-| Environment | Status | Platform | URL | Auto-Deploy | Database | Cost/Month |
-|-------------|--------|----------|-----|-------------|----------|------------|
-| **Local** | ✅ Active | Docker Compose | http://localhost:3000 | ❌ Manual | MongoDB 8.10.6 (local) | $0 |
-| **Dev** | ✅ Active | GCP Cloud Run | https://procureflow-web-*.run.app | ✅ On push to main | MongoDB Atlas M0 (free) | ~$2.10 |
-| **Staging** | ⏸️ Not Configured | GCP Cloud Run | TBD | ❌ Manual | MongoDB Atlas M2 | ~$15 (planned) |
-| **Production** | ⏸️ Not Configured | GCP Cloud Run | TBD | ❌ Manual | MongoDB Atlas M10 | ~$50 (planned) |
+| Environment    | Status            | Platform       | URL                                | Auto-Deploy        | Database                | Cost/Month     |
+| -------------- | ----------------- | -------------- | ---------------------------------- | ------------------ | ----------------------- | -------------- |
+| **Local**      | ✅ Active         | Docker Compose | http://localhost:3000              | ❌ Manual          | MongoDB 8.10.6 (local)  | $0             |
+| **Dev**        | ✅ Active         | GCP Cloud Run  | https://procureflow-web-\*.run.app | ✅ On push to main | MongoDB Atlas M0 (free) | ~$2.10         |
+| **Staging**    | ⏸️ Not Configured | GCP Cloud Run  | TBD                                | ❌ Manual          | MongoDB Atlas M2        | ~$15 (planned) |
+| **Production** | ⏸️ Not Configured | GCP Cloud Run  | TBD                                | ❌ Manual          | MongoDB Atlas M10       | ~$50 (planned) |
 
 ---
 
@@ -37,7 +37,7 @@ flowchart LR
     Trigger -->|packages/web/**| BuildTest[Build & Test]
     Trigger -->|packages/infra/**| BuildTest
     Trigger -->|Other paths| Skip[Skip deployment]
-    
+
     BuildTest --> Docker[Build Docker Image]
     Docker --> Push2[Push to Artifact Registry]
     Push2 --> Pulumi[Pulumi Preview & Up]
@@ -48,7 +48,7 @@ flowchart LR
     Smoke -->|Pass| Success([✅ Deployment Complete])
     Smoke -->|Fail| Rollback
     Rollback --> PrevRevision[Previous Revision Serves Traffic]
-    
+
     style BuildTest fill:#9C27B0,stroke:#7B1FA2,color:#fff
     style Deploy fill:#4CAF50,stroke:#388E3C,color:#fff
     style Success fill:#4CAF50,stroke:#388E3C,color:#fff
@@ -66,14 +66,14 @@ flowchart TD
     Issue{Deployment<br/>Issue?} --> HealthFail{Health check<br/>failed?}
     Issue --> BadDeploy{Bad deployment<br/>detected?}
     Issue --> DBFail{Database<br/>migration failed?}
-    
+
     HealthFail -->|Yes| AutoRollback[Automatic Rollback<br/>Previous revision serves traffic]
     BadDeploy -->|Yes| ManualRollback[Manual Traffic Split<br/>gcloud CLI or Console]
     DBFail -->|Yes| RestoreDB[Restore MongoDB Backup<br/>mongodump/mongorestore]
-    
+
     AutoRollback & ManualRollback & RestoreDB --> Validate[Post-Rollback Validation]
     Validate --> Success([✅ Rollback Complete])
-    
+
     style AutoRollback fill:#FFA500,stroke:#CC8400,color:#fff
     style ManualRollback fill:#FFA500,stroke:#CC8400,color:#fff
     style RestoreDB fill:#FF6B6B,stroke:#CC5555,color:#fff
@@ -105,12 +105,12 @@ flowchart TD
 
 ## Cost Guardrails
 
-| Control | Dev | Production (Planned) | Purpose |
-|---------|-----|----------------------|---------|
-| **GCP Billing Alert** | $10/month threshold | $50/month threshold | Prevent cost overruns |
-| **Max Instances** | 2 | 100 | Cap compute costs |
+| Control                 | Dev                  | Production (Planned)   | Purpose                       |
+| ----------------------- | -------------------- | ---------------------- | ----------------------------- |
+| **GCP Billing Alert**   | $10/month threshold  | $50/month threshold    | Prevent cost overruns         |
+| **Max Instances**       | 2                    | 100                    | Cap compute costs             |
 | **MongoDB Connections** | 500 limit (Atlas M0) | 1500 limit (Atlas M10) | Prevent connection exhaustion |
-| **Scale-to-Zero** | ✅ Enabled | ❌ Disabled | Minimize idle costs |
+| **Scale-to-Zero**       | ✅ Enabled           | ❌ Disabled            | Minimize idle costs           |
 
 ---
 
@@ -125,12 +125,12 @@ flowchart TD
 
 ### Rollback Criteria
 
-| Metric | Threshold | Action |
-|--------|-----------|--------|
-| **Error Rate** | >1% for 5 min | Manual rollback |
-| **P95 Latency** | >3s for 5 min | Investigate or rollback |
-| **Health Check** | Non-200 status | Automatic rollback |
-| **Critical Bug** | Checkout fails | Manual rollback |
+| Metric           | Threshold      | Action                  |
+| ---------------- | -------------- | ----------------------- |
+| **Error Rate**   | >1% for 5 min  | Manual rollback         |
+| **P95 Latency**  | >3s for 5 min  | Investigate or rollback |
+| **Health Check** | Non-200 status | Automatic rollback      |
+| **Critical Bug** | Checkout fails | Manual rollback         |
 
 ### Autoscaling Targets
 

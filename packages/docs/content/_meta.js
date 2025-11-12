@@ -8,5 +8,5 @@ export default {
   runbooks: 'Runbooks',
   contributing: 'Contributing',
   glossary: 'Glossary',
-  references: 'References'
-}
+  references: 'References',
+};

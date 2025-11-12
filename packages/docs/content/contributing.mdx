@@ -76,16 +76,16 @@ We use **Conventional Commits** for clear commit history:
 
 ### Types
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat: add cart analytics endpoint` |
-| `fix` | Bug fix | `fix: resolve duplicate item detection` |
-| `docs` | Documentation only | `docs: update API spec for checkout` |
-| `style` | Formatting, no code change | `style: format catalog service` |
-| `refactor` | Code refactor | `refactor: extract cart validation logic` |
-| `test` | Add or update tests | `test: add catalog search integration tests` |
-| `chore` | Build, config, dependencies | `chore: upgrade Next.js to 16.0` |
-| `perf` | Performance improvement | `perf: optimize MongoDB text search` |
+| Type       | Description                 | Example                                      |
+| ---------- | --------------------------- | -------------------------------------------- |
+| `feat`     | New feature                 | `feat: add cart analytics endpoint`          |
+| `fix`      | Bug fix                     | `fix: resolve duplicate item detection`      |
+| `docs`     | Documentation only          | `docs: update API spec for checkout`         |
+| `style`    | Formatting, no code change  | `style: format catalog service`              |
+| `refactor` | Code refactor               | `refactor: extract cart validation logic`    |
+| `test`     | Add or update tests         | `test: add catalog search integration tests` |
+| `chore`    | Build, config, dependencies | `chore: upgrade Next.js to 16.0`             |
+| `perf`     | Performance improvement     | `perf: optimize MongoDB text search`         |
 
 ### Examples
 
@@ -125,18 +125,22 @@ Before submitting PR, ensure:
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 How was this tested?
 
 ## Checklist
+
 - [ ] Tests pass
 - [ ] Linting passes
 - [ ] Documentation updated
@@ -247,12 +251,12 @@ export async function searchItems(
   userId: string
 ): Promise<Item[]> {
   await connectDB();
-  
+
   const items = await ItemModel.find({
     $text: { $search: query },
     status: 'Active',
   }).limit(50);
-  
+
   return items.map(toItem);
 }
 ```
@@ -263,11 +267,12 @@ API routes are thin wrappers:
 // app/(app)/api/items/route.ts
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authConfig);
-  if (!session) return NextResponse.json({error: 'Unauthorized'}, {status: 401});
-  
+  if (!session)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const query = request.nextUrl.searchParams.get('query') || '';
   const items = await searchItems(query, session.user.id);
-  
+
   return NextResponse.json(items);
 }
 ```

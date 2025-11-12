@@ -22,52 +22,52 @@ Each requirement includes trigger conditions, happy path flow, edge cases, and m
 
 ### Catalog Management (FR-CAT)
 
-| ID | Requirement | Key Acceptance Criteria |
-|----|-------------|------------------------|
-| FR-CAT-001 | Full-Text Catalog Search | Results in < 500ms (p95), relevance scoring |
+| ID         | Requirement                                | Key Acceptance Criteria                                    |
+| ---------- | ------------------------------------------ | ---------------------------------------------------------- |
+| FR-CAT-001 | Full-Text Catalog Search                   | Results in < 500ms (p95), relevance scoring                |
 | FR-CAT-002 | Item Registration with Duplicate Detection | Prevents duplicates without confirmation, case-insensitive |
-| FR-CAT-003 | Retrieve Single Catalog Item | Retrieval in < 100ms (p95), validates ObjectId |
+| FR-CAT-003 | Retrieve Single Catalog Item               | Retrieval in < 100ms (p95), validates ObjectId             |
 
 ### Shopping Cart (FR-CART)
 
-| ID | Requirement | Key Acceptance Criteria |
-|----|-------------|------------------------|
-| FR-CART-001 | Add Item to Cart | Price snapshot, combines quantities, < 500ms |
-| FR-CART-002 | Update Cart Item Quantity | Recalculates subtotal/total, < 300ms |
-| FR-CART-003 | Remove Item from Cart | Idempotent operation, < 300ms |
-| FR-CART-004 | Retrieve User Cart | Auto-creates empty cart, < 200ms |
-| FR-CART-005 | Get Cart Analytics | itemCount, uniqueItemCount, totalCost, averagePrice |
-| FR-CART-006 | Clear Cart After Checkout | Atomic with PR creation, rollback on failure |
+| ID          | Requirement               | Key Acceptance Criteria                             |
+| ----------- | ------------------------- | --------------------------------------------------- |
+| FR-CART-001 | Add Item to Cart          | Price snapshot, combines quantities, < 500ms        |
+| FR-CART-002 | Update Cart Item Quantity | Recalculates subtotal/total, < 300ms                |
+| FR-CART-003 | Remove Item from Cart     | Idempotent operation, < 300ms                       |
+| FR-CART-004 | Retrieve User Cart        | Auto-creates empty cart, < 200ms                    |
+| FR-CART-005 | Get Cart Analytics        | itemCount, uniqueItemCount, totalCost, averagePrice |
+| FR-CART-006 | Clear Cart After Checkout | Atomic with PR creation, rollback on failure        |
 
 ### Checkout (FR-CHECK)
 
-| ID | Requirement | Key Acceptance Criteria |
-|----|-------------|------------------------|
-| FR-CHECK-001 | Validate Cart Before Checkout | Rejects empty cart, < 100ms validation |
-| FR-CHECK-002 | Generate Purchase Request | Unique PR number (PR-YYYY-NNNN), immutable snapshots, < 2s |
-| FR-CHECK-003 | Retrieve Purchase Request List | Own PRs only, sorted newest first, < 500ms |
-| FR-CHECK-004 | Retrieve Single Purchase Request | Authorization check, < 200ms |
+| ID           | Requirement                      | Key Acceptance Criteria                                    |
+| ------------ | -------------------------------- | ---------------------------------------------------------- |
+| FR-CHECK-001 | Validate Cart Before Checkout    | Rejects empty cart, < 100ms validation                     |
+| FR-CHECK-002 | Generate Purchase Request        | Unique PR number (PR-YYYY-NNNN), immutable snapshots, < 2s |
+| FR-CHECK-003 | Retrieve Purchase Request List   | Own PRs only, sorted newest first, < 500ms                 |
+| FR-CHECK-004 | Retrieve Single Purchase Request | Authorization check, < 200ms                               |
 
 ### AI Agent (FR-AGENT)
 
-| ID | Requirement | Key Acceptance Criteria |
-|----|-------------|------------------------|
-| FR-AGENT-001 | Natural Language Search | 90% keyword extraction accuracy, < 5s response |
-| FR-AGENT-002 | Conversational Item Registration | Collects all required fields, shows duplicates |
-| FR-AGENT-003 | Conversational Add to Cart | Explicit confirmation required, shows price/quantity |
-| FR-AGENT-004 | Conversational Checkout | Two confirmations, provides PR number |
-| FR-AGENT-005 | Agent Memory and Context | Remembers cart, last 50 messages in context |
-| FR-AGENT-006 | Conversation Management | Users access own conversations only |
-| FR-AGENT-007 | Tool Execution Logging | All tool calls logged with parameters/results |
+| ID           | Requirement                      | Key Acceptance Criteria                              |
+| ------------ | -------------------------------- | ---------------------------------------------------- |
+| FR-AGENT-001 | Natural Language Search          | 90% keyword extraction accuracy, < 5s response       |
+| FR-AGENT-002 | Conversational Item Registration | Collects all required fields, shows duplicates       |
+| FR-AGENT-003 | Conversational Add to Cart       | Explicit confirmation required, shows price/quantity |
+| FR-AGENT-004 | Conversational Checkout          | Two confirmations, provides PR number                |
+| FR-AGENT-005 | Agent Memory and Context         | Remembers cart, last 50 messages in context          |
+| FR-AGENT-006 | Conversation Management          | Users access own conversations only                  |
+| FR-AGENT-007 | Tool Execution Logging           | All tool calls logged with parameters/results        |
 
 ### Authentication (FR-AUTH)
 
-| ID | Requirement | Key Acceptance Criteria |
-|----|-------------|------------------------|
-| FR-AUTH-001 | User Registration | bcrypt hashing, email uniqueness, < 1s |
-| FR-AUTH-002 | User Login | No email/password revelation on failure, < 500ms |
-| FR-AUTH-003 | Session Validation | JWT signature check, < 50ms |
-| FR-AUTH-004 | Session Refresh | Auto-refresh within expiration window |
+| ID          | Requirement        | Key Acceptance Criteria                          |
+| ----------- | ------------------ | ------------------------------------------------ |
+| FR-AUTH-001 | User Registration  | bcrypt hashing, email uniqueness, < 1s           |
+| FR-AUTH-002 | User Login         | No email/password revelation on failure, < 500ms |
+| FR-AUTH-003 | Session Validation | JWT signature check, < 50ms                      |
+| FR-AUTH-004 | Session Refresh    | Auto-refresh within expiration window            |
 
 ---
 

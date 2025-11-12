@@ -48,14 +48,14 @@ Corporate procurement workflows suffer from multiple friction points that reduce
 
 ### Key Performance Indicators (KPIs)
 
-| Metric | Baseline | Target (3 months) | Target (6 months) | Measurement Method |
-|--------|----------|-------------------|-------------------|---------------------|
-| **Avg. procurement request time** | 15 min | 5 min | 3 min | Time from search to checkout |
-| **Duplicate item rate** | 25% | 10% | 5% | (Duplicates / Total items) × 100 |
-| **AI agent task success rate** | N/A | 90% | 95% | (Successful completions / Total requests) × 100 |
-| **Purchase request approval time** | 3 days | 1.5 days | 1 day | Median time from submission to approval |
-| **Employee satisfaction (NPS)** | 20 | 50 | 70 | Quarterly survey |
-| **Procurement specialist time savings** | 0% | 30% | 50% | Hours saved per week on admin tasks |
+| Metric                                  | Baseline | Target (3 months) | Target (6 months) | Measurement Method                              |
+| --------------------------------------- | -------- | ----------------- | ----------------- | ----------------------------------------------- |
+| **Avg. procurement request time**       | 15 min   | 5 min             | 3 min             | Time from search to checkout                    |
+| **Duplicate item rate**                 | 25%      | 10%               | 5%                | (Duplicates / Total items) × 100                |
+| **AI agent task success rate**          | N/A      | 90%               | 95%               | (Successful completions / Total requests) × 100 |
+| **Purchase request approval time**      | 3 days   | 1.5 days          | 1 day             | Median time from submission to approval         |
+| **Employee satisfaction (NPS)**         | 20       | 50                | 70                | Quarterly survey                                |
+| **Procurement specialist time savings** | 0%       | 30%               | 50%               | Hours saved per week on admin tasks             |
 
 ### Business Outcomes
 
@@ -75,18 +75,21 @@ Corporate procurement workflows suffer from multiple friction points that reduce
 **Role**: Marketing Manager  
 **Procurement Frequency**: 5-10 requests per month  
 **Pain Points**:
+
 - Struggles to find correct item codes in sprawling catalog
 - Unsure which suppliers are approved for specific categories
 - Frustrated by multi-step form filling for simple purchases
 - Loses track of previous purchase history
 
 **Goals**:
+
 - Find items quickly with natural language search
 - Submit purchase requests in < 5 minutes
 - Get confirmation when request is submitted
 - Track request status without contacting buyer
 
 **Success Criteria**:
+
 - Can complete 80 percent of purchases via agent without UI navigation
 - Receives instant confirmation with purchase request number
 - Zero rejected requests due to incorrect catalog selection
@@ -96,18 +99,21 @@ Corporate procurement workflows suffer from multiple friction points that reduce
 **Role**: Procurement Manager  
 **Procurement Frequency**: Reviews 50-100 requests per week  
 **Pain Points**:
+
 - Spends hours cleaning up duplicate catalog entries
 - Receives too many basic questions via email/Slack
 - Lacks visibility into employee purchasing patterns
 - Manual approval workflow for low-value purchases
 
 **Goals**:
+
 - Maintain clean, accurate catalog with minimal effort
 - Auto-approve low-risk purchases below threshold
 - Identify cost savings opportunities from purchasing data
 - Focus time on strategic supplier negotiations
 
 **Success Criteria**:
+
 - Duplicate detection prevents 90 percent of duplicate submissions
 - Self-service reduces support tickets by 60 percent
 - Analytics dashboard shows spending by category/department
@@ -118,18 +124,21 @@ Corporate procurement workflows suffer from multiple friction points that reduce
 **Role**: DevOps/SRE Engineer  
 **Interaction Frequency**: Daily monitoring, weekly deployments  
 **Pain Points**:
+
 - Unclear deployment procedures for infrastructure updates
 - No documented rollback process for failed deployments
 - Manual secret rotation and configuration management
 - Alert fatigue from non-actionable monitoring notifications
 
 **Goals**:
+
 - Deploy updates with zero downtime
 - Rollback bad deployments in < 5 minutes
 - Maintain < $50/month cloud infrastructure costs
 - Achieve 99.9 percent uptime SLA
 
 **Success Criteria**:
+
 - Documented runbooks for all operational tasks
 - Automated deployment pipeline with health checks
 - Cost alerts prevent budget overruns
@@ -141,20 +150,20 @@ Corporate procurement workflows suffer from multiple friction points that reduce
 
 ### Core Functionality
 
-| Feature ID | Feature Name | User Value | Acceptance Criteria |
-|------------|--------------|------------|---------------------|
-| **F-CAT-001** | Catalog Search | Find items quickly | Full-text search returns results in < 500ms |
-| **F-CAT-002** | Item Registration | Add new catalog items | Duplicate detection warns before creating similar items |
-| **F-CART-001** | Shopping Cart | Collect items before checkout | Add/update/remove items with real-time subtotal calculation |
-| **F-CART-002** | Cart Analytics | Understand cart contents | Display item count, unique items, total cost |
-| **F-CHECK-001** | Checkout Flow | Submit purchase requests | Generate PR with unique ID in < 2 seconds |
-| **F-CHECK-002** | Purchase History | Track past requests | List all user purchase requests with filters |
-| **F-AGENT-001** | Conversational Search | Natural language item discovery | Agent extracts intent and calls search tool |
-| **F-AGENT-002** | Conversational Add to Cart | Add items via chat | Agent confirms items before adding |
-| **F-AGENT-003** | Conversational Checkout | Complete purchase via chat | Agent requires explicit confirmation before checkout |
-| **F-AGENT-004** | Agent Memory | Context across messages | Agent remembers cart contents and previous actions |
-| **F-AUTH-001** | User Authentication | Secure access control | NextAuth.js with email/password login |
-| **F-AUTH-002** | Session Management | Persistent login | JWT-based sessions with 30-day expiration |
+| Feature ID      | Feature Name               | User Value                      | Acceptance Criteria                                         |
+| --------------- | -------------------------- | ------------------------------- | ----------------------------------------------------------- |
+| **F-CAT-001**   | Catalog Search             | Find items quickly              | Full-text search returns results in < 500ms                 |
+| **F-CAT-002**   | Item Registration          | Add new catalog items           | Duplicate detection warns before creating similar items     |
+| **F-CART-001**  | Shopping Cart              | Collect items before checkout   | Add/update/remove items with real-time subtotal calculation |
+| **F-CART-002**  | Cart Analytics             | Understand cart contents        | Display item count, unique items, total cost                |
+| **F-CHECK-001** | Checkout Flow              | Submit purchase requests        | Generate PR with unique ID in < 2 seconds                   |
+| **F-CHECK-002** | Purchase History           | Track past requests             | List all user purchase requests with filters                |
+| **F-AGENT-001** | Conversational Search      | Natural language item discovery | Agent extracts intent and calls search tool                 |
+| **F-AGENT-002** | Conversational Add to Cart | Add items via chat              | Agent confirms items before adding                          |
+| **F-AGENT-003** | Conversational Checkout    | Complete purchase via chat      | Agent requires explicit confirmation before checkout        |
+| **F-AGENT-004** | Agent Memory               | Context across messages         | Agent remembers cart contents and previous actions          |
+| **F-AUTH-001**  | User Authentication        | Secure access control           | NextAuth.js with email/password login                       |
+| **F-AUTH-002**  | Session Management         | Persistent login                | JWT-based sessions with 30-day expiration                   |
 
 ### Non-Negotiable Capabilities
 
@@ -171,35 +180,35 @@ Corporate procurement workflows suffer from multiple friction points that reduce
 
 ### Phase 2: Enhanced Workflows (v1.1 - v1.2)
 
-| Feature ID | Feature Name | Business Value | Estimated Effort |
-|------------|--------------|----------------|------------------|
-| **F-APPR-001** | Approval Workflows | Buyer oversight for high-value purchases | High (3-4 sprints) |
-| **F-APPR-002** | Auto-Approval Rules | Reduce buyer workload | Medium (2 sprints) |
-| **F-CAT-003** | Item Status Workflow | PendingReview → Active → Inactive | Medium (2 sprints) |
-| **F-CART-003** | Saved Cart Drafts | Resume interrupted purchasing | Low (1 sprint) |
-| **F-NOTIF-001** | Email Notifications | Status updates for PR approval | Medium (2 sprints) |
-| **F-ANALYTICS-001** | Spending Dashboard | Identify cost savings | High (3 sprints) |
+| Feature ID          | Feature Name         | Business Value                           | Estimated Effort   |
+| ------------------- | -------------------- | ---------------------------------------- | ------------------ |
+| **F-APPR-001**      | Approval Workflows   | Buyer oversight for high-value purchases | High (3-4 sprints) |
+| **F-APPR-002**      | Auto-Approval Rules  | Reduce buyer workload                    | Medium (2 sprints) |
+| **F-CAT-003**       | Item Status Workflow | PendingReview → Active → Inactive        | Medium (2 sprints) |
+| **F-CART-003**      | Saved Cart Drafts    | Resume interrupted purchasing            | Low (1 sprint)     |
+| **F-NOTIF-001**     | Email Notifications  | Status updates for PR approval           | Medium (2 sprints) |
+| **F-ANALYTICS-001** | Spending Dashboard   | Identify cost savings                    | High (3 sprints)   |
 
 ### Phase 3: Advanced Intelligence (v2.0+)
 
-| Feature ID | Feature Name | Business Value | Estimated Effort |
-|------------|--------------|----------------|------------------|
-| **F-AGENT-005** | Multi-Turn Negotiation | Complex purchasing scenarios | High (4-5 sprints) |
-| **F-AGENT-006** | Proactive Suggestions | Recommend items based on history | Medium (2-3 sprints) |
-| **F-AGENT-007** | Budget Awareness | Warn about department budget limits | Medium (2 sprints) |
-| **F-CAT-004** | Smart Categorization | ML-based category suggestions | Medium (2-3 sprints) |
-| **F-INT-001** | ERP Integration | Real purchase order submission | High (4-6 sprints) |
-| **F-INT-002** | Supplier API Integration | Real-time pricing and availability | High (4-6 sprints) |
+| Feature ID      | Feature Name             | Business Value                      | Estimated Effort     |
+| --------------- | ------------------------ | ----------------------------------- | -------------------- |
+| **F-AGENT-005** | Multi-Turn Negotiation   | Complex purchasing scenarios        | High (4-5 sprints)   |
+| **F-AGENT-006** | Proactive Suggestions    | Recommend items based on history    | Medium (2-3 sprints) |
+| **F-AGENT-007** | Budget Awareness         | Warn about department budget limits | Medium (2 sprints)   |
+| **F-CAT-004**   | Smart Categorization     | ML-based category suggestions       | Medium (2-3 sprints) |
+| **F-INT-001**   | ERP Integration          | Real purchase order submission      | High (4-6 sprints)   |
+| **F-INT-002**   | Supplier API Integration | Real-time pricing and availability  | High (4-6 sprints)   |
 
 ### Phase 4: Enterprise Features (v3.0+)
 
-| Feature ID | Feature Name | Business Value | Estimated Effort |
-|------------|--------------|----------------|------------------|
-| **F-MULTI-001** | Multi-Tenancy | Support multiple organizations | Very High (6-8 sprints) |
-| **F-RBAC-001** | Role-Based Access Control | Granular permissions | Medium (2-3 sprints) |
-| **F-AUDIT-001** | Audit Trail | Compliance and forensics | Medium (2 sprints) |
-| **F-REPORT-001** | Advanced Reporting | Executive dashboards | High (3-4 sprints) |
-| **F-MOBILE-001** | Mobile App | Procurement on the go | Very High (8-10 sprints) |
+| Feature ID       | Feature Name              | Business Value                 | Estimated Effort         |
+| ---------------- | ------------------------- | ------------------------------ | ------------------------ |
+| **F-MULTI-001**  | Multi-Tenancy             | Support multiple organizations | Very High (6-8 sprints)  |
+| **F-RBAC-001**   | Role-Based Access Control | Granular permissions           | Medium (2-3 sprints)     |
+| **F-AUDIT-001**  | Audit Trail               | Compliance and forensics       | Medium (2 sprints)       |
+| **F-REPORT-001** | Advanced Reporting        | Executive dashboards           | High (3-4 sprints)       |
+| **F-MOBILE-001** | Mobile App                | Procurement on the go          | Very High (8-10 sprints) |
 
 ---
 
@@ -253,31 +262,31 @@ Corporate procurement workflows suffer from multiple friction points that reduce
 
 ### External Dependencies
 
-| Dependency | Type | Risk Level | Mitigation |
-|------------|------|------------|------------|
-| **OpenAI API** | Third-party service | Medium | Implement Gemini fallback, circuit breaker, rate limiting |
-| **MongoDB Atlas** | Cloud database | Low | Free tier stable, upgrade path available |
-| **GCP Cloud Run** | Cloud platform | Low | Pulumi IaC enables migration, Docker portability |
-| **NextAuth.js** | Authentication library | Low | Widely adopted, stable v4.x release |
-| **LangChain** | AI orchestration | Medium | Active development, some API instability |
+| Dependency        | Type                   | Risk Level | Mitigation                                                |
+| ----------------- | ---------------------- | ---------- | --------------------------------------------------------- |
+| **OpenAI API**    | Third-party service    | Medium     | Implement Gemini fallback, circuit breaker, rate limiting |
+| **MongoDB Atlas** | Cloud database         | Low        | Free tier stable, upgrade path available                  |
+| **GCP Cloud Run** | Cloud platform         | Low        | Pulumi IaC enables migration, Docker portability          |
+| **NextAuth.js**   | Authentication library | Low        | Widely adopted, stable v4.x release                       |
+| **LangChain**     | AI orchestration       | Medium     | Active development, some API instability                  |
 
 ### Technical Risks
 
-| Risk | Impact | Probability | Mitigation Strategy |
-|------|--------|-------------|---------------------|
-| **OpenAI API cost overrun** | High (budget exceeded) | Medium | Implement token usage analytics, set monthly budget alerts |
-| **MongoDB M0 storage limit** | Medium (service degradation) | Medium | Monitor usage, implement data cleanup policies |
-| **Text index creation forgotten** | High (search broken) | Low | Document in setup guide, add health check |
-| **Agent hallucination** | Medium (incorrect actions) | Medium | Require explicit confirmation for critical actions |
-| **Cold start latency** | Low (poor UX) | Medium | Accept 2-3s cold starts, document as known limitation |
+| Risk                              | Impact                       | Probability | Mitigation Strategy                                        |
+| --------------------------------- | ---------------------------- | ----------- | ---------------------------------------------------------- |
+| **OpenAI API cost overrun**       | High (budget exceeded)       | Medium      | Implement token usage analytics, set monthly budget alerts |
+| **MongoDB M0 storage limit**      | Medium (service degradation) | Medium      | Monitor usage, implement data cleanup policies             |
+| **Text index creation forgotten** | High (search broken)         | Low         | Document in setup guide, add health check                  |
+| **Agent hallucination**           | Medium (incorrect actions)   | Medium      | Require explicit confirmation for critical actions         |
+| **Cold start latency**            | Low (poor UX)                | Medium      | Accept 2-3s cold starts, document as known limitation      |
 
 ### Business Risks
 
-| Risk | Impact | Probability | Mitigation Strategy |
-|------|--------|-------------|---------------------|
-| **Low user adoption** | High (no ROI) | Low | Focus on simple UX, agent-first onboarding |
-| **Procurement team resistance** | Medium (change management) | Medium | Demonstrate duplicate detection value, time savings |
-| **Data privacy concerns** | High (compliance) | Low | Use customer-provided API keys, document data handling |
+| Risk                            | Impact                     | Probability | Mitigation Strategy                                    |
+| ------------------------------- | -------------------------- | ----------- | ------------------------------------------------------ |
+| **Low user adoption**           | High (no ROI)              | Low         | Focus on simple UX, agent-first onboarding             |
+| **Procurement team resistance** | Medium (change management) | Medium      | Demonstrate duplicate detection value, time savings    |
+| **Data privacy concerns**       | High (compliance)          | Low         | Use customer-provided API keys, document data handling |
 
 ---
 

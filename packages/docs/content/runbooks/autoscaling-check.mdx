@@ -29,6 +29,7 @@ gcloud run services describe procureflow-web \
 ```
 
 **Expected Output** (Dev):
+
 ```
 true
 80
@@ -37,6 +38,7 @@ true
 ```
 
 **Verification**:
+
 - [ ] Container concurrency: 80
 - [ ] Min instances: 0 (dev) or 1 (prod)
 - [ ] Max instances: 2 (dev) or 100 (prod)
@@ -51,6 +53,7 @@ gcloud monitoring time-series list \
 ```
 
 **Verification**:
+
 - [ ] Instance count within min/max limits
 - [ ] Instances scaling appropriately with traffic
 
@@ -65,6 +68,7 @@ gcloud monitoring time-series list \
 ```
 
 **Verification**:
+
 - [ ] Request count matches expected traffic
 - [ ] No sudden spikes or drops
 
@@ -81,12 +85,14 @@ gcloud monitoring time-series list \
 **Target**: P95 latency < 2s
 
 **Verification**:
+
 - [ ] Latency within acceptable range
 - [ ] No degradation over time
 
 ### Step 5: Check Scaling Events
 
 Via Cloud Console:
+
 1. Navigate to **Cloud Run** → **procureflow-web**
 2. Click **Metrics** tab
 3. View:
@@ -97,6 +103,7 @@ Via Cloud Console:
    - Container memory utilization
 
 **Look for**:
+
 - Scaling events correlate with traffic changes
 - No instance thrashing (rapid up/down)
 - CPU/memory within limits
@@ -106,6 +113,7 @@ Via Cloud Console:
 ## Verification
 
 **Health Checks**:
+
 - [ ] Instance count appropriate for traffic
 - [ ] Scaling responsive (up in less than 30s, down after 15 min idle)
 - [ ] P95 latency < 2s
@@ -114,6 +122,7 @@ Via Cloud Console:
 - [ ] No cold start issues (if min instances > 0)
 
 **Cost Checks**:
+
 - [ ] Instance hours within budget
 - [ ] No runaway scaling (max instances not hit)
 
@@ -126,6 +135,7 @@ Via Cloud Console:
 **Symptom**: Instance count = max instances for extended period
 
 **Action**:
+
 1. Check if legitimate traffic spike
 2. Review max instance limit (may need increase for prod)
 3. Check for resource bottlenecks (CPU/memory)
@@ -135,6 +145,7 @@ Via Cloud Console:
 **Symptom**: P95 latency > 3s, min instances = 0
 
 **Action**:
+
 1. Consider increasing min instances to 1
 2. Optimize Next.js bundle size
 3. Review database connection pooling
@@ -144,6 +155,7 @@ Via Cloud Console:
 **Symptom**: Instance count rapidly up/down
 
 **Action**:
+
 1. Check if traffic is bursty
 2. Adjust target concurrency (increase for more stability)
 3. Review scale-down delay settings
@@ -199,11 +211,13 @@ gcloud run services update procureflow-web \
 ```
 
 **Check Actual Cost**:
+
 1. Navigate to **Billing** → **Reports**
 2. Filter by **Cloud Run** service
 3. Review last 30 days
 
 **Verification**:
+
 - [ ] Cost within budget ($10/month dev, $50/month prod)
 - [ ] No unexpected charges
 

@@ -12,12 +12,12 @@ ProcureFlow deploys via Docker Compose (local), GCP Cloud Run dev/staging/prod (
 
 ## Environments
 
-| Environment | Hosting | Database | URL | Auto-Scaling |
-|-------------|---------|----------|-----|--------------|
-| **Local** | Docker Compose | MongoDB container | http://localhost:3000 | No |
-| **Dev** | GCP Cloud Run (dev) | MongoDB Atlas M0 | https://dev.procureflow.app | 0-10 instances |
-| **Staging** | GCP Cloud Run (dev) | MongoDB Atlas M0 | https://staging.procureflow.app | 0-10 instances |
-| **Production** | GCP Cloud Run (prod) | MongoDB Atlas M0 | https://procureflow.app | 1-100 instances (future) |
+| Environment    | Hosting              | Database          | URL                             | Auto-Scaling             |
+| -------------- | -------------------- | ----------------- | ------------------------------- | ------------------------ |
+| **Local**      | Docker Compose       | MongoDB container | http://localhost:3000           | No                       |
+| **Dev**        | GCP Cloud Run (dev)  | MongoDB Atlas M0  | https://dev.procureflow.app     | 0-10 instances           |
+| **Staging**    | GCP Cloud Run (dev)  | MongoDB Atlas M0  | https://staging.procureflow.app | 0-10 instances           |
+| **Production** | GCP Cloud Run (prod) | MongoDB Atlas M0  | https://procureflow.app         | 1-100 instances (future) |
 
 ---
 
@@ -30,7 +30,7 @@ services:
   web:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/procureflow
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
@@ -40,14 +40,14 @@ services:
   mongodb:
     image: mongo:6
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
       - mongo-data:/data/db
 
   mongo-express:
     image: mongo-express
     ports:
-      - "8081:8081"
+      - '8081:8081'
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongodb
 ```
@@ -212,7 +212,7 @@ export const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
-    winston.format.json(),
+    winston.format.json()
   ),
   transports: [
     new winston.transports.Console(),
@@ -263,16 +263,19 @@ export async function GET() {
 export async function GET() {
   const checks = {
     api: 'ok',
-    db: await mongoose.connection.readyState === 1 ? 'ok' : 'fail',
+    db: (await mongoose.connection.readyState) === 1 ? 'ok' : 'fail',
     uptime: process.uptime(),
   };
 
   const status = checks.db === 'ok' ? 200 : 503;
-  return NextResponse.json({
-    status: checks.db === 'ok' ? 'ok' : 'degraded',
-    checks,
-    version: process.env.npm_package_version,
-  }, { status });
+  return NextResponse.json(
+    {
+      status: checks.db === 'ok' ? 'ok' : 'degraded',
+      checks,
+      version: process.env.npm_package_version,
+    },
+    { status }
+  );
 }
 ```
 
@@ -282,11 +285,11 @@ export async function GET() {
 
 ### Cloud Run Scaling
 
-| Environment | Min Instances | Max Instances | Target Concurrency | Scale-Down Delay |
-|-------------|---------------|---------------|-------------------|------------------|
-| **Dev** | 0 | 10 | 80 req/instance | 15 min |
-| **Staging** | 0 | 10 | 80 req/instance | 15 min |
-| **Production** | 1 (future) | 100 (future) | 80 req/instance | 15 min |
+| Environment    | Min Instances | Max Instances | Target Concurrency | Scale-Down Delay |
+| -------------- | ------------- | ------------- | ------------------ | ---------------- |
+| **Dev**        | 0             | 10            | 80 req/instance    | 15 min           |
+| **Staging**    | 0             | 10            | 80 req/instance    | 15 min           |
+| **Production** | 1 (future)    | 100 (future)  | 80 req/instance    | 15 min           |
 
 ### Scaling Behavior
 
@@ -300,14 +303,14 @@ export async function GET() {
 
 ### Monthly Budget
 
-| Service | Free Tier | Estimated Usage | Est. Cost |
-|---------|-----------|-----------------|-----------|
-| Cloud Run | 2M req/month, 360k GB-sec | 100k req/month | $0.00 |
-| Artifact Registry | 0.5 GB | 0.2 GB | $0.10 |
-| Secret Manager | 6 secrets | 3 secrets | $0.00 |
-| MongoDB Atlas M0 | 512 MB | Full | $0.00 |
-| OpenAI API | No free tier | 1M tokens/month | $2.00 |
-| **Total** | | | **~$2.10** |
+| Service           | Free Tier                 | Estimated Usage | Est. Cost  |
+| ----------------- | ------------------------- | --------------- | ---------- |
+| Cloud Run         | 2M req/month, 360k GB-sec | 100k req/month  | $0.00      |
+| Artifact Registry | 0.5 GB                    | 0.2 GB          | $0.10      |
+| Secret Manager    | 6 secrets                 | 3 secrets       | $0.00      |
+| MongoDB Atlas M0  | 512 MB                    | Full            | $0.00      |
+| OpenAI API        | No free tier              | 1M tokens/month | $2.00      |
+| **Total**         |                           |                 | **~$2.10** |
 
 ### Cost Alerts
 

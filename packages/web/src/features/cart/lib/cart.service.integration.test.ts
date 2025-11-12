@@ -106,9 +106,9 @@ describe('cart.service - Integration Tests', () => {
       });
 
       expect(cart.items).toHaveLength(1);
-      expect(cart.items[0].itemName).toBe('Wireless Mouse');
+      expect(cart.items[0].name).toBe('Wireless Mouse');
       expect(cart.items[0].quantity).toBe(2);
-      expect(cart.items[0].itemPrice).toBe(29.99);
+      expect(cart.items[0].unitPrice).toBe(29.99);
       expect(cart.items[0].subtotal).toBe(59.98);
     });
 
@@ -343,7 +343,7 @@ describe('cart.service - Integration Tests', () => {
       const cart = await removeCartItem(testUserId, item1._id.toString());
 
       expect(cart.items).toHaveLength(1);
-      expect(cart.items[0].itemName).toBe('Item 2');
+      expect(cart.items[0].name).toBe('Item 2');
     });
 
     it('should throw ValidationError if item not in cart', async () => {
@@ -425,10 +425,10 @@ describe('cart.service - Integration Tests', () => {
 
       expect(cart.items).toHaveLength(2);
       expect(
-        cart.items.find((i) => i.itemName === 'Persistent Item 1')?.quantity
+        cart.items.find((i) => i.name === 'Persistent Item 1')?.quantity
       ).toBe(3);
       expect(
-        cart.items.find((i) => i.itemName === 'Persistent Item 2')?.quantity
+        cart.items.find((i) => i.name === 'Persistent Item 2')?.quantity
       ).toBe(1);
       expect(cart.totalCost).toBeCloseTo(225.0, 2); // (50 * 3) + (75 * 1)
     });

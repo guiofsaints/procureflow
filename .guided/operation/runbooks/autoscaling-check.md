@@ -28,6 +28,7 @@
 ### Required Tools
 
 - [ ] **gcloud CLI Installed**:
+
   ```powershell
   gcloud --version  # Should show Google Cloud SDK 450.0.0+
   ```
@@ -43,6 +44,7 @@
 **Description**: Check Cloud Run autoscaling metrics in GCP Console
 
 **Navigate To**:
+
 ```
 https://console.cloud.google.com/run/detail/us-central1/procureflow-web/metrics
 ```
@@ -70,6 +72,7 @@ https://console.cloud.google.com/run/detail/us-central1/procureflow-web/metrics
    - **Expected**: < 0.1% (baseline)
 
 **Verification**:
+
 - [ ] Instance count within limits
 - [ ] P95 latency < 1s
 - [ ] Request rate stable (no unusual spikes)
@@ -105,21 +108,24 @@ gcloud run services describe procureflow-web `
 **Alternative**: Check instance count in Cloud Run console
 
 **Navigate To**:
+
 ```
 https://console.cloud.google.com/run/detail/us-central1/procureflow-web/metrics
 ```
+
 - **Chart**: "Container instance count"
 - **Current Value**: Shows current number of running instances
 
 **Expected Values**:
 
-| Environment | Min Instances | Max Instances | Current (Idle) | Current (Load) | Status |
-|-------------|---------------|---------------|----------------|----------------|--------|
-| **Dev** | 0 | 2 | 0 | 1-2 | ✅ Normal |
-| **Staging** | 0 | 10 | 0 | 1-5 | ✅ Normal |
-| **Production** | 1 | 100 | 1 | 5-20 | ✅ Normal |
+| Environment    | Min Instances | Max Instances | Current (Idle) | Current (Load) | Status    |
+| -------------- | ------------- | ------------- | -------------- | -------------- | --------- |
+| **Dev**        | 0             | 2             | 0              | 1-2            | ✅ Normal |
+| **Staging**    | 0             | 10            | 0              | 1-5            | ✅ Normal |
+| **Production** | 1             | 100           | 1              | 5-20           | ✅ Normal |
 
 **Verification**:
+
 - [ ] Current instance count within configured min/max limits
 - [ ] No instances stuck (e.g., 10 instances running with 0 traffic)
 
@@ -148,13 +154,14 @@ gcloud run services describe procureflow-web `
 
 **Expected Configuration**:
 
-| Environment | minScale | maxScale | containerConcurrency | Status |
-|-------------|----------|----------|----------------------|--------|
-| **Dev** | 0 | 2 | 80 | ✅ Configured |
-| **Staging** | 0 | 10 | 80 | ⏸️ Planned |
-| **Production** | 1 | 100 | 80 | ⏸️ Planned |
+| Environment    | minScale | maxScale | containerConcurrency | Status        |
+| -------------- | -------- | -------- | -------------------- | ------------- |
+| **Dev**        | 0        | 2        | 80                   | ✅ Configured |
+| **Staging**    | 0        | 10       | 80                   | ⏸️ Planned    |
+| **Production** | 1        | 100      | 80                   | ⏸️ Planned    |
 
 **Verification**:
+
 - [ ] `minScale` matches expected value
 - [ ] `maxScale` matches expected value
 - [ ] `containerConcurrency` set to 80
@@ -166,6 +173,7 @@ gcloud run services describe procureflow-web `
 **Description**: Verify actual concurrent requests per instance matches target (80)
 
 **Navigate To**:
+
 ```
 https://console.cloud.google.com/run/detail/us-central1/procureflow-web/metrics
 ```
@@ -195,6 +203,7 @@ https://console.cloud.google.com/run/detail/us-central1/procureflow-web/metrics
 ```
 
 **Verification**:
+
 - [ ] Avg concurrency per instance ≤ 80
 - [ ] If concurrency > 80 consistently: Autoscaler should add instances
 
@@ -205,6 +214,7 @@ https://console.cloud.google.com/run/detail/us-central1/procureflow-web/metrics
 **Description**: Verify GCP billing for autoscaling cost anomalies
 
 **Navigate To**:
+
 ```
 https://console.cloud.google.com/billing
 ```
@@ -213,14 +223,14 @@ https://console.cloud.google.com/billing
 
 **Check Monthly Spend**:
 
-| Resource | Expected Cost (Dev) | Expected Cost (Prod) | Anomaly Threshold |
-|----------|---------------------|----------------------|-------------------|
-| **Cloud Run** | $0 (within free tier) | ~$5-10/month (1 instance always running) | > $20/month |
-| **Artifact Registry** | ~$0.10/month | ~$0.50/month | > $5/month |
-| **Secret Manager** | $0 (6 secrets free) | $0 | > $0 |
-| **MongoDB Atlas** | $0 (M0 free tier) | ~$57/month (M10) | > $100/month |
-| **OpenAI API** | ~$2/month | ~$50/month | > $100/month |
-| **Total** | ~$2.10/month | ~$112/month | Dev > $10, Prod > $200 |
+| Resource              | Expected Cost (Dev)   | Expected Cost (Prod)                     | Anomaly Threshold      |
+| --------------------- | --------------------- | ---------------------------------------- | ---------------------- |
+| **Cloud Run**         | $0 (within free tier) | ~$5-10/month (1 instance always running) | > $20/month            |
+| **Artifact Registry** | ~$0.10/month          | ~$0.50/month                             | > $5/month             |
+| **Secret Manager**    | $0 (6 secrets free)   | $0                                       | > $0                   |
+| **MongoDB Atlas**     | $0 (M0 free tier)     | ~$57/month (M10)                         | > $100/month           |
+| **OpenAI API**        | ~$2/month             | ~$50/month                               | > $100/month           |
+| **Total**             | ~$2.10/month          | ~$112/month                              | Dev > $10, Prod > $200 |
 
 **Check Billing Alerts**:
 
@@ -229,10 +239,12 @@ Navigate to: https://console.cloud.google.com/billing/budgets
 ```
 
 **Verify Alerts Configured**:
+
 - [ ] Monthly spend alert at $10/month (dev environment)
 - [ ] Monthly spend alert at $50/month (staging/production, future)
 
 **Verification**:
+
 - [ ] Current month spend within expected range
 - [ ] No cost spikes in last 7 days
 - [ ] Billing alerts configured and active
@@ -244,6 +256,7 @@ Navigate to: https://console.cloud.google.com/billing/budgets
 **Description**: Trigger autoscaling by generating load and verify instances scale up/down
 
 **Prerequisites**:
+
 - [ ] k6 load testing tool installed (future v1.2)
 - [ ] Load test approved (don't run in production without approval)
 
@@ -265,14 +278,15 @@ k6 run scripts/load-test/baseline.js
 
 **Expected Behavior**:
 
-| Phase | Duration | Expected Instance Count | Status |
-|-------|----------|------------------------|--------|
-| **Ramp-up** | 0-2 min | 0 → 1-2 (dev) | ✅ Scaling up |
-| **Sustained load** | 2-7 min | 1-2 (dev) | ✅ Stable |
-| **Ramp-down** | 7-9 min | 1-2 → 1 | ✅ Scaling down slowly |
-| **Idle** | 9-24 min | 1 → 0 (after 15 min idle) | ✅ Scaled to zero |
+| Phase              | Duration | Expected Instance Count   | Status                 |
+| ------------------ | -------- | ------------------------- | ---------------------- |
+| **Ramp-up**        | 0-2 min  | 0 → 1-2 (dev)             | ✅ Scaling up          |
+| **Sustained load** | 2-7 min  | 1-2 (dev)                 | ✅ Stable              |
+| **Ramp-down**      | 7-9 min  | 1-2 → 1                   | ✅ Scaling down slowly |
+| **Idle**           | 9-24 min | 1 → 0 (after 15 min idle) | ✅ Scaled to zero      |
 
 **Verification**:
+
 - [ ] Instances scale up when load increases
 - [ ] Instances scale down after load decreases
 - [ ] Scale-down respects 15-minute idle timeout
@@ -284,17 +298,20 @@ k6 run scripts/load-test/baseline.js
 ### Weekly Check Results
 
 **Autoscaling Health**:
+
 - [ ] Instance count within configured limits (min/max)
 - [ ] Avg concurrency per instance ≤ 80
 - [ ] P95 latency < 1s (no performance degradation)
 - [ ] Error rate < 0.1%
 
 **Cost Health**:
+
 - [ ] Monthly spend within expected range (dev < $10, prod < $200)
 - [ ] No unusual cost spikes in last 7 days
 - [ ] Billing alerts configured
 
 **Scaling Behavior** (if load test run):
+
 - [ ] Instances scale up under load
 - [ ] Instances scale down after load decreases
 - [ ] Scale-to-zero works (dev environment only)
@@ -320,6 +337,7 @@ gcloud run services describe procureflow-web `
 ```
 
 **Possible Causes**:
+
 1. **Traffic spike**: Legitimate traffic increase causing autoscaling
 2. **Slow requests**: Requests taking > 5s cause more instances to queue up
 3. **maxScale too high**: Configured maxScale allows too many instances
@@ -358,6 +376,7 @@ gcloud run services describe procureflow-web `
 ```
 
 **Possible Causes**:
+
 1. **minScale = 0**: Scale-to-zero causes cold starts (~2-4s startup time)
 2. **Large container image**: Slow container startup due to large Next.js build
 3. **Slow Next.js initialization**: Next.js taking > 2s to initialize
@@ -397,6 +416,7 @@ gcloud run services describe procureflow-web `
 ```
 
 **Possible Causes**:
+
 1. **DDoS attack**: Abnormal traffic spike causing autoscaling
 2. **maxScale too high**: Autoscaler allowed 100 instances (should be 2 for dev)
 3. **Runaway process**: Long-running requests preventing instance termination
@@ -441,6 +461,7 @@ gcloud run services describe procureflow-web `
 ```
 
 **Possible Causes**:
+
 1. **maxScale = 1**: Autoscaling disabled (only 1 instance allowed)
 2. **Quota exceeded**: GCP quota for Cloud Run instances exhausted
 3. **Service account issue**: Cloud Run service account lacks permissions
@@ -470,11 +491,13 @@ gcloud compute project-info describe --project=procureflow-dev | Select-String "
 1. **First**: Review [Autoscaling Policy](../../operations/autoscaling-policy.md) for detailed configuration
 
 2. **Second**: Check Cloud Run service logs for errors:
+
    ```powershell
    gcloud run services logs read procureflow-web --region=us-central1 --limit=100
    ```
 
 3. **Third**: Post in team Slack channel #platform-support:
+
    ```
    Autoscaling issue detected:
    - Environment: dev/staging/production

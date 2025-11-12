@@ -12,21 +12,21 @@ ProcureFlow deploys to GCP Cloud Run via GitHub Actions CI/CD triggered on push 
 
 ## Deployment Targets
 
-| Platform | Status | Use Case | Cost | Rationale |
-|----------|--------|----------|------|-----------|
-| **GCP Cloud Run** | ✅ Active (dev only) | Serverless container platform | Free tier (~2M requests/month) + $0.10/month storage | Serverless auto-scaling, zero ops, pay-per-use, HTTPS out-of-box |
-| **Docker Compose** | ✅ Active (local only) | Local development | $0 | Docker Desktop for dev/test, not for production |
+| Platform           | Status                 | Use Case                      | Cost                                                 | Rationale                                                        |
+| ------------------ | ---------------------- | ----------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------- |
+| **GCP Cloud Run**  | ✅ Active (dev only)   | Serverless container platform | Free tier (~2M requests/month) + $0.10/month storage | Serverless auto-scaling, zero ops, pay-per-use, HTTPS out-of-box |
+| **Docker Compose** | ✅ Active (local only) | Local development             | $0                                                   | Docker Desktop for dev/test, not for production                  |
 
 ---
 
 ## Environments
 
-| Environment | Status | Deploy Target | URL | Auto-Deploy | Database | Cost/Month |
-|-------------|--------|---------------|-----|-------------|----------|------------|
-| **Local** | ✅ Active | Docker Compose | http://localhost:3000 | ❌ Manual (`pnpm docker:up`) | MongoDB 8.10.6 (local container) | $0 |
-| **Dev** | ✅ Active | GCP Cloud Run (us-central1) | https://procureflow-web-*.run.app | ✅ On push to `main` | MongoDB Atlas M0 (free tier) | ~$2.10 |
-| **Staging** | ⏸️ Not Configured | GCP Cloud Run (us-central1) | TBD | ❌ Manual `workflow_dispatch` | MongoDB Atlas M2 | ~$15 (estimated) |
-| **Production** | ⏸️ Not Configured | GCP Cloud Run (us-central1) | TBD | ❌ Manual `workflow_dispatch` | MongoDB Atlas M10 | ~$50 (estimated) |
+| Environment    | Status            | Deploy Target               | URL                                | Auto-Deploy                   | Database                         | Cost/Month       |
+| -------------- | ----------------- | --------------------------- | ---------------------------------- | ----------------------------- | -------------------------------- | ---------------- |
+| **Local**      | ✅ Active         | Docker Compose              | http://localhost:3000              | ❌ Manual (`pnpm docker:up`)  | MongoDB 8.10.6 (local container) | $0               |
+| **Dev**        | ✅ Active         | GCP Cloud Run (us-central1) | https://procureflow-web-\*.run.app | ✅ On push to `main`          | MongoDB Atlas M0 (free tier)     | ~$2.10           |
+| **Staging**    | ⏸️ Not Configured | GCP Cloud Run (us-central1) | TBD                                | ❌ Manual `workflow_dispatch` | MongoDB Atlas M2                 | ~$15 (estimated) |
+| **Production** | ⏸️ Not Configured | GCP Cloud Run (us-central1) | TBD                                | ❌ Manual `workflow_dispatch` | MongoDB Atlas M10                | ~$50 (estimated) |
 
 **Note**: Only **dev environment** is fully configured in v1.0.
 
@@ -43,35 +43,35 @@ sequenceDiagram
     participant Pulumi as Pulumi
     participant CR as Cloud Run
     participant Mongo as MongoDB Atlas
-    
+
     Dev->>GH: Push to main branch
     GH->>GA: Trigger workflow (path filter)
-    
+
     GA->>GA: Checkout code
     GA->>GA: Run tests (pnpm test)
     GA->>GA: Build Next.js (pnpm build)
-    
+
     GA->>Docker: Build Docker image
     GA->>Docker: Push image (tag: sha-abc123f)
-    
+
     GA->>Pulumi: Pulumi preview
     Pulumi-->>GA: Show changes
     GA->>Pulumi: Pulumi up --yes
-    
+
     Pulumi->>CR: Create/update Cloud Run service
     Pulumi->>CR: Set environment variables
     Pulumi->>CR: Configure secrets (Secret Manager)
-    
+
     CR->>CR: Pull Docker image
     CR->>CR: Start container
     CR->>Mongo: Connect to MongoDB Atlas
-    
+
     CR->>CR: Health check (/api/health)
     CR-->>GA: Health check: 200 OK
-    
+
     GA->>CR: Smoke test: GET /
     CR-->>GA: Root endpoint: 200/302
-    
+
     GA->>GH: Deployment success ✅
 ```
 
@@ -84,17 +84,19 @@ sequenceDiagram
 ### Trigger Conditions
 
 **Automatic Trigger**:
+
 ```yaml
 on:
   push:
     branches: [main]
     paths:
-      - 'packages/web/**'        # Next.js application code
-      - 'packages/infra/**'      # Infrastructure/Dockerfile
+      - 'packages/web/**' # Next.js application code
+      - 'packages/infra/**' # Infrastructure/Dockerfile
       - '.github/workflows/deploy-gcp.yml'
 ```
 
 **Manual Trigger**:
+
 ```yaml
 on:
   workflow_dispatch:
@@ -126,19 +128,20 @@ on:
 
 ### CI Gates
 
-| Check | Tool | Threshold | Blocks Deploy? |
-|-------|------|-----------|----------------|
-| **Unit Tests** | Vitest | All pass | ✅ Yes |
-| **Linting** | ESLint | No errors | ✅ Yes |
-| **Type Check** | TypeScript | No errors | ✅ Yes |
-| **Build Success** | Next.js | Exit code 0 | ✅ Yes |
-| **Docker Build** | Docker | Exit code 0 | ✅ Yes |
-| **Pulumi Preview** | Pulumi | No errors | ✅ Yes |
-| **Vulnerability Scan** | npm audit | No critical | ⚠️ Warning only |
+| Check                  | Tool       | Threshold   | Blocks Deploy?  |
+| ---------------------- | ---------- | ----------- | --------------- |
+| **Unit Tests**         | Vitest     | All pass    | ✅ Yes          |
+| **Linting**            | ESLint     | No errors   | ✅ Yes          |
+| **Type Check**         | TypeScript | No errors   | ✅ Yes          |
+| **Build Success**      | Next.js    | Exit code 0 | ✅ Yes          |
+| **Docker Build**       | Docker     | Exit code 0 | ✅ Yes          |
+| **Pulumi Preview**     | Pulumi     | No errors   | ✅ Yes          |
+| **Vulnerability Scan** | npm audit  | No critical | ⚠️ Warning only |
 
 ### Environment Variables Validation
 
 **Required Secrets**:
+
 - `NEXTAUTH_SECRET`: NextAuth.js session encryption
 - `MONGODB_CONNECTION_STRING`: MongoDB Atlas connection
 - `OPENAI_API_KEY`: OpenAI API access (or `not-set`)

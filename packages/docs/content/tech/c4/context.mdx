@@ -14,30 +14,30 @@ graph TD
     Employee[👤 Employee/Requester<br/>Internal user purchasing<br/>materials and services]
     Buyer[👤 Procurement Specialist<br/>Buyer managing catalog<br/>quality and approvals]
     Engineer[👤 Platform Engineer<br/>DevOps/SRE deploying<br/>and monitoring system]
-    
+
     %% System Boundary
     ProcureFlow[🎯 ProcureFlow Web App<br/>Next.js 15 / React 19<br/>AI-native procurement platform]
-    
+
     %% External Systems
     MongoDB[(🗄️ MongoDB Atlas M0<br/>Document database<br/>512 MB free tier)]
     OpenAI[🤖 OpenAI API<br/>GPT-3.5-turbo<br/>LLM for agent]
-    
+
     %% Interactions
     Employee -->|HTTP/HTTPS<br/>Browse catalog, chat with agent| ProcureFlow
     Buyer -->|HTTP/HTTPS<br/>Register items, view analytics| ProcureFlow
     Engineer -->|Pulumi/Docker<br/>Deploy and monitor| ProcureFlow
-    
+
     ProcureFlow -->|MongoDB Wire Protocol<br/>Store/retrieve data| MongoDB
     ProcureFlow -->|HTTPS REST API<br/>LLM inference| OpenAI
-    
+
     %% Styling
     classDef actor fill:#E1F5FE,stroke:#01579B,stroke-width:2px
     classDef system fill:#FFF3E0,stroke:#E65100,stroke-width:3px
     classDef external fill:#F3E5F5,stroke:#4A148C,stroke-width:2px
-    
-    class Employee,Buyer,Engineer actor
-    class ProcureFlow system
-    class MongoDB,OpenAI external
+
+    class Employee,Buyer,Engineer actor;
+    class ProcureFlow system;
+    class MongoDB,OpenAI external;
 ```
 
 ---
@@ -49,6 +49,7 @@ graph TD
 **Primary User**: Internal employees purchasing materials/services
 
 **Interactions**:
+
 - Browse catalog with full-text search
 - Chat with AI agent for natural language procurement
 - Add items to shopping cart
@@ -62,6 +63,7 @@ graph TD
 **Power User**: Manages catalog quality and purchasing workflows
 
 **Interactions**:
+
 - Register new catalog items with duplicate detection
 - Review and approve purchase requests (future)
 - View spending analytics (future)
@@ -74,6 +76,7 @@ graph TD
 **Administrator**: Deploys and maintains the system
 
 **Interactions**:
+
 - Deploy infrastructure via Pulumi
 - Monitor health checks and metrics
 - Execute rollbacks on failures
@@ -90,6 +93,7 @@ graph TD
 **Technology**: Next.js 15.1.4 with React 19.2.0, TypeScript 5.7.3
 
 **Core Responsibilities**:
+
 1. **Catalog Management**: Search, registration, duplicate detection
 2. **Shopping Cart**: CRUD operations, analytics
 3. **Checkout**: Purchase request generation with immutable snapshots
@@ -97,6 +101,7 @@ graph TD
 5. **Authentication**: User registration, login, session management
 
 **Not Responsible For**:
+
 - Data persistence (delegated to MongoDB)
 - LLM inference (delegated to OpenAI API)
 - Email delivery (out of scope for v1.0)
@@ -111,12 +116,14 @@ graph TD
 **Purpose**: Primary data store for all application entities
 
 **Capabilities**:
+
 - Document storage with 512 MB limit (free tier)
 - Full-text search with text indexes
 - 500 concurrent connections max
 - 3-node replica set for durability
 
 **Data Stored**:
+
 - Users (authentication credentials, profiles)
 - Catalog items (name, category, description, price, status)
 - Shopping carts (items, quantities, snapshots)
@@ -130,11 +137,13 @@ graph TD
 **Purpose**: LLM inference for AI agent capabilities
 
 **Capabilities**:
+
 - GPT-3.5-turbo model (fast, cost-effective)
 - Function calling for tool integration
 - Natural language understanding
 
 **Usage**:
+
 - Extract search keywords from natural language
 - Generate conversational responses
 - Decide which tools to call (search, add_to_cart, checkout, etc.)
@@ -143,6 +152,7 @@ graph TD
 **Failure Mode**: Agent feature unavailable, fallback to catalog UI with graceful error messages
 
 **Cost Control**:
+
 - Rate limiting: 60 requests/minute per user
 - Context window: Last 50 messages
 - Monthly budget alerts at $5
@@ -192,7 +202,7 @@ ProcureFlow → [HTTPS] → Employee (PR Confirmation)
 ✅ Shopping cart management (add, update, remove, analytics)  
 ✅ Purchase request submission and history tracking  
 ✅ AI agent with 8 integrated tools  
-✅ User authentication and session management  
+✅ User authentication and session management
 
 ### Out of Scope (v1.0)
 
@@ -201,7 +211,7 @@ ProcureFlow → [HTTPS] → Employee (PR Confirmation)
 ❌ Email notifications (no status change emails)  
 ❌ Advanced analytics (no dashboards/reports)  
 ❌ Multi-tenancy (single organization only)  
-❌ Mobile native apps (web-only)  
+❌ Mobile native apps (web-only)
 
 ---
 

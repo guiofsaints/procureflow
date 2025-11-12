@@ -20,6 +20,7 @@
 ### Required Access
 
 - [ ] **GCP Access**: Cloud Run Admin role (to update traffic allocation)
+
   ```powershell
   gcloud auth list  # Verify authenticated
   gcloud config get-value project  # Should show procureflow-dev
@@ -34,6 +35,7 @@
 ### For Pulumi Infrastructure Rollback
 
 - [ ] **Pulumi CLI Installed**:
+
   ```powershell
   pulumi version  # Should show v3.x.x
   ```
@@ -65,6 +67,7 @@
 **Trigger**: Deployment passed health check, but critical bug discovered post-deployment
 
 **Examples**:
+
 - Checkout flow broken
 - Error rate spiked to > 1%
 - P95 latency increased to > 3s
@@ -80,6 +83,7 @@
 **Trigger**: Infrastructure configuration changed incorrectly (env vars, secrets, service account)
 
 **Examples**:
+
 - `NODE_ENV` set to `development` in production
 - `NEXTAUTH_SECRET` rotated incorrectly (login fails)
 - Cloud Run CPU/memory limits changed incorrectly
@@ -113,10 +117,12 @@ gcloud run revisions list `
 ```
 
 **Identify Good Revision**:
+
 - **Bad revision**: `procureflow-web-00042-sha-bad123` (currently active, has bug)
 - **Good revision**: `procureflow-web-00041-sha-good456` (last known stable)
 
 **Verification**:
+
 - [ ] Good revision identified (e.g., `00041-sha-good456`)
 - [ ] Good revision deployed date matches last stable deployment
 
@@ -139,6 +145,7 @@ gcloud run services update-traffic procureflow-web `
 ```
 
 **Expected Output**:
+
 ```
 Deploying container to Cloud Run service [procureflow-web] in project [procureflow-dev] region [us-central1]
 ✓ Updating traffic... Done.
@@ -150,6 +157,7 @@ Service [procureflow-web] revision [procureflow-web-00041-sha-good456] has been 
 **Rollback Time**: ~1-2 minutes (instant traffic shift + DNS propagation)
 
 **Verification**:
+
 - [ ] Command completed successfully
 - [ ] Output shows 100% traffic to good revision
 
@@ -191,6 +199,7 @@ curl -s $SERVICE_URL/api/health
    - **Expected**: PR number displayed, cart cleared
 
 **Verification**:
+
 - [ ] Health check returns 200
 - [ ] Login successful
 - [ ] Catalog search works
@@ -212,14 +221,15 @@ Navigate to: https://console.cloud.google.com/run/detail/us-central1/procureflow
 
 **Metrics to Check**:
 
-| Metric | Baseline (Before Bad Deploy) | After Rollback | Status |
-|--------|------------------------------|----------------|--------|
-| **Error rate** | < 0.1% | < 0.1% | ✅ Pass |
-| **P95 latency** | < 1s | < 1s | ✅ Pass |
-| **Request rate** | ~100 req/min | ~100 req/min | ✅ Pass |
-| **Active instances** | 1-2 | 1-2 | ✅ Pass |
+| Metric               | Baseline (Before Bad Deploy) | After Rollback | Status  |
+| -------------------- | ---------------------------- | -------------- | ------- |
+| **Error rate**       | < 0.1%                       | < 0.1%         | ✅ Pass |
+| **P95 latency**      | < 1s                         | < 1s           | ✅ Pass |
+| **Request rate**     | ~100 req/min                 | ~100 req/min   | ✅ Pass |
+| **Active instances** | 1-2                          | 1-2            | ✅ Pass |
 
 **Verification**:
+
 - [ ] Error rate < 0.1% (baseline)
 - [ ] P95 latency < 1s (baseline)
 - [ ] Request rate matches baseline
@@ -256,10 +266,12 @@ pulumi stack history
 ```
 
 **Identify Good Version**:
+
 - **Bad version**: 42 (incorrect env var change)
 - **Good version**: 41 (last known stable)
 
 **Verification**:
+
 - [ ] Good version identified (e.g., version 41)
 - [ ] Good version timestamp matches last stable deployment
 
@@ -282,6 +294,7 @@ cat stack-backup-v41.json | Select-String "version"
 ```
 
 **Verification**:
+
 - [ ] `stack-backup-v41.json` file created
 - [ ] File size > 0 bytes (state exported successfully)
 
@@ -302,6 +315,7 @@ pulumi stack import < stack-backup-v41.json
 ```
 
 **Verification**:
+
 - [ ] Import completed successfully
 - [ ] No errors in output
 
@@ -340,6 +354,7 @@ pulumi up --yes
 **Rollback Time**: ~10-15 minutes (export + import + apply + Cloud Run redeploy)
 
 **Verification**:
+
 - [ ] `pulumi up` completed successfully
 - [ ] Resources updated to previous state
 - [ ] No errors in output
@@ -363,6 +378,7 @@ pulumi stack output serviceUrl
 ```
 
 **Verification**:
+
 - [ ] Env vars match expected state (e.g., `NODE_ENV=production`)
 - [ ] Service URL unchanged
 - [ ] Cloud Run service status shows ✅ Healthy
@@ -387,6 +403,7 @@ curl -s $SERVICE_URL/api/health
 **Manual Smoke Tests**: Follow Step 3 from Procedure A
 
 **Verification**:
+
 - [ ] Health check returns 200
 - [ ] Smoke tests pass (login, search, cart, checkout)
 
@@ -397,16 +414,19 @@ curl -s $SERVICE_URL/api/health
 ### Final Checks
 
 **Rollback Status**:
+
 - [ ] Traffic shifted to good revision (Procedure A) OR Pulumi state reverted (Procedure B)
 - [ ] Cloud Run console shows good revision serving 100% traffic
 - [ ] Service status shows ✅ Healthy
 
 **Application Health**:
+
 - [ ] Health endpoint returns 200: `GET /api/health`
 - [ ] Smoke tests passed: Login, search, cart, checkout all working
 - [ ] No errors in browser console or Cloud Run logs
 
 **Metrics Baseline**:
+
 - [ ] Error rate < baseline + 0.05% (allow small variance)
 - [ ] P95 latency < baseline + 200ms
 - [ ] Request rate > 50% of baseline (traffic recovering)
@@ -418,6 +438,7 @@ curl -s $SERVICE_URL/api/health
 ### Immediate Actions (Within 1 Hour)
 
 1. **Notify Team**: Post in Slack #platform-incidents:
+
    ```
    🚨 Rollback executed: <service> <environment> <time>
    Reason: <brief description of issue>
@@ -427,6 +448,7 @@ curl -s $SERVICE_URL/api/health
    ```
 
 2. **Document Issue**: Create GitHub issue with label `incident`:
+
    ```
    Title: [Incident] Rollback executed on <date> due to <issue>
    Description:
@@ -437,7 +459,7 @@ curl -s $SERVICE_URL/api/health
    - Root cause: <TBD, under investigation>
    ```
 
-3. **Investigate Root Cause**: 
+3. **Investigate Root Cause**:
    - Review Cloud Run logs for errors
    - Review code changes in bad deployment
    - Identify root cause (code bug, config error, infrastructure issue)
@@ -446,7 +468,7 @@ curl -s $SERVICE_URL/api/health
 
 ### Follow-Up Actions (Within 24 Hours)
 
-1. **Fix Issue**: 
+1. **Fix Issue**:
    - Create bug fix PR
    - Test fix locally and in staging
    - Deploy fix to dev/staging for validation
@@ -472,10 +494,13 @@ curl -s $SERVICE_URL/api/health
 ### Common Issues
 
 **Issue 1: "gcloud command not found"**
+
 ```
 gcloud: The term 'gcloud' is not recognized
 ```
+
 **Solution**:
+
 ```powershell
 # Install gcloud CLI
 # Download from: https://cloud.google.com/sdk/docs/install
@@ -490,10 +515,13 @@ gcloud --version
 ---
 
 **Issue 2: "Revision not found"**
+
 ```
 ERROR: (gcloud.run.services.update-traffic) Revision [procureflow-web-00041-sha-good456] not found
 ```
+
 **Solution**:
+
 ```powershell
 # List all revisions (increase limit)
 gcloud run revisions list `
@@ -508,10 +536,13 @@ gcloud run revisions list `
 ---
 
 **Issue 3: "Pulumi state corrupted"**
+
 ```
 error: the current deployment has 1 resource(s) with pending operations
 ```
+
 **Solution**:
+
 ```powershell
 # Cancel pending operations
 pulumi cancel
@@ -525,10 +556,13 @@ pulumi refresh --yes
 ---
 
 **Issue 4: "Rollback succeeded but application still broken"**
+
 ```
 ✅ Traffic shifted to good revision, but application still showing errors
 ```
+
 **Solution**:
+
 ```powershell
 # Check if good revision is actually healthy
 gcloud run revisions describe procureflow-web-00041-sha-good456 `
@@ -552,11 +586,13 @@ gcloud run services update-traffic procureflow-web `
 1. **First**: Review [Rollback Strategy](../../operations/rollback-strategy.md) documentation for additional guidance
 
 2. **Second**: Check Cloud Run service logs for detailed errors:
+
    ```powershell
    gcloud run services logs read procureflow-web --region=us-central1 --limit=100
    ```
 
 3. **Third**: Post in team Slack channel #platform-incidents:
+
    ```
    🚨 URGENT: Rollback failed for <service> <environment>
    Attempted: <rollback method>

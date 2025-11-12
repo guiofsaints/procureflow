@@ -9,10 +9,12 @@ Test layers, tools, and execution strategies.
 **Purpose**: Test business logic in isolation
 
 **Tools**:
+
 - Vitest 4.0.8 (test runner)
 - Vitest mocks for dependencies
 
 **Scope**:
+
 - Service layer functions
 - Domain validation
 - Utility functions
@@ -51,11 +53,13 @@ describe('createItem', () => {
 **Purpose**: Test API routes with real database
 
 **Tools**:
+
 - Vitest
 - mongodb-memory-server (in-memory MongoDB)
 - Testing Library (React components)
 
 **Scope**:
+
 - API route handlers
 - Database queries
 - Authentication flows
@@ -86,7 +90,9 @@ describe('POST /api/items', () => {
     const response = await fetch('http://localhost:3000/api/items', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ /* item data */ }),
+      body: JSON.stringify({
+        /* item data */
+      }),
     });
 
     expect(response.status).toBe(201);
@@ -101,10 +107,12 @@ describe('POST /api/items', () => {
 **Purpose**: Test critical user journeys end-to-end
 
 **Tools** (planned):
+
 - Playwright
 - Real MongoDB test instance
 
 **Scope**:
+
 - Search → Cart → Checkout flow
 - Agent conversational procurement
 - Login → Session persistence

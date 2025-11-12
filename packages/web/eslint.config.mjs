@@ -1,8 +1,12 @@
 import nextPlugin from 'eslint-config-next';
+import tseslint from 'typescript-eslint';
 
 const eslintConfig = [
   // Next.js recommended config (native flat config in Next.js 16)
   ...nextPlugin,
+
+  // TypeScript ESLint recommended config
+  ...tseslint.configs.recommended,
 
   // Custom rules
   {
@@ -56,14 +60,36 @@ const eslintConfig = [
   // Ignores
   {
     ignores: [
+      // Build outputs
       '.next/**',
       'out/**',
       'build/**',
       'dist/**',
+      '.turbo/**',
+
+      // Dependencies
       'node_modules/**',
+
+      // Generated/copied files
+      'public/docs/**',
+      'build-info.json',
+      '.env.buildinfo',
+
+      // Config files
+      'scripts/**/*.js',
       '*.config.js',
       '*.config.mjs',
       'next-env.d.ts',
+
+      // Test files
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      'coverage/**',
+
+      // TypeScript cache
+      '*.tsbuildinfo',
     ],
   },
 ];

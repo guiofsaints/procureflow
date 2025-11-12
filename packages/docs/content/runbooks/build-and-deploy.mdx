@@ -32,6 +32,7 @@ git push origin main
 ```
 
 **Verification**:
+
 - [ ] Push successful
 - [ ] GitHub Actions workflow triggered
 
@@ -42,6 +43,7 @@ git push origin main
 3. Monitor progress (5-8 minutes)
 
 **Expected Stages**:
+
 1. Checkout & Setup
 2. Run Tests
 3. Build Next.js
@@ -51,6 +53,7 @@ git push origin main
 7. Smoke Tests
 
 **Verification**:
+
 - [ ] All stages pass ✅
 - [ ] No errors in logs
 
@@ -67,15 +70,17 @@ curl https://procureflow-web-*.run.app/api/health
 ```
 
 **Expected Output**:
+
 ```json
 {
   "status": "ok",
   "version": "1.0.0",
-  "checks": {"database": "connected"}
+  "checks": { "database": "connected" }
 }
 ```
 
 **Verification**:
+
 - [ ] Health check returns 200
 - [ ] Root endpoint returns 200 or 302
 
@@ -97,6 +102,7 @@ pnpm build
 ```
 
 **Verification**:
+
 - [ ] Tests pass
 - [ ] Build completes successfully
 
@@ -114,6 +120,7 @@ docker tag procureflow-web:latest us-central1-docker.pkg.dev/PROJECT_ID/procuref
 ```
 
 **Verification**:
+
 - [ ] Image built successfully
 - [ ] Image tagged for registry
 
@@ -128,6 +135,7 @@ docker push us-central1-docker.pkg.dev/PROJECT_ID/procureflow/web:latest
 ```
 
 **Verification**:
+
 - [ ] Image pushed successfully
 
 ### Step 4: Deploy with Pulumi
@@ -144,6 +152,7 @@ pulumi up --yes
 ```
 
 **Expected Output**:
+
 ```
 Updating (dev)
      Type                     Name                Status
@@ -160,6 +169,7 @@ Duration: 3m45s
 ```
 
 **Verification**:
+
 - [ ] Deployment successful
 - [ ] Service URL returned
 
@@ -179,6 +189,7 @@ curl "$SERVICE_URL/api/items?query=chair"
 ```
 
 **Verification**:
+
 - [ ] All endpoints return 200
 - [ ] No errors in responses
 
@@ -187,6 +198,7 @@ curl "$SERVICE_URL/api/items?query=chair"
 ## Verification
 
 **Final Checks**:
+
 - [ ] GitHub Actions workflow passed (automated)
 - [ ] Cloud Run service updated
 - [ ] Health check returns 200
@@ -194,6 +206,7 @@ curl "$SERVICE_URL/api/items?query=chair"
 - [ ] No errors in Cloud Run logs
 
 **Success Criteria**:
+
 - ✅ Deployment completed without errors
 - ✅ All smoke tests pass
 - ✅ No rollback triggered
@@ -207,6 +220,7 @@ curl "$SERVICE_URL/api/items?query=chair"
 See [Rollback Runbook](/runbooks/rollback) for complete procedure.
 
 **Quick Rollback** (Cloud Run):
+
 ```powershell
 # List revisions
 gcloud run revisions list --service=procureflow-web --region=us-central1
@@ -218,6 +232,7 @@ gcloud run services update-traffic procureflow-web \
 ```
 
 **Escalation Path**:
+
 1. Check [Troubleshooting](/runbooks/troubleshooting)
 2. Contact Platform Team lead
 3. Escalate to Tech Lead if critical

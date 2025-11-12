@@ -22,9 +22,9 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install
-      - run: pnpm lint        # ESLint + Prettier
+      - run: pnpm lint # ESLint + Prettier
       - run: pnpm test:coverage # Run tests with coverage
-      - run: pnpm build       # TypeScript + Next.js build
+      - run: pnpm build # TypeScript + Next.js build
 ```
 
 ---
@@ -34,10 +34,12 @@ jobs:
 ### 1. Linting (ESLint + Prettier)
 
 **Blocks merge if**:
+
 - ESLint errors present
 - Prettier formatting violations
 
 **Command**:
+
 ```bash
 pnpm lint
 ```
@@ -45,10 +47,12 @@ pnpm lint
 ### 2. Test Execution
 
 **Blocks merge if**:
+
 - Any test fails
 - Test execution times out (> 5 min)
 
 **Command**:
+
 ```bash
 pnpm test
 ```
@@ -56,12 +60,14 @@ pnpm test
 ### 3. Coverage Thresholds
 
 **Blocks merge if**:
+
 - Lines < 60%
 - Functions < 60%
 - Branches < 60%
 - Statements < 60%
 
 **Command**:
+
 ```bash
 pnpm test:coverage
 ```
@@ -69,10 +75,12 @@ pnpm test:coverage
 ### 4. Build Validation
 
 **Blocks merge if**:
+
 - TypeScript compilation errors
 - Next.js build fails
 
 **Command**:
+
 ```bash
 pnpm build
 ```

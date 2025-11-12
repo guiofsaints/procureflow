@@ -6,7 +6,7 @@ For complete patterns documentation and 18-entry decision log, see: [`.guided/ar
 
 ## Executive Summary
 
-ProcureFlow employs 6 core architectural patterns: feature-based organization (isolated modules with barrel exports), service layer separation (business logic in framework-agnostic *.service.ts files), domain-driven design (10 domain entities as TypeScript interfaces), agent-first design (conversational AI with function calling), reliability patterns (circuit breaker, rate limiting, retries), and observability patterns (structured logging, Prometheus metrics, health checks).
+ProcureFlow employs 6 core architectural patterns: feature-based organization (isolated modules with barrel exports), service layer separation (business logic in framework-agnostic \*.service.ts files), domain-driven design (10 domain entities as TypeScript interfaces), agent-first design (conversational AI with function calling), reliability patterns (circuit breaker, rate limiting, retries), and observability patterns (structured logging, Prometheus metrics, health checks).
 
 ---
 
@@ -17,6 +17,7 @@ ProcureFlow employs 6 core architectural patterns: feature-based organization (i
 **Pattern**: Organize code by feature (catalog, cart, checkout, agent) rather than by type (models, views, controllers)
 
 **Structure**:
+
 ```
 features/
   <feature-name>/
@@ -28,12 +29,14 @@ features/
 ```
 
 **Benefits**:
+
 - Isolated modules reduce coupling
 - Easy to locate feature code
 - Scales better than MVC for large apps
 - Enables feature flags and lazy loading
 
 **Example**:
+
 ```typescript
 // features/catalog/index.ts
 export { searchItems, createItem, getItemById } from './lib/catalog.service';
@@ -48,24 +51,30 @@ import { searchItems } from '@/features/catalog';
 **Pattern**: Business logic in `*.service.ts` files, NOT in route handlers
 
 **Responsibilities**:
+
 - **Route Handlers**: Extract request data, validate auth, call service, return response
 - **Services**: Implement business logic, return domain entities, throw typed errors
 
 **Benefits**:
+
 - Testable without HTTP layer
 - Reusable in API routes, server components, background jobs
 - Framework-agnostic (easy to migrate)
 
 **Example**:
+
 ```typescript
 // lib/catalog.service.ts
-export async function createItem(data: CreateItemInput, userId: string): Promise<Item> {
+export async function createItem(
+  data: CreateItemInput,
+  userId: string
+): Promise<Item> {
   // Business logic
   const duplicates = await findDuplicates(data.name, data.category);
   if (duplicates.length > 0 && !data.confirmDuplicate) {
     throw new DuplicateItemError(duplicates);
   }
-  
+
   const item = await ItemModel.create({ ...data, createdByUserId: userId });
   return toDomainEntity(item); // Return domain entity, not Mongoose doc
 }
@@ -74,7 +83,7 @@ export async function createItem(data: CreateItemInput, userId: string): Promise
 export async function POST(request: Request) {
   const session = await getServerSession(authConfig);
   if (!session) return new Response('Unauthorized', { status: 401 });
-  
+
   const body = await request.json();
   const item = await createItem(body, session.user.id); // Call service
   return NextResponse.json(item, { status: 201 });
@@ -86,11 +95,13 @@ export async function POST(request: Request) {
 **Pattern**: Framework-agnostic domain entities as TypeScript interfaces
 
 **Purpose**:
+
 - Represent business concepts (User, Item, Cart, PurchaseRequest)
 - Decoupled from database schemas (Mongoose)
 - Services return domain entities, not Mongoose documents
 
 **Example**:
+
 ```typescript
 // domain/entities.ts
 export interface Item {
@@ -130,11 +141,13 @@ function toDomainEntity(doc: ItemDocument): Item {
 **Pattern**: Conversational AI as primary interaction model
 
 **Implementation**:
+
 - LangChain orchestrates LLM (OpenAI GPT-3.5-turbo)
 - Function calling for 8 tools (search, register, cart ops, checkout)
 - Conversation persistence for context
 
 **Tool Integration Flow**:
+
 ```
 User Message → Agent Service → LangChain → OpenAI (decide tool)
 → OpenAI returns tool call → Agent executes via service layer
@@ -143,6 +156,7 @@ User Message → Agent Service → LangChain → OpenAI (decide tool)
 ```
 
 **Example Tools**:
+
 - `search_catalog`: Search items by keywords
 - `add_to_cart`: Add item with confirmation
 - `checkout`: Submit purchase request with validation
@@ -150,35 +164,38 @@ User Message → Agent Service → LangChain → OpenAI (decide tool)
 ### 5. Reliability Patterns
 
 **Circuit Breaker** (for OpenAI API):
+
 ```typescript
 import CircuitBreaker from 'opossum';
 
 const breaker = new CircuitBreaker(callOpenAI, {
   errorThresholdPercentage: 50, // Open after 50% errors
-  timeout: 30000,                // 30s timeout
-  resetTimeout: 30000,           // Try again after 30s
+  timeout: 30000, // 30s timeout
+  resetTimeout: 30000, // Try again after 30s
 });
 
 breaker.on('open', () => logger.warn('OpenAI circuit breaker opened'));
 ```
 
 **Retry with Exponential Backoff**:
+
 ```typescript
 import pRetry from 'p-retry';
 
 const result = await pRetry(() => callOpenAI(prompt), {
   retries: 3,
-  minTimeout: 1000,  // 1s
-  factor: 2,         // Exponential
+  minTimeout: 1000, // 1s
+  factor: 2, // Exponential
 });
 ```
 
 **Rate Limiting**:
+
 ```typescript
 import Bottleneck from 'bottleneck';
 
 const limiter = new Bottleneck({
-  reservoir: 60,         // 60 requests
+  reservoir: 60, // 60 requests
   reservoirRefreshAmount: 60,
   reservoirRefreshInterval: 60 * 1000, // per minute
 });
@@ -187,19 +204,21 @@ const limiter = new Bottleneck({
 ### 6. Observability Patterns
 
 **Structured Logging**:
+
 ```typescript
 import winston from 'winston';
 
 logger.info('Purchase request created', {
   userId: '507f1f77bcf86cd799439011',
   requestNumber: 'PR-2025-0042',
-  totalCost: 1250.00,
+  totalCost: 1250.0,
   itemCount: 5,
   correlationId: 'req-abc123',
 });
 ```
 
 **Prometheus Metrics**:
+
 ```typescript
 import { register, Counter, Histogram } from 'prom-client';
 
@@ -210,20 +229,26 @@ const httpRequestDuration = new Histogram({
 });
 
 // In middleware
-httpRequestDuration.labels(req.method, req.route, res.statusCode).observe(duration);
+httpRequestDuration
+  .labels(req.method, req.route, res.statusCode)
+  .observe(duration);
 ```
 
 **Health Checks**:
+
 ```typescript
 // app/(app)/api/health/route.ts
 export async function GET() {
   const checks = {
     api: 'ok',
-    db: await checkMongoDB() ? 'ok' : 'fail',
+    db: (await checkMongoDB()) ? 'ok' : 'fail',
   };
-  
-  const status = Object.values(checks).every(v => v === 'ok') ? 200 : 503;
-  return NextResponse.json({ status: checks.db === 'ok' ? 'ok' : 'degraded', checks }, { status });
+
+  const status = Object.values(checks).every((v) => v === 'ok') ? 200 : 503;
+  return NextResponse.json(
+    { status: checks.db === 'ok' ? 'ok' : 'degraded', checks },
+    { status }
+  );
 }
 ```
 
@@ -233,16 +258,16 @@ export async function GET() {
 
 For complete 18-entry decision log, see [`.guided/architecture/stack-and-patterns.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/architecture/stack-and-patterns.md)
 
-| Date | Decision | Rationale | Impact |
-|------|----------|-----------|--------|
-| Nov 1, 2025 | Use Next.js 15 App Router | Server Components, file routing, API routes | Simplified architecture |
-| Nov 1, 2025 | MongoDB over PostgreSQL | Document model for carts/PRs, text search, M0 free tier | Flexible schema, cost savings |
-| Nov 1, 2025 | Feature-based structure | Isolated modules, better scalability | Improved maintainability |
-| Nov 1, 2025 | Service layer pattern | Framework-agnostic logic, testability | Decoupled business logic |
-| Nov 2, 2025 | OpenAI GPT-3.5-turbo | Cost ($0.002/1K tokens) + speed (< 2s) | AI agent feasibility |
-| Nov 2, 2025 | LangChain for orchestration | Function calling abstractions, memory | Simplified agent development |
-| Nov 3, 2025 | Pulumi (TypeScript IaC) | Same language as app, type safety | Consistent dev experience |
-| Nov 3, 2025 | GCP Cloud Run | Serverless, auto-scaling, pay-per-use | Cost optimization |
+| Date        | Decision                    | Rationale                                               | Impact                        |
+| ----------- | --------------------------- | ------------------------------------------------------- | ----------------------------- |
+| Nov 1, 2025 | Use Next.js 15 App Router   | Server Components, file routing, API routes             | Simplified architecture       |
+| Nov 1, 2025 | MongoDB over PostgreSQL     | Document model for carts/PRs, text search, M0 free tier | Flexible schema, cost savings |
+| Nov 1, 2025 | Feature-based structure     | Isolated modules, better scalability                    | Improved maintainability      |
+| Nov 1, 2025 | Service layer pattern       | Framework-agnostic logic, testability                   | Decoupled business logic      |
+| Nov 2, 2025 | OpenAI GPT-3.5-turbo        | Cost ($0.002/1K tokens) + speed (< 2s)                  | AI agent feasibility          |
+| Nov 2, 2025 | LangChain for orchestration | Function calling abstractions, memory                   | Simplified agent development  |
+| Nov 3, 2025 | Pulumi (TypeScript IaC)     | Same language as app, type safety                       | Consistent dev experience     |
+| Nov 3, 2025 | GCP Cloud Run               | Serverless, auto-scaling, pay-per-use                   | Cost optimization             |
 
 ---
 

@@ -18,6 +18,7 @@ import winston from 'winston';
 // Package version from package.json
 let packageVersion = '0.1.0';
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   packageVersion = require('../../../package.json').version;
 } catch {
   // Fallback version if package.json is not accessible

@@ -4,7 +4,8 @@
 # This file excludes unnecessary files from the Docker build context,
 # reducing build time and preventing accidental secret leakage.
 # 
-# Target: Reduce build context from ~295MB to <50MB
+# Important: packages/web/public/docs/ is built DURING Docker build
+# (see Dockerfile multi-stage build) and should NOT be in the build context.
 # ============================================================================
 
 # Dependencies (installed inside container)
@@ -13,7 +14,7 @@ node_modules/
 .pnpm/
 **/node_modules/
 
-# Build outputs (generated during build)
+# Build outputs (generated during Docker build)
 .next/
 dist/
 build/
@@ -22,6 +23,15 @@ out/
 **/.next/
 **/dist/
 **/build/
+**/out/
+
+# Documentation build (generated during Docker build)
+packages/web/public/docs/
+
+# Generated files (created during build)
+build-info.json
+.env.buildinfo
+*.tsbuildinfo
 
 # Logs
 *.log
@@ -58,11 +68,11 @@ lerna-debug.log*
 Thumbs.db
 desktop.ini
 
-# Documentation (keep only root README)
-*.md
-!README.md
-docs/
-.guided/
+# Documentation source (keep for Docker build, but exclude heavy assets)
+# packages/docs/ is needed for build, don't exclude it
+packages/docs/node_modules/
+packages/docs/.next/
+packages/docs/out/
 
 # Test and coverage
 coverage/
@@ -81,7 +91,6 @@ test-results/
 .temp/
 tmp/
 .eslintcache
-.prettierignore
 
 # Docker files (don't include in build context)
 Dockerfile*
@@ -95,7 +104,7 @@ compose*.yaml
 .travis.yml
 azure-pipelines.yml
 
-# Pulumi infrastructure
+# Pulumi infrastructure (not needed in web container)
 packages/infra/pulumi/
 
 # Package manager files (keep lock files, exclude others)
@@ -111,4 +120,7 @@ packages/infra/pulumi/
 .commitlintrc*
 .prettierrc*
 .editorconfig
-tsconfig.tsbuildinfo
+.prettierignore
+
+# Testing packages
+packages/tests/

@@ -23,16 +23,15 @@ let getContextForLogging: (() => Record<string, unknown>) | undefined;
 if (typeof window === 'undefined') {
   // Server-side only
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const winstonConfig = require('./winston.config');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const context = require('./context');
     winstonLogger = winstonConfig.logger;
     getContextForLogging = context.getContextForLogging;
-  } catch (error) {
+  } catch (_error) {
     // Fallback if winston modules fail to load
-    console.warn(
-      'Failed to load Winston logger, using console fallback:',
-      error
-    );
+    console.warn('Failed to load Winston logger, using console fallback');
   }
 }
 

@@ -3,5 +3,5 @@ export default {
   'build-and-deploy': 'Build & Deploy',
   rollback: 'Rollback Procedure',
   'autoscaling-check': 'Autoscaling Check',
-  troubleshooting: 'Troubleshooting'
-}
+  troubleshooting: 'Troubleshooting',
+};

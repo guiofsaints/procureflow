@@ -21,9 +21,8 @@ export interface OpenAPIDocument {
     schemas: Record<string, unknown>;
     securitySchemes?: Record<string, unknown>;
   };
-}
-
-/**
+  security?: Array<Record<string, unknown>>;
+} /**
  * Get the complete OpenAPI document
  */
 export function getOpenApiDocument(): OpenAPIDocument {
@@ -33,7 +32,7 @@ export function getOpenApiDocument(): OpenAPIDocument {
       title: 'ProcureFlow API',
       version: '1.0.0',
       description:
-        'REST API for ProcureFlow - AI-native procurement platform tech case',
+        'REST API for ProcureFlow - AI-native procurement platform. Most endpoints require authentication via NextAuth session.',
     },
     servers: [
       {
@@ -67,7 +66,8 @@ export function getOpenApiDocument(): OpenAPIDocument {
       '/items': {
         get: {
           summary: 'Search catalog items',
-          description: 'Search for items in the catalog by keyword (optional)',
+          description:
+            'Search for items in the catalog by keyword (optional). Public endpoint - no authentication required.',
           tags: ['Catalog'],
           parameters: [
             {
@@ -120,6 +120,7 @@ export function getOpenApiDocument(): OpenAPIDocument {
           description:
             'Register a new item in the catalog (requires authentication)',
           tags: ['Catalog'],
+          security: [{ session: [] }],
           requestBody: {
             required: true,
             content: {
@@ -159,6 +160,7 @@ export function getOpenApiDocument(): OpenAPIDocument {
           description:
             "Retrieve the current user's cart (requires authentication)",
           tags: ['Cart'],
+          security: [{ session: [] }],
           responses: {
             '200': {
               description: 'User cart',
@@ -181,6 +183,7 @@ export function getOpenApiDocument(): OpenAPIDocument {
           summary: 'Add item to cart',
           description: 'Add an item to the cart (requires authentication)',
           tags: ['Cart'],
+          security: [{ session: [] }],
           requestBody: {
             required: true,
             content: {
@@ -217,8 +220,10 @@ export function getOpenApiDocument(): OpenAPIDocument {
       '/cart/items/{itemId}': {
         patch: {
           summary: 'Update cart item quantity',
-          description: 'Update the quantity of an item in the cart',
+          description:
+            'Update the quantity of an item in the cart (requires authentication)',
           tags: ['Cart'],
+          security: [{ session: [] }],
           parameters: [
             {
               name: 'itemId',
@@ -268,8 +273,9 @@ export function getOpenApiDocument(): OpenAPIDocument {
         },
         delete: {
           summary: 'Remove item from cart',
-          description: 'Remove an item from the cart',
+          description: 'Remove an item from the cart (requires authentication)',
           tags: ['Cart'],
+          security: [{ session: [] }],
           parameters: [
             {
               name: 'itemId',
@@ -303,6 +309,7 @@ export function getOpenApiDocument(): OpenAPIDocument {
           description:
             'Create purchase request and clear cart (requires authentication)',
           tags: ['Checkout'],
+          security: [{ session: [] }],
           requestBody: {
             required: false,
             content: {
@@ -353,8 +360,10 @@ export function getOpenApiDocument(): OpenAPIDocument {
       '/agent/chat': {
         post: {
           summary: 'Send message to AI agent',
-          description: 'Conversational interface to the procurement agent',
+          description:
+            'Conversational interface to the procurement agent (requires authentication)',
           tags: ['Agent'],
+          security: [{ session: [] }],
           requestBody: {
             required: true,
             content: {
@@ -384,6 +393,15 @@ export function getOpenApiDocument(): OpenAPIDocument {
       },
     },
     components: {
+      securitySchemes: {
+        session: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'next-auth.session-token',
+          description:
+            'NextAuth session cookie. Authenticate by logging in at the root path.',
+        },
+      },
       schemas: {
         HealthResponse: {
           type: 'object',
@@ -436,22 +454,25 @@ export function getOpenApiDocument(): OpenAPIDocument {
             description: {
               type: 'string',
             },
-            price: {
+            estimatedPrice: {
               type: 'number',
               format: 'float',
+              description: 'Estimated unit price in the default currency',
             },
             unit: {
               type: 'string',
             },
             status: {
               type: 'string',
-              enum: ['Active', 'PendingReview', 'Inactive'],
+              enum: ['active', 'pending_review', 'inactive'],
+              description: 'Item status in the catalog',
             },
             preferredSupplier: {
               type: 'string',
             },
-            registeredBy: {
+            createdByUserId: {
               type: 'string',
+              description: 'User ID of the person who registered this item',
             },
             createdAt: {
               type: 'string',
@@ -530,12 +551,16 @@ export function getOpenApiDocument(): OpenAPIDocument {
             itemId: {
               type: 'string',
             },
-            itemName: {
+            name: {
               type: 'string',
+              description:
+                'Snapshot of item name at the time of adding to cart',
             },
-            itemPrice: {
+            unitPrice: {
               type: 'number',
               format: 'float',
+              description:
+                'Snapshot of item price at the time of adding to cart',
             },
             quantity: {
               type: 'integer',
@@ -576,22 +601,42 @@ export function getOpenApiDocument(): OpenAPIDocument {
             userId: {
               type: 'string',
             },
+            requestNumber: {
+              type: 'string',
+              description: 'Purchase request number (e.g., PR-2024-0001)',
+            },
             items: {
               type: 'array',
               items: {
                 $ref: '#/components/schemas/PurchaseRequestItem',
               },
             },
-            totalCost: {
+            total: {
               type: 'number',
               format: 'float',
+              description: 'Total estimated cost of the purchase request',
             },
             notes: {
               type: 'string',
             },
+            source: {
+              type: 'string',
+              enum: ['ui', 'agent'],
+              description: 'Source of the purchase request',
+            },
             status: {
               type: 'string',
-              enum: ['Submitted', 'PendingApproval', 'Approved', 'Rejected'],
+              enum: ['submitted', 'pending_approval', 'approved', 'rejected'],
+              description: 'Purchase request status',
+            },
+            deliveryLocation: {
+              type: 'string',
+              description: 'Delivery location (future)',
+            },
+            requestedDeliveryDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Requested delivery date (future)',
             },
             createdAt: {
               type: 'string',
@@ -608,26 +653,33 @@ export function getOpenApiDocument(): OpenAPIDocument {
           properties: {
             itemId: {
               type: 'string',
+              description: 'Reference to the original catalog item',
             },
             itemName: {
               type: 'string',
+              description: 'Snapshot: item name at checkout',
             },
             itemCategory: {
               type: 'string',
+              description: 'Snapshot: item category at checkout',
             },
             itemDescription: {
               type: 'string',
+              description: 'Snapshot: item description at checkout',
             },
             unitPrice: {
               type: 'number',
               format: 'float',
+              description: 'Snapshot: unit price at checkout',
             },
             quantity: {
               type: 'integer',
+              description: 'Quantity requested',
             },
             subtotal: {
               type: 'number',
               format: 'float',
+              description: 'Subtotal for this line (unitPrice * quantity)',
             },
           },
         },
@@ -666,14 +718,98 @@ export function getOpenApiDocument(): OpenAPIDocument {
           properties: {
             role: {
               type: 'string',
-              enum: ['user', 'assistant', 'system'],
+              enum: ['user', 'agent', 'system'],
+              description: 'Message sender role',
             },
             content: {
               type: 'string',
+              description: 'Message content (text)',
             },
             timestamp: {
               type: 'string',
               format: 'date-time',
+            },
+            items: {
+              type: 'array',
+              description:
+                'Optional items attached to the message (search results)',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  name: { type: 'string' },
+                  category: { type: 'string' },
+                  description: { type: 'string' },
+                  price: { type: 'number' },
+                  availability: {
+                    type: 'string',
+                    enum: ['in_stock', 'out_of_stock', 'limited'],
+                  },
+                },
+              },
+            },
+            cart: {
+              type: 'object',
+              description: 'Optional cart data attached to the message',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      itemId: { type: 'string' },
+                      itemName: { type: 'string' },
+                      itemPrice: { type: 'number' },
+                      quantity: { type: 'integer' },
+                    },
+                  },
+                },
+                totalCost: { type: 'number' },
+                itemCount: { type: 'integer' },
+              },
+            },
+            checkoutConfirmation: {
+              type: 'object',
+              description: 'Optional checkout confirmation data',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      itemId: { type: 'string' },
+                      itemName: { type: 'string' },
+                      itemPrice: { type: 'number' },
+                      quantity: { type: 'integer' },
+                      subtotal: { type: 'number' },
+                    },
+                  },
+                },
+                totalCost: { type: 'number' },
+                itemCount: { type: 'integer' },
+              },
+            },
+            purchaseRequest: {
+              type: 'object',
+              description: 'Optional purchase request data after checkout',
+              properties: {
+                id: { type: 'string' },
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      itemName: { type: 'string' },
+                      itemCategory: { type: 'string' },
+                      quantity: { type: 'integer' },
+                      unitPrice: { type: 'number' },
+                      subtotal: { type: 'number' },
+                    },
+                  },
+                },
+                totalCost: { type: 'number' },
+                status: { type: 'string' },
+              },
             },
           },
         },

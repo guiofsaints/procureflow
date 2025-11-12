@@ -12,13 +12,13 @@ ProcureFlow operational runbooks provide step-by-step procedures for common deve
 
 ## Available Runbooks
 
-| Runbook | Purpose | Frequency | Audience | Complexity |
-|---------|---------|-----------|----------|------------|
-| **[Local Development](/runbooks/local-dev)** | Set up local development environment with Docker Compose | Daily (new developers) | Developers | 🟢 Low |
-| **[Build and Deploy](/runbooks/build-and-deploy)** | Execute deployment to GCP Cloud Run (dev/staging/prod) | Weekly (releases) | Platform Engineers | 🟡 Medium |
-| **[Rollback](/runbooks/rollback)** | Rollback failed deployment using Cloud Run or Pulumi | As-needed (incidents) | Platform Engineers, On-Call | 🔴 High |
-| **[Autoscaling Check](/runbooks/autoscaling-check)** | Monitor and verify Cloud Run autoscaling behavior | Weekly (ops review) | Platform Engineers | 🟢 Low |
-| **[Troubleshooting](/runbooks/troubleshooting)** | Diagnose and resolve common failures (10 scenarios) | As-needed (incidents) | All Engineers, On-Call | 🟡 Medium |
+| Runbook                                              | Purpose                                                  | Frequency              | Audience                    | Complexity |
+| ---------------------------------------------------- | -------------------------------------------------------- | ---------------------- | --------------------------- | ---------- |
+| **[Local Development](/runbooks/local-dev)**         | Set up local development environment with Docker Compose | Daily (new developers) | Developers                  | 🟢 Low     |
+| **[Build and Deploy](/runbooks/build-and-deploy)**   | Execute deployment to GCP Cloud Run (dev/staging/prod)   | Weekly (releases)      | Platform Engineers          | 🟡 Medium  |
+| **[Rollback](/runbooks/rollback)**                   | Rollback failed deployment using Cloud Run or Pulumi     | As-needed (incidents)  | Platform Engineers, On-Call | 🔴 High    |
+| **[Autoscaling Check](/runbooks/autoscaling-check)** | Monitor and verify Cloud Run autoscaling behavior        | Weekly (ops review)    | Platform Engineers          | 🟢 Low     |
+| **[Troubleshooting](/runbooks/troubleshooting)**     | Diagnose and resolve common failures (10 scenarios)      | As-needed (incidents)  | All Engineers, On-Call      | 🟡 Medium  |
 
 ---
 
@@ -57,13 +57,13 @@ All runbooks follow a consistent structure:
 
 ## Planned Runbooks (Future)
 
-| Runbook | Purpose | Priority | Target Version |
-|---------|---------|----------|----------------|
-| **Database Migration** | Execute schema migration with rollback plan | 🔴 High | v1.2 (Q1 2026) |
-| **Secrets Rotation** | Rotate NEXTAUTH_SECRET, OPENAI_API_KEY, MongoDB credentials | 🟡 Medium | v1.2 (Q1 2026) |
-| **Incident Response** | Incident management workflow (detect → mitigate → resolve → postmortem) | 🔴 High | v1.3 (Q2 2026) |
-| **Backup and Restore** | MongoDB backup to GCS, restore from backup | 🟡 Medium | v1.2 (Q1 2026) |
-| **Load Testing** | Execute k6 load tests, analyze results | 🟢 Low | v1.3 (Q2 2026) |
+| Runbook                | Purpose                                                                 | Priority  | Target Version |
+| ---------------------- | ----------------------------------------------------------------------- | --------- | -------------- |
+| **Database Migration** | Execute schema migration with rollback plan                             | 🔴 High   | v1.2 (Q1 2026) |
+| **Secrets Rotation**   | Rotate NEXTAUTH_SECRET, OPENAI_API_KEY, MongoDB credentials             | 🟡 Medium | v1.2 (Q1 2026) |
+| **Incident Response**  | Incident management workflow (detect → mitigate → resolve → postmortem) | 🔴 High   | v1.3 (Q2 2026) |
+| **Backup and Restore** | MongoDB backup to GCS, restore from backup                              | 🟡 Medium | v1.2 (Q1 2026) |
+| **Load Testing**       | Execute k6 load tests, analyze results                                  | 🟢 Low    | v1.3 (Q2 2026) |
 
 ---
 
@@ -78,6 +78,7 @@ All runbooks follow a consistent structure:
 ### Quality Criteria
 
 ✅ **All runbooks must meet**:
+
 1. Executable commands (copy-pasteable and tested)
 2. Clear prerequisites (no assumed knowledge)
 3. Verification steps (each step includes checks)

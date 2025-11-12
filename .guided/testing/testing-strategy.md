@@ -46,6 +46,7 @@ graph TD
 ```
 
 **Rationale**:
+
 - **70% unit tests**: Fast, isolated, test business logic in service layer
 - **25% integration tests**: Test API routes + database interactions, verify end-to-end flows
 - **5% e2e tests**: Test critical user journeys (login → search → add to cart → checkout), slower but high confidence
@@ -59,6 +60,7 @@ graph TD
 **Scope**: Service layer functions, utility functions, domain entity validators
 
 **Test Subjects**:
+
 - `features/catalog/lib/catalog.service.ts`
 - `features/cart/lib/cart.service.ts`
 - `features/checkout/lib/checkout.service.ts`
@@ -67,6 +69,7 @@ graph TD
 - `lib/utils/*.ts` (retry logic, logger, validators)
 
 **Characteristics**:
+
 - ✅ No database (mock Mongoose models)
 - ✅ No HTTP server (direct function calls)
 - ✅ No external APIs (mock OpenAI)
@@ -74,6 +77,7 @@ graph TD
 - ✅ Deterministic (no random data, no timestamps)
 
 **Example Test** (`catalog.service.test.ts`):
+
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { searchItems } from '@/features/catalog';
@@ -112,7 +116,9 @@ describe('catalogService.searchItems', () => {
 
   it('should throw ValidationError for empty query', async () => {
     // Act & Assert
-    await expect(searchItems({ query: '' })).rejects.toThrow('Search query cannot be empty');
+    await expect(searchItems({ query: '' })).rejects.toThrow(
+      'Search query cannot be empty'
+    );
   });
 });
 ```
@@ -126,12 +132,14 @@ describe('catalogService.searchItems', () => {
 **Scope**: API routes + database interactions, multi-layer flows
 
 **Test Subjects**:
+
 - `app/api/catalog/search/route.ts`
 - `app/api/cart/items/route.ts`
 - `app/api/checkout/route.ts`
 - `app/api/agent/chat/route.ts`
 
 **Characteristics**:
+
 - ✅ Real database (mongodb-memory-server in-memory)
 - ✅ HTTP server (Next.js test server or supertest)
 - ❌ No external APIs (mock OpenAI with fixtures)
@@ -139,6 +147,7 @@ describe('catalogService.searchItems', () => {
 - ✅ Isolated (each test uses fresh database)
 
 **Example Test** (`cart.integration.test.ts`):
+
 ```typescript
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
@@ -168,7 +177,10 @@ beforeEach(async () => {
 describe('POST /api/cart/items', () => {
   it('should add item to cart', async () => {
     // Arrange: Create test user and item
-    const user = await UserModel.create({ name: 'Test User', email: 'test@example.com' });
+    const user = await UserModel.create({
+      name: 'Test User',
+      email: 'test@example.com',
+    });
     const item = await ItemModel.create({
       name: 'Test Pen',
       category: 'Office Supplies',
@@ -230,11 +242,13 @@ describe('POST /api/cart/items', () => {
 **Scope**: Critical user journeys through full application stack
 
 **Test Subjects**:
+
 - Login → Search → Add to Cart → Checkout (happy path)
 - Agent conversation flow (search → confirm → add to cart)
 - Item registration with duplicate detection
 
 **Characteristics**:
+
 - ✅ Real browser (Playwright headless Chromium)
 - ✅ Real database (test MongoDB instance or in-memory)
 - ❌ Mock external APIs (OpenAI with fixture responses)
@@ -242,6 +256,7 @@ describe('POST /api/cart/items', () => {
 - ✅ High confidence (tests entire stack)
 
 **Example Test** (`checkout.e2e.test.ts`):
+
 ```typescript
 import { test, expect } from '@playwright/test';
 
@@ -255,7 +270,9 @@ test.describe('Checkout Flow', () => {
     await expect(page).toHaveURL('http://localhost:3000/catalog');
   });
 
-  test('should complete checkout from search to PR submission', async ({ page }) => {
+  test('should complete checkout from search to PR submission', async ({
+    page,
+  }) => {
     // 1. Search for item
     await page.fill('input[placeholder="Search catalog..."]', 'pen');
     await page.press('input[placeholder="Search catalog..."]', 'Enter');
@@ -288,6 +305,7 @@ test.describe('Checkout Flow', () => {
 **Target Coverage**: 100% of critical user journeys (5 flows)
 
 **Planned E2E Tests** (Future):
+
 1. ✅ Login → Search → Add to Cart → Checkout
 2. ✅ Agent: Search via chat → Confirm → Add to cart
 3. ✅ Item registration with duplicate detection
@@ -300,26 +318,27 @@ test.describe('Checkout Flow', () => {
 
 ### Core Testing Framework
 
-| Tool | Version | Purpose | Rationale |
-|------|---------|---------|-----------|
-| **Vitest** | 4.0.8 | Test runner | Native ESM, TypeScript native, 10× faster than Jest, Jest-compatible API |
-| **@testing-library/react** | 16.3.0 | Component testing | User-centric queries (getByRole, getByText), encourages accessibility |
-| **@testing-library/user-event** | 14.6.1 | User interaction simulation | Simulates real user events (click, type, keyboard) |
-| **jsdom** | 27.1.0 | DOM simulation | Headless DOM for unit/integration tests, faster than real browser |
-| **mongodb-memory-server** | 10.3.0 | In-memory MongoDB | Isolated integration tests, no external MongoDB dependency, fast startup |
+| Tool                            | Version | Purpose                     | Rationale                                                                |
+| ------------------------------- | ------- | --------------------------- | ------------------------------------------------------------------------ |
+| **Vitest**                      | 4.0.8   | Test runner                 | Native ESM, TypeScript native, 10× faster than Jest, Jest-compatible API |
+| **@testing-library/react**      | 16.3.0  | Component testing           | User-centric queries (getByRole, getByText), encourages accessibility    |
+| **@testing-library/user-event** | 14.6.1  | User interaction simulation | Simulates real user events (click, type, keyboard)                       |
+| **jsdom**                       | 27.1.0  | DOM simulation              | Headless DOM for unit/integration tests, faster than real browser        |
+| **mongodb-memory-server**       | 10.3.0  | In-memory MongoDB           | Isolated integration tests, no external MongoDB dependency, fast startup |
 
 ---
 
 ### Mocking and Fixtures
 
-| Tool | Version | Purpose | Rationale |
-|------|---------|---------|-----------|
-| **Vitest mocks** | Built-in | Function mocking | `vi.mock()`, `vi.fn()`, `vi.spyOn()` for service/API mocking |
-| **MSW (Mock Service Worker)** | Future | HTTP mocking | Intercept fetch/axios requests for OpenAI API mocking (future) |
+| Tool                          | Version  | Purpose          | Rationale                                                      |
+| ----------------------------- | -------- | ---------------- | -------------------------------------------------------------- |
+| **Vitest mocks**              | Built-in | Function mocking | `vi.mock()`, `vi.fn()`, `vi.spyOn()` for service/API mocking   |
+| **MSW (Mock Service Worker)** | Future   | HTTP mocking     | Intercept fetch/axios requests for OpenAI API mocking (future) |
 
 **Mocking Patterns**:
 
 **Service Layer Mocking** (Unit Tests):
+
 ```typescript
 // Mock Mongoose models
 vi.mock('@/lib/db/models', () => ({
@@ -336,6 +355,7 @@ vi.mock('@/lib/db/models', () => ({
 ```
 
 **OpenAI API Mocking** (Agent Tests):
+
 ```typescript
 // Mock OpenAI client
 vi.mock('openai', () => ({
@@ -343,19 +363,26 @@ vi.mock('openai', () => ({
     chat = {
       completions: {
         create: vi.fn().mockResolvedValue({
-          choices: [{
-            message: {
-              role: 'assistant',
-              content: 'I found 5 pens matching your query.',
-              tool_calls: [{
-                function: { name: 'search_catalog', arguments: '{"query": "pen"}' }
-              }]
-            }
-          }]
-        })
-      }
-    }
-  }
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: 'I found 5 pens matching your query.',
+                tool_calls: [
+                  {
+                    function: {
+                      name: 'search_catalog',
+                      arguments: '{"query": "pen"}',
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      },
+    };
+  },
 }));
 ```
 
@@ -363,11 +390,12 @@ vi.mock('openai', () => ({
 
 ### E2E Testing (Future)
 
-| Tool | Version | Purpose | Rationale |
-|------|---------|---------|-----------|
+| Tool           | Version                  | Purpose            | Rationale                                                                |
+| -------------- | ------------------------ | ------------------ | ------------------------------------------------------------------------ |
 | **Playwright** | Future (planned Q2 2025) | Browser automation | Cross-browser (Chromium, Firefox, WebKit), headless mode, fast, reliable |
 
 **Alternatives Considered**:
+
 - Cypress: Slower, Electron-based, less reliable for multi-tab flows
 - Puppeteer: Chromium-only, less features than Playwright
 
@@ -379,18 +407,19 @@ vi.mock('openai', () => ({
 
 **Coverage Report** (`pnpm test:coverage`):
 
-| Metric | Current | Threshold | Status |
-|--------|---------|-----------|--------|
-| **Lines** | ~5% | 60% | ❌ Below threshold (enforcement disabled in v1.0) |
-| **Functions** | ~5% | 60% | ❌ Below threshold |
-| **Branches** | ~5% | 60% | ❌ Below threshold |
-| **Statements** | ~5% | 60% | ❌ Below threshold |
+| Metric         | Current | Threshold | Status                                            |
+| -------------- | ------- | --------- | ------------------------------------------------- |
+| **Lines**      | ~5%     | 60%       | ❌ Below threshold (enforcement disabled in v1.0) |
+| **Functions**  | ~5%     | 60%       | ❌ Below threshold                                |
+| **Branches**   | ~5%     | 60%       | ❌ Below threshold                                |
+| **Statements** | ~5%     | 60%       | ❌ Below threshold                                |
 
 **Files with Tests**: 1 of 100+ source files  
 **Test Files**: 1 (`src/lib/api/errorHandler.test.ts`)  
 **Total Tests**: 6 tests
 
 **Coverage by Layer**:
+
 - Service Layer: 0% (0 tests)
 - API Routes: 0% (0 tests)
 - Components: 0% (0 tests)
@@ -404,12 +433,12 @@ vi.mock('openai', () => ({
 
 **Prioritized Coverage Plan**:
 
-| Layer | Current | Target | Priority | Effort | Status |
-|-------|---------|--------|----------|--------|--------|
-| **Service Layer** | 0% | 80% | 🔴 Critical | High (70 tests) | ⏸️ Planned |
-| **API Routes** | 0% | 60% | 🟡 High | Medium (25 tests) | ⏸️ Planned |
-| **Components** | 0% | 40% | 🟢 Low | Medium (20 tests) | ⏸️ Planned |
-| **Utilities** | 30% | 80% | 🟡 High | Low (5 tests) | ⏸️ Planned |
+| Layer             | Current | Target | Priority    | Effort            | Status     |
+| ----------------- | ------- | ------ | ----------- | ----------------- | ---------- |
+| **Service Layer** | 0%      | 80%    | 🔴 Critical | High (70 tests)   | ⏸️ Planned |
+| **API Routes**    | 0%      | 60%    | 🟡 High     | Medium (25 tests) | ⏸️ Planned |
+| **Components**    | 0%      | 40%    | 🟢 Low      | Medium (20 tests) | ⏸️ Planned |
+| **Utilities**     | 30%     | 80%    | 🟡 High     | Low (5 tests)     | ⏸️ Planned |
 
 **Test File Expansion**:
 
@@ -455,6 +484,7 @@ coverage: {
 ```
 
 **CI Enforcement** (Future):
+
 ```yaml
 # .github/workflows/ci.yml
 - name: Run tests with coverage
@@ -509,12 +539,14 @@ packages/web/src/test/
 ### Naming Conventions
 
 **Test Files**:
+
 - Unit tests: `<feature>.service.test.ts` (e.g., `catalog.service.test.ts`)
 - Integration tests: `<feature>.integration.test.ts`
 - E2E tests: `<feature>.e2e.test.ts`
 - Component tests: `<Component>.test.tsx`
 
 **Test Suites** (describe blocks):
+
 ```typescript
 describe('catalogService.searchItems', () => {
   describe('when query is valid', () => {
@@ -550,35 +582,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.21.0
-      
+
       - name: Install dependencies
         run: pnpm install
-      
+
       - name: Run linter
         run: pnpm lint
-      
+
       - name: Run type check
         run: pnpm type-check
-      
+
       - name: Run unit tests
         run: pnpm --filter web test:run
-      
+
       - name: Run integration tests
         run: pnpm --filter web test:integration
-      
+
       - name: Generate coverage report
         run: pnpm --filter web test:coverage
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -593,15 +625,16 @@ jobs:
 
 **Pre-Deployment Checks**:
 
-| Gate | Enforcement | Failure Action | Status |
-|------|-------------|----------------|--------|
-| **All tests pass** | ✅ Enforced | Block deployment | ✅ Active |
-| **Coverage ≥ 60%** | ⏸️ Planned (v1.1) | Block deployment | ⏸️ Future |
-| **No linter errors** | ✅ Enforced | Block deployment | ✅ Active |
-| **TypeScript compiles** | ✅ Enforced | Block deployment | ✅ Active |
-| **OpenAPI spec valid** | ⏸️ Planned (v1.1) | Block deployment | ⏸️ Future |
+| Gate                    | Enforcement       | Failure Action   | Status    |
+| ----------------------- | ----------------- | ---------------- | --------- |
+| **All tests pass**      | ✅ Enforced       | Block deployment | ✅ Active |
+| **Coverage ≥ 60%**      | ⏸️ Planned (v1.1) | Block deployment | ⏸️ Future |
+| **No linter errors**    | ✅ Enforced       | Block deployment | ✅ Active |
+| **TypeScript compiles** | ✅ Enforced       | Block deployment | ✅ Active |
+| **OpenAPI spec valid**  | ⏸️ Planned (v1.1) | Block deployment | ⏸️ Future |
 
 **Pull Request Checks**:
+
 - ✅ All CI jobs pass (tests, lint, type-check)
 - ✅ No merge conflicts
 - ⏸️ Code review approval required (future: 1 approval from tech lead)
@@ -626,7 +659,7 @@ export const mockUsers = {
     password: '<hashed>',
     createdAt: new Date('2025-01-01T00:00:00Z'),
   } as User,
-  
+
   adminUser: {
     _id: '507f1f77bcf86cd799439012',
     name: 'Admin User',
@@ -648,7 +681,7 @@ export const mockItems = {
     createdBy: mockUsers.adminUser._id,
     createdAt: new Date('2025-01-01T00:00:00Z'),
   } as Item,
-  
+
   bluePen: {
     _id: '507f1f77bcf86cd799439014',
     name: 'Blue Ballpoint Pen',
@@ -686,6 +719,7 @@ export const mockCarts = {
 ### Database Seeding (Integration Tests)
 
 **Seeding Pattern**:
+
 ```typescript
 // src/test/utils/testHelpers.ts
 export async function seedDatabase() {
@@ -702,6 +736,7 @@ export async function clearDatabase() {
 ```
 
 **Usage in Tests**:
+
 ```typescript
 beforeEach(async () => {
   await clearDatabase();
@@ -715,20 +750,21 @@ beforeEach(async () => {
 
 ### Common Causes and Solutions
 
-| Cause | Symptom | Solution | Status |
-|-------|---------|----------|--------|
-| **Shared database state** | Tests pass individually, fail in suite | Use mongodb-memory-server with `beforeEach` cleanup | ✅ Implemented |
-| **Async race conditions** | Intermittent failures in CI | Use `await` consistently, `waitFor()` in component tests | ✅ Implemented |
-| **Random test data** | Non-deterministic failures | Use fixed timestamps, predictable IDs in fixtures | ✅ Implemented |
-| **External API calls** | Tests fail when API down | Mock OpenAI, MongoDB Atlas (use in-memory) | ✅ Implemented |
-| **Test timeouts** | Slow tests fail in CI | Set generous timeouts (30s integration, 2min e2e) | ⏸️ Planned |
-| **Test order dependency** | Tests pass in isolation, fail in suite | Ensure each test is independent with `beforeEach` setup | ✅ Implemented |
+| Cause                     | Symptom                                | Solution                                                 | Status         |
+| ------------------------- | -------------------------------------- | -------------------------------------------------------- | -------------- |
+| **Shared database state** | Tests pass individually, fail in suite | Use mongodb-memory-server with `beforeEach` cleanup      | ✅ Implemented |
+| **Async race conditions** | Intermittent failures in CI            | Use `await` consistently, `waitFor()` in component tests | ✅ Implemented |
+| **Random test data**      | Non-deterministic failures             | Use fixed timestamps, predictable IDs in fixtures        | ✅ Implemented |
+| **External API calls**    | Tests fail when API down               | Mock OpenAI, MongoDB Atlas (use in-memory)               | ✅ Implemented |
+| **Test timeouts**         | Slow tests fail in CI                  | Set generous timeouts (30s integration, 2min e2e)        | ⏸️ Planned     |
+| **Test order dependency** | Tests pass in isolation, fail in suite | Ensure each test is independent with `beforeEach` setup  | ✅ Implemented |
 
 ---
 
 ### Retry Logic (Future)
 
 **Vitest Retry Configuration**:
+
 ```typescript
 // vitest.config.ts
 test: {
@@ -738,6 +774,7 @@ test: {
 ```
 
 **Playwright Retry Configuration** (Future):
+
 ```typescript
 // playwright.config.ts
 retries: 2,  // Retry e2e tests up to 2 times

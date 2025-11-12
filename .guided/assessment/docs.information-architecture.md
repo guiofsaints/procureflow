@@ -8,39 +8,39 @@ Minimal documentation structure for ProcureFlow organized into 5 primary section
 
 ## Navigation Table
 
-| Document | Purpose | Owner | Update SLA | Status |
-|----------|---------|-------|------------|--------|
-| **Overview** | | | | |
-| `.guided/README.md` | Entry point, navigation, quick start | Tech Lead | Monthly | To Create |
-| **Product** | | | | |
-| `.guided/product/prd.objective-and-features.md` | Problem, vision, must-have/nice-to-have features | Product | Per release | To Create |
-| `.guided/product/prd.functional-requirements.md` | FR-xx entries with acceptance criteria | Product | Per release | To Create |
-| `.guided/product/prd.non-functional-requirements.md` | Performance, security, reliability targets | Product + Eng | Quarterly | To Create |
-| **Architecture** | | | | |
-| `.guided/architecture/c4.context.md` | C1 diagram, scope, external systems | Architecture | Per major release | To Create |
-| `.guided/architecture/c4.container.md` | C2 diagram, runtime containers, data flows | Architecture | Per major release | To Create |
-| `.guided/architecture/c4.component.md` | C3 diagram (optional), component responsibilities | Architecture | As needed | Optional |
-| `.guided/architecture/stack-and-patterns.md` | Tech stack, patterns, decision log | Architecture | Per release | To Create |
-| `.guided/architecture/infrastructure.md` | Environments, deploy targets, secrets, observability | DevOps | Quarterly | To Create |
-| **API** | | | | |
-| `.guided/api/openapi.status-and-plan.md` | OpenAPI source of truth, generation, gaps | API Team | Per release | To Create |
-| `.guided/api/openapi.yaml` | OpenAPI 3.0 spec (generated) | API Team | Per API change | To Create |
-| **Testing** | | | | |
-| `.guided/testing/testing-strategy.md` | Layers, tooling, coverage, CI gates | QA + Eng | Per release | To Create |
-| **Operations** | | | | |
-| `.guided/operations/deployment-strategy.md` | Deploy targets, promotion, checks | DevOps | Per release | To Create |
-| `.guided/operations/rollback-strategy.md` | Rollback decision tree, validation | DevOps | Per release | To Create |
-| `.guided/operations/autoscaling-policy.md` | Metrics, triggers, guardrails | DevOps | Quarterly | To Create |
-| `.guided/operation/runbooks.plan.md` | Initial runbook inventory | DevOps | Per release | To Create |
-| `.guided/operation/runbooks/local-dev.md` | Local development setup | DevOps | Monthly | To Create |
-| `.guided/operation/runbooks/build-and-deploy.md` | CI/CD workflow execution | DevOps | Per workflow change | To Create |
-| `.guided/operation/runbooks/rollback.md` | Execute rollback procedure | DevOps | Per release | To Create |
-| `.guided/operation/runbooks/autoscaling-check.md` | Monitor and adjust autoscaling | DevOps | Monthly | To Create |
-| `.guided/operation/runbooks/troubleshooting.md` | Common failures and resolutions | DevOps + Eng | Monthly | To Create |
-| **Supporting** | | | | |
-| `CONTRIBUTING.md` | Contribution workflow, commit conventions | Eng Lead | Per release | Exists |
-| `.guided/glossary.md` | Terms, acronyms, definitions | Documentation | Quarterly | To Create |
-| `.guided/references.md` | External docs, tools, resources | Documentation | As needed | To Create |
+| Document                                             | Purpose                                              | Owner         | Update SLA          | Status    |
+| ---------------------------------------------------- | ---------------------------------------------------- | ------------- | ------------------- | --------- |
+| **Overview**                                         |                                                      |               |                     |           |
+| `.guided/README.md`                                  | Entry point, navigation, quick start                 | Tech Lead     | Monthly             | To Create |
+| **Product**                                          |                                                      |               |                     |           |
+| `.guided/product/prd.objective-and-features.md`      | Problem, vision, must-have/nice-to-have features     | Product       | Per release         | To Create |
+| `.guided/product/prd.functional-requirements.md`     | FR-xx entries with acceptance criteria               | Product       | Per release         | To Create |
+| `.guided/product/prd.non-functional-requirements.md` | Performance, security, reliability targets           | Product + Eng | Quarterly           | To Create |
+| **Architecture**                                     |                                                      |               |                     |           |
+| `.guided/architecture/c4.context.md`                 | C1 diagram, scope, external systems                  | Architecture  | Per major release   | To Create |
+| `.guided/architecture/c4.container.md`               | C2 diagram, runtime containers, data flows           | Architecture  | Per major release   | To Create |
+| `.guided/architecture/c4.component.md`               | C3 diagram (optional), component responsibilities    | Architecture  | As needed           | Optional  |
+| `.guided/architecture/stack-and-patterns.md`         | Tech stack, patterns, decision log                   | Architecture  | Per release         | To Create |
+| `.guided/architecture/infrastructure.md`             | Environments, deploy targets, secrets, observability | DevOps        | Quarterly           | To Create |
+| **API**                                              |                                                      |               |                     |           |
+| `.guided/api/openapi.status-and-plan.md`             | OpenAPI source of truth, generation, gaps            | API Team      | Per release         | To Create |
+| `.guided/api/openapi.yaml`                           | OpenAPI 3.0 spec (generated)                         | API Team      | Per API change      | To Create |
+| **Testing**                                          |                                                      |               |                     |           |
+| `.guided/testing/testing-strategy.md`                | Layers, tooling, coverage, CI gates                  | QA + Eng      | Per release         | To Create |
+| **Operations**                                       |                                                      |               |                     |           |
+| `.guided/operations/deployment-strategy.md`          | Deploy targets, promotion, checks                    | DevOps        | Per release         | To Create |
+| `.guided/operations/rollback-strategy.md`            | Rollback decision tree, validation                   | DevOps        | Per release         | To Create |
+| `.guided/operations/autoscaling-policy.md`           | Metrics, triggers, guardrails                        | DevOps        | Quarterly           | To Create |
+| `.guided/operation/runbooks.plan.md`                 | Initial runbook inventory                            | DevOps        | Per release         | To Create |
+| `.guided/operation/runbooks/local-dev.md`            | Local development setup                              | DevOps        | Monthly             | To Create |
+| `.guided/operation/runbooks/build-and-deploy.md`     | CI/CD workflow execution                             | DevOps        | Per workflow change | To Create |
+| `.guided/operation/runbooks/rollback.md`             | Execute rollback procedure                           | DevOps        | Per release         | To Create |
+| `.guided/operation/runbooks/autoscaling-check.md`    | Monitor and adjust autoscaling                       | DevOps        | Monthly             | To Create |
+| `.guided/operation/runbooks/troubleshooting.md`      | Common failures and resolutions                      | DevOps + Eng  | Monthly             | To Create |
+| **Supporting**                                       |                                                      |               |                     |           |
+| `CONTRIBUTING.md`                                    | Contribution workflow, commit conventions            | Eng Lead      | Per release         | Exists    |
+| `.guided/glossary.md`                                | Terms, acronyms, definitions                         | Documentation | Quarterly           | To Create |
+| `.guided/references.md`                              | External docs, tools, resources                      | Documentation | As needed           | To Create |
 
 ---
 
@@ -89,27 +89,27 @@ Minimal documentation structure for ProcureFlow organized into 5 primary section
 
 ### Roles and Responsibilities
 
-| Role | Primary Responsibility | Documents Owned |
-|------|------------------------|-----------------|
-| **Product** | Feature requirements, user stories | PRD files (3) |
-| **Architecture** | System design, tech decisions | C4 diagrams (3), stack-and-patterns.md |
-| **API Team** | API contracts, OpenAPI spec | openapi.status-and-plan.md, openapi.yaml |
-| **DevOps** | Infrastructure, deployment, operations | infrastructure.md, deployment/rollback/autoscaling strategies, runbooks (5) |
-| **QA + Eng** | Testing strategy, coverage | testing-strategy.md |
-| **Tech Lead** | Cross-functional coordination | README.md, oversight of all sections |
-| **Documentation** | Supporting materials | glossary.md, references.md |
+| Role              | Primary Responsibility                 | Documents Owned                                                             |
+| ----------------- | -------------------------------------- | --------------------------------------------------------------------------- |
+| **Product**       | Feature requirements, user stories     | PRD files (3)                                                               |
+| **Architecture**  | System design, tech decisions          | C4 diagrams (3), stack-and-patterns.md                                      |
+| **API Team**      | API contracts, OpenAPI spec            | openapi.status-and-plan.md, openapi.yaml                                    |
+| **DevOps**        | Infrastructure, deployment, operations | infrastructure.md, deployment/rollback/autoscaling strategies, runbooks (5) |
+| **QA + Eng**      | Testing strategy, coverage             | testing-strategy.md                                                         |
+| **Tech Lead**     | Cross-functional coordination          | README.md, oversight of all sections                                        |
+| **Documentation** | Supporting materials                   | glossary.md, references.md                                                  |
 
 ### Update SLA Definitions
 
-| SLA | Frequency | Trigger |
-|-----|-----------|---------|
-| **Per release** | Every version bump | Tag creation (e.g., v1.1.0) |
-| **Per major release** | Major version change | Breaking changes (e.g., v2.0.0) |
-| **Per API change** | API modification | Endpoint added/modified/removed |
-| **Per workflow change** | CI/CD update | GitHub Actions workflow modified |
-| **Quarterly** | Every 3 months | Calendar-based review |
-| **Monthly** | Every month | Calendar-based review |
-| **As needed** | On demand | Significant external changes |
+| SLA                     | Frequency            | Trigger                          |
+| ----------------------- | -------------------- | -------------------------------- |
+| **Per release**         | Every version bump   | Tag creation (e.g., v1.1.0)      |
+| **Per major release**   | Major version change | Breaking changes (e.g., v2.0.0)  |
+| **Per API change**      | API modification     | Endpoint added/modified/removed  |
+| **Per workflow change** | CI/CD update         | GitHub Actions workflow modified |
+| **Quarterly**           | Every 3 months       | Calendar-based review            |
+| **Monthly**             | Every month          | Calendar-based review            |
+| **As needed**           | On demand            | Significant external changes     |
 
 ---
 
@@ -143,6 +143,7 @@ All `.guided/` documents must include:
 ### Mermaid Diagram Guidelines
 
 **Allowed Types**:
+
 - C4 Context: `graph TD`
 - C4 Container: `graph TD`
 - C4 Component: `graph TD`
@@ -151,6 +152,7 @@ All `.guided/` documents must include:
 - State diagrams: `stateDiagram-v2`
 
 **Example C4 Context**:
+
 ```mermaid
 graph TD
     User[Employee/Requester] -->|HTTP/HTTPS| App[ProcureFlow Web App]
@@ -201,6 +203,7 @@ graph TD
 **Format**: Relative path from current document
 
 Example from `prd.functional-requirements.md`:
+
 ```markdown
 See [C4 Container Diagram](../architecture/c4.container.md) for component interactions.
 ```
@@ -210,21 +213,22 @@ See [C4 Container Diagram](../architecture/c4.container.md) for component intera
 **Format**: Absolute path from repo root
 
 Example:
+
 ```markdown
 See [GitHub Actions Workflow](/.github/workflows/deploy-gcp.yml) for CI/CD configuration.
 ```
 
 ### Common Reference Points
 
-| Reference Type | Link Target |
-|----------------|-------------|
-| OpenAPI Spec | `/api/openapi` (live endpoint) or `.guided/api/openapi.yaml` (static) |
-| CHANGELOG | `/CHANGELOG.md` |
-| CONTRIBUTING | `/CONTRIBUTING.md` |
-| Environment Config | `/packages/web/.env.example` |
-| Pulumi Infra | `/packages/infra/pulumi/gcp/index.ts` |
-| Docker Compose | `/packages/infra/compose.yaml` |
-| CI/CD Workflow | `/.github/workflows/deploy-gcp.yml` |
+| Reference Type     | Link Target                                                           |
+| ------------------ | --------------------------------------------------------------------- |
+| OpenAPI Spec       | `/api/openapi` (live endpoint) or `.guided/api/openapi.yaml` (static) |
+| CHANGELOG          | `/CHANGELOG.md`                                                       |
+| CONTRIBUTING       | `/CONTRIBUTING.md`                                                    |
+| Environment Config | `/packages/web/.env.example`                                          |
+| Pulumi Infra       | `/packages/infra/pulumi/gcp/index.ts`                                 |
+| Docker Compose     | `/packages/infra/compose.yaml`                                        |
+| CI/CD Workflow     | `/.github/workflows/deploy-gcp.yml`                                   |
 
 ---
 
@@ -274,12 +278,14 @@ See [GitHub Actions Workflow](/.github/workflows/deploy-gcp.yml) for CI/CD confi
 ### Quarterly Review Cycle
 
 **Week 1-2 of Quarter**:
+
 1. Review all "Quarterly" SLA documents
 2. Update based on recent changes
 3. Verify links and references
 4. Check Mermaid diagrams render correctly
 
 **Week 4 of Quarter**:
+
 1. Archive outdated documents to `.guided/archive/YYYY-QN/`
 2. Update `.guided/README.md` with recent changes
 3. Send summary to stakeholders
@@ -287,12 +293,14 @@ See [GitHub Actions Workflow](/.github/workflows/deploy-gcp.yml) for CI/CD confi
 ### Per-Release Updates
 
 **Before Release Tag**:
+
 1. Update CHANGELOG.md
 2. Update PRD files if features changed
 3. Regenerate OpenAPI spec
 4. Update deployment strategy if CI/CD changed
 
 **After Release Tag**:
+
 1. Update infrastructure.md if new environment added
 2. Update runbooks if procedures changed
 3. Archive old runbook versions

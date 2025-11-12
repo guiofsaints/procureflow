@@ -22,15 +22,12 @@
 - [ ] **Node.js 20.x** or later (LTS version recommended)
   - Download: https://nodejs.org/
   - Verify: `node --version` (should show v20.x.x)
-  
 - [ ] **pnpm 10.21.0** or later (package manager)
   - Install: `npm install -g pnpm@10.21.0`
   - Verify: `pnpm --version` (should show 10.21.0)
-  
 - [ ] **Docker Desktop** (for MongoDB local container)
   - Download: https://www.docker.com/products/docker-desktop
   - Verify: `docker --version` && `docker compose version`
-  
 - [ ] **Git** (version control)
   - Download: https://git-scm.com/
   - Verify: `git --version`
@@ -65,6 +62,7 @@ cd procureflow
 ```
 
 **Expected Output**:
+
 ```
 Cloning into 'procureflow'...
 remote: Enumerating objects: 1234, done.
@@ -75,6 +73,7 @@ Resolving deltas: 100% (789/789), done.
 ```
 
 **Verification**:
+
 - [ ] Directory `procureflow/` exists
 - [ ] `ls` or `dir` shows `packages/`, `.github/`, `package.json`, etc.
 
@@ -94,6 +93,7 @@ pnpm install
 ```
 
 **Expected Output**:
+
 ```
 Lockfile is up to date, resolution step is skipped
 Already up to date
@@ -109,6 +109,7 @@ Done in 3.2s
 ```
 
 **Verification**:
+
 - [ ] `node_modules/` directory created in root and `packages/web/`
 - [ ] No errors in output (warnings acceptable)
 - [ ] `pnpm --version` still shows 10.21.0
@@ -166,6 +167,7 @@ openssl rand -base64 32
 ```
 
 **Verification**:
+
 - [ ] `.env.local` file exists in `packages/web/`
 - [ ] `MONGODB_URI` points to `mongodb://localhost:27017/procureflow`
 - [ ] `NEXTAUTH_SECRET` is a random string (not the default)
@@ -191,6 +193,7 @@ pnpm docker:up
 ```
 
 **Expected Output**:
+
 ```
 [+] Running 3/3
  ✔ Network procureflow-network  Created
@@ -199,11 +202,13 @@ pnpm docker:up
 ```
 
 **Verification**:
+
 - [ ] `docker ps` shows 2 running containers: `procureflow-mongo`, `procureflow-mongo-express`
 - [ ] MongoDB accessible: http://localhost:27017 (connection refused is expected, use mongo client)
 - [ ] Mongo Express UI accessible: http://localhost:8081 (login: admin/password)
 
 **Troubleshooting**:
+
 - If ports 27017 or 8081 already in use: Stop conflicting services or change ports in `packages/infra/compose.yaml`
 - If Docker Desktop not running: Start Docker Desktop application
 
@@ -223,6 +228,7 @@ pnpm --filter web db:create-text-index
 ```
 
 **Expected Output**:
+
 ```
 ✅ Connected to MongoDB at mongodb://localhost:27017/procureflow
 ✅ Text index created on items collection
@@ -231,6 +237,7 @@ Index name: name_text_description_text_category_text_supplier_text
 ```
 
 **Verification**:
+
 - [ ] Output shows "Text index created"
 - [ ] No errors (ignore "collection not found" if running for first time)
 
@@ -259,6 +266,7 @@ pnpm --filter web db:seed-initial-user
 ```
 
 **Verification**:
+
 - [ ] `pnpm --filter web db:seed-office-items` completed successfully
 - [ ] `pnpm --filter web db:seed-initial-user` completed successfully
 - [ ] Mongo Express shows `items` collection with ~200 documents
@@ -283,6 +291,7 @@ pnpm dev
 ```
 
 **Expected Output**:
+
 ```
 > procureflow-web@1.0.0 dev
 > next dev
@@ -296,6 +305,7 @@ pnpm dev
 ```
 
 **Verification**:
+
 - [ ] Server running on http://localhost:3000
 - [ ] Terminal shows "Ready in X.Xs"
 - [ ] No errors in terminal
@@ -332,6 +342,7 @@ pnpm dev
    - **Expected**: `{ "status": "ok", "timestamp": "2025-11-12T..." }`
 
 **Verification**:
+
 - [ ] Login successful
 - [ ] Catalog search returns results
 - [ ] Add to cart works
@@ -345,17 +356,20 @@ pnpm dev
 ### Final Checks
 
 **Services Running**:
+
 - [ ] Docker containers running: `docker ps` shows `procureflow-mongo`, `procureflow-mongo-express`
 - [ ] Next.js dev server running: Terminal shows "Ready in X.Xs"
 - [ ] MongoDB accessible: Mongo Express UI at http://localhost:8081
 
 **Application Working**:
+
 - [ ] Login page loads: http://localhost:3000
 - [ ] Health check passes: http://localhost:3000/api/health
 - [ ] Catalog search works: Search returns items
 - [ ] Cart functionality works: Items can be added to cart
 
 **Hot Reload Working**:
+
 - [ ] Edit `packages/web/src/app/(public)/page.tsx`
 - [ ] Save file
 - [ ] Browser auto-refreshes with changes (no manual reload needed)
@@ -367,6 +381,7 @@ pnpm dev
 ### If Setup Fails
 
 **Step 4 (Docker) Failed**:
+
 ```powershell
 # Stop Docker containers
 pnpm docker:down
@@ -379,6 +394,7 @@ pnpm docker:up
 ```
 
 **Step 5 (Text Index) Failed**:
+
 ```powershell
 # Connect to MongoDB manually and create index
 mongosh mongodb://localhost:27017/procureflow
@@ -391,6 +407,7 @@ exit
 ```
 
 **Step 7 (Dev Server) Failed**:
+
 ```powershell
 # Check port 3000 not in use
 netstat -ano | findstr :3000  # Windows
@@ -401,6 +418,7 @@ pnpm dev
 ```
 
 **Nuclear Option (Full Reset)**:
+
 ```powershell
 # Stop all services
 pnpm docker:down
@@ -422,10 +440,13 @@ docker volume rm procureflow-mongo-data
 ### Common Issues
 
 **Issue 1: "Port 3000 already in use"**
+
 ```
 Error: listen EADDRINUSE: address already in use :::3000
 ```
+
 **Solution**:
+
 ```powershell
 # Find process using port 3000
 netstat -ano | findstr :3000  # Windows
@@ -442,10 +463,13 @@ pnpm dev
 ---
 
 **Issue 2: "Cannot connect to MongoDB"**
+
 ```
 MongooseServerSelectionError: connect ECONNREFUSED localhost:27017
 ```
+
 **Solution**:
+
 ```powershell
 # Check Docker containers running
 docker ps
@@ -460,10 +484,13 @@ docker logs procureflow-mongo
 ---
 
 **Issue 3: "Text index not found" when searching**
+
 ```
 Error: text index required for $text query
 ```
+
 **Solution**:
+
 ```powershell
 # Re-run text index creation
 pnpm --filter web db:create-text-index
@@ -475,10 +502,13 @@ pnpm --filter web db:create-text-index
 ---
 
 **Issue 4: "NEXTAUTH_SECRET is not set"**
+
 ```
 Error: NEXTAUTH_SECRET environment variable is not set
 ```
+
 **Solution**:
+
 ```powershell
 # Generate secret
 openssl rand -base64 32
@@ -493,10 +523,13 @@ pnpm dev
 ---
 
 **Issue 5: "Agent features not working"**
+
 ```
 Error: OPENAI_API_KEY is not set or invalid
 ```
+
 **Solution**:
+
 ```powershell
 # Option 1: Add valid OpenAI API key to .env.local
 OPENAI_API_KEY=sk-proj-your-actual-key

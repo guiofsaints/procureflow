@@ -14,50 +14,50 @@ ProcureFlow uses Next.js 15 (App Router), React 19, TypeScript 5.7, MongoDB/Mong
 
 ### Frontend Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **React** | 19.2.0 | UI library with Server Components |
-| **Next.js** | 15.1.4 | Full-stack framework (App Router) |
-| **TypeScript** | 5.7.3 | Type safety and IDE support |
-| **Tailwind CSS** | 3.4.1 | Utility-first styling |
-| **Radix UI** | 1.1.4 | Accessible component primitives |
-| **Lucide React** | 0.553.0 | Icon library (tree-shakeable) |
+| Technology       | Version | Purpose                           |
+| ---------------- | ------- | --------------------------------- |
+| **React**        | 19.2.0  | UI library with Server Components |
+| **Next.js**      | 15.1.4  | Full-stack framework (App Router) |
+| **TypeScript**   | 5.7.3   | Type safety and IDE support       |
+| **Tailwind CSS** | 3.4.1   | Utility-first styling             |
+| **Radix UI**     | 1.1.4   | Accessible component primitives   |
+| **Lucide React** | 0.553.0 | Icon library (tree-shakeable)     |
 
 ### Backend Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Node.js** | 20.19.4 | JavaScript runtime |
-| **Mongoose** | 8.9.4 | MongoDB ODM with schema validation |
-| **NextAuth.js** | 4.24.11 | Authentication with JWT sessions |
-| **Zod** | 4.1.12 | Runtime schema validation |
-| **bcryptjs** | 3.0.3 | Password hashing |
+| Technology      | Version | Purpose                            |
+| --------------- | ------- | ---------------------------------- |
+| **Node.js**     | 20.19.4 | JavaScript runtime                 |
+| **Mongoose**    | 8.9.4   | MongoDB ODM with schema validation |
+| **NextAuth.js** | 4.24.11 | Authentication with JWT sessions   |
+| **Zod**         | 4.1.12  | Runtime schema validation          |
+| **bcryptjs**    | 3.0.3   | Password hashing                   |
 
 ### AI & Agent Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **LangChain** | 0.3.19 | LLM orchestration framework |
-| **OpenAI SDK** | 4.77.0 | GPT-3.5-turbo client |
-| **Model** | GPT-3.5-turbo | Cost-efficient LLM ($0.002/1K tokens) |
+| Technology     | Version       | Purpose                               |
+| -------------- | ------------- | ------------------------------------- |
+| **LangChain**  | 0.3.19        | LLM orchestration framework           |
+| **OpenAI SDK** | 4.77.0        | GPT-3.5-turbo client                  |
+| **Model**      | GPT-3.5-turbo | Cost-efficient LLM ($0.002/1K tokens) |
 
 ### Data & Testing Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **MongoDB Atlas** | M0 Free Tier | Document database (512 MB) |
-| **Vitest** | 4.0.8 | Test runner (Jest-compatible) |
-| **Testing Library** | 16.3.0 | Component testing |
-| **mongodb-memory-server** | 10.3.0 | In-memory DB for tests |
+| Technology                | Version      | Purpose                       |
+| ------------------------- | ------------ | ----------------------------- |
+| **MongoDB Atlas**         | M0 Free Tier | Document database (512 MB)    |
+| **Vitest**                | 4.0.8        | Test runner (Jest-compatible) |
+| **Testing Library**       | 16.3.0       | Component testing             |
+| **mongodb-memory-server** | 10.3.0       | In-memory DB for tests        |
 
 ### Infrastructure Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Pulumi** | 3.145.0 | Infrastructure as Code (TypeScript) |
-| **GCP Cloud Run** | N/A | Serverless container platform |
-| **Docker** | N/A | Container runtime |
-| **GitHub Actions** | N/A | CI/CD pipeline |
+| Technology         | Version | Purpose                             |
+| ------------------ | ------- | ----------------------------------- |
+| **Pulumi**         | 3.145.0 | Infrastructure as Code (TypeScript) |
+| **GCP Cloud Run**  | N/A     | Serverless container platform       |
+| **Docker**         | N/A     | Container runtime                   |
+| **GitHub Actions** | N/A     | CI/CD pipeline                      |
 
 ---
 
@@ -66,12 +66,14 @@ ProcureFlow uses Next.js 15 (App Router), React 19, TypeScript 5.7, MongoDB/Mong
 ### Why Next.js 15?
 
 **Rationale**:
+
 - App Router with React Server Components
 - File-based routing + API routes in same codebase
 - Excellent developer experience
 - Easy deployment (Vercel/GCP)
 
 **Alternatives Considered**:
+
 - Remix (strong, but smaller ecosystem)
 - Create React App (no SSR/API routes)
 - Express + React (more setup)
@@ -79,12 +81,14 @@ ProcureFlow uses Next.js 15 (App Router), React 19, TypeScript 5.7, MongoDB/Mong
 ### Why MongoDB?
 
 **Rationale**:
+
 - Schema flexibility for varying catalog fields
 - Built-in full-text search for catalog
 - Document model fits cart items, PR snapshots
 - Atlas M0 free tier (512 MB)
 
 **Alternatives Considered**:
+
 - PostgreSQL (less suitable for nested documents)
 - Supabase (less generous free tier)
 - Firebase Firestore (vendor lock-in)
@@ -92,12 +96,14 @@ ProcureFlow uses Next.js 15 (App Router), React 19, TypeScript 5.7, MongoDB/Mong
 ### Why LangChain + OpenAI?
 
 **Rationale**:
+
 - Function calling abstractions
 - Conversation memory management
 - Multi-provider support (OpenAI, Gemini fallback)
-- GPT-3.5-turbo: Fast (<  2s) + cheap ($0.002/1K tokens)
+- GPT-3.5-turbo: Fast (< 2s) + cheap ($0.002/1K tokens)
 
 **Alternatives Considered**:
+
 - GPT-4 (more expensive, slower)
 - Gemini (no function calling in free tier)
 - Direct OpenAI SDK (no abstractions)
@@ -105,12 +111,14 @@ ProcureFlow uses Next.js 15 (App Router), React 19, TypeScript 5.7, MongoDB/Mong
 ### Why Pulumi?
 
 **Rationale**:
+
 - TypeScript IaC (same language as app)
 - State management included
 - Preview before deploy
 - GCP provider support
 
 **Alternatives Considered**:
+
 - Terraform (HCL not TypeScript)
 - AWS CDK (AWS-only)
 - Manual GCP console (no versioning)
@@ -121,11 +129,11 @@ ProcureFlow uses Next.js 15 (App Router), React 19, TypeScript 5.7, MongoDB/Mong
 
 ### Cost Constraints
 
-| Service | Free Tier Limit | Impact |
-|---------|----------------|--------|
+| Service           | Free Tier Limit                    | Impact                                 |
+| ----------------- | ---------------------------------- | -------------------------------------- |
 | **GCP Cloud Run** | 2M requests/month, 360k GB-seconds | Forces min instances = 0 (cold starts) |
-| **MongoDB M0** | 512 MB, 500 connections | Limits data size + horizontal scaling |
-| **OpenAI API** | No free tier | Rate limiting + budget alerts required |
+| **MongoDB M0**    | 512 MB, 500 connections            | Limits data size + horizontal scaling  |
+| **OpenAI API**    | No free tier                       | Rate limiting + budget alerts required |
 
 **Total Monthly Cost**: ~$2 (OpenAI usage only)
 

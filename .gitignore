@@ -11,6 +11,9 @@ out/
 build/
 dist/
 
+# Documentation build output (copied to web/public/docs during build)
+packages/web/public/docs/
+
 # Environment variables
 .env
 .env.local

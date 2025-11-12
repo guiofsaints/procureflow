@@ -29,6 +29,7 @@ gcloud run revisions list \
 ```
 
 **Expected Output**:
+
 ```
 REVISION                    ACTIVE  SERVICE          DEPLOYED
 procureflow-web-00042-abc   yes     procureflow-web  2025-11-12 10:30 UTC
@@ -36,6 +37,7 @@ procureflow-web-00041-xyz           procureflow-web  2025-11-11 09:15 UTC
 ```
 
 **Verification**:
+
 - [ ] At least 2 revisions available
 - [ ] Identify previous healthy revision
 
@@ -49,6 +51,7 @@ gcloud run services update-traffic procureflow-web \
 ```
 
 **Expected Output**:
+
 ```
 ✓ Updating traffic...
 ✓ Traffic set to 100% for revision procureflow-web-00041-xyz
@@ -56,6 +59,7 @@ Done.
 ```
 
 **Verification**:
+
 - [ ] Traffic updated successfully
 - [ ] No errors in output
 
@@ -72,6 +76,7 @@ curl https://procureflow-web-*.run.app/api/health
 ```
 
 **Verification**:
+
 - [ ] Previous revision serves 100% traffic
 - [ ] Health check returns 200
 - [ ] No errors
@@ -91,6 +96,7 @@ pulumi stack export > backup-$(Get-Date -Format yyyyMMdd-HHmmss).json
 ```
 
 **Verification**:
+
 - [ ] State exported to JSON file
 
 ### Step 2: Revert Infrastructure Code
@@ -106,6 +112,7 @@ git push --force origin main
 ```
 
 **Verification**:
+
 - [ ] Code reverted successfully
 - [ ] Push completed
 
@@ -120,6 +127,7 @@ pulumi up --yes
 ```
 
 **Verification**:
+
 - [ ] Deployment successful
 - [ ] Previous configuration restored
 
@@ -147,6 +155,7 @@ mongorestore --uri="mongodb+srv://user:pass@cluster.mongodb.net/procureflow" \
 ```
 
 **Verification**:
+
 - [ ] Restore completed
 - [ ] Data verified
 
@@ -165,6 +174,7 @@ gcloud run services update procureflow-web \
 ## Verification
 
 **Final Checks**:
+
 - [ ] Health check returns 200
 - [ ] Root endpoint accessible
 - [ ] Catalog search functional
@@ -173,6 +183,7 @@ gcloud run services update procureflow-web \
 - [ ] P95 latency < 2s
 
 **Success Criteria**:
+
 - ✅ Previous stable version serving traffic
 - ✅ All smoke tests pass
 - ✅ No errors in Cloud Run logs

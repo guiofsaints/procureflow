@@ -21,11 +21,11 @@
 
 ### Platform Overview
 
-| Platform | Status | Use Case | Cost | Rationale |
-|----------|--------|----------|------|-----------|
-| **GCP Cloud Run** | ✅ Active (dev only) | Serverless container platform | Free tier (~2M requests/month) + $0.10/month storage | Serverless auto-scaling, zero ops, pay-per-use, HTTPS out-of-box |
-| **Vercel** | ⏸️ Not Used | Next.js hosting platform | Free tier (100 GB bandwidth/month) | ❌ Rejected: No MongoDB in Vercel Edge, limited API route control, vendor lock-in |
-| **Docker Compose** | ✅ Active (local only) | Local development | $0 | Docker Desktop for dev/test, not for production |
+| Platform           | Status                 | Use Case                      | Cost                                                 | Rationale                                                                         |
+| ------------------ | ---------------------- | ----------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **GCP Cloud Run**  | ✅ Active (dev only)   | Serverless container platform | Free tier (~2M requests/month) + $0.10/month storage | Serverless auto-scaling, zero ops, pay-per-use, HTTPS out-of-box                  |
+| **Vercel**         | ⏸️ Not Used            | Next.js hosting platform      | Free tier (100 GB bandwidth/month)                   | ❌ Rejected: No MongoDB in Vercel Edge, limited API route control, vendor lock-in |
+| **Docker Compose** | ✅ Active (local only) | Local development             | $0                                                   | Docker Desktop for dev/test, not for production                                   |
 
 **Decision**: Cloud Run selected for production deployment (see [Decision Log](../architecture/stack-and-patterns.md#decision-log) ADR-006).
 
@@ -35,14 +35,15 @@
 
 ### Environment Configuration
 
-| Environment | Status | Deploy Target | URL | Auto-Deploy | Approval Required | Database | Cost/Month |
-|-------------|--------|---------------|-----|-------------|-------------------|----------|------------|
-| **Local** | ✅ Active | Docker Compose (developer workstation) | http://localhost:3000 | ❌ Manual (`pnpm docker:up`) | No | MongoDB 8.10.6 (local container) | $0 |
-| **Dev** | ✅ Active | GCP Cloud Run (us-central1) | https://procureflow-web-*.run.app | ✅ On push to `main` | No | MongoDB Atlas M0 (free tier) | ~$2.10 |
-| **Staging** | ⏸️ Not Configured | GCP Cloud Run (us-central1) | TBD | ❌ Manual `workflow_dispatch` | No | MongoDB Atlas M2 | ~$15 (estimated) |
-| **Production** | ⏸️ Not Configured | GCP Cloud Run (us-central1) | TBD | ❌ Manual `workflow_dispatch` | ✅ Yes (GitHub environment protection) | MongoDB Atlas M10 | ~$50 (estimated) |
+| Environment    | Status            | Deploy Target                          | URL                                | Auto-Deploy                   | Approval Required                      | Database                         | Cost/Month       |
+| -------------- | ----------------- | -------------------------------------- | ---------------------------------- | ----------------------------- | -------------------------------------- | -------------------------------- | ---------------- |
+| **Local**      | ✅ Active         | Docker Compose (developer workstation) | http://localhost:3000              | ❌ Manual (`pnpm docker:up`)  | No                                     | MongoDB 8.10.6 (local container) | $0               |
+| **Dev**        | ✅ Active         | GCP Cloud Run (us-central1)            | https://procureflow-web-\*.run.app | ✅ On push to `main`          | No                                     | MongoDB Atlas M0 (free tier)     | ~$2.10           |
+| **Staging**    | ⏸️ Not Configured | GCP Cloud Run (us-central1)            | TBD                                | ❌ Manual `workflow_dispatch` | No                                     | MongoDB Atlas M2                 | ~$15 (estimated) |
+| **Production** | ⏸️ Not Configured | GCP Cloud Run (us-central1)            | TBD                                | ❌ Manual `workflow_dispatch` | ✅ Yes (GitHub environment protection) | MongoDB Atlas M10                | ~$50 (estimated) |
 
 **Note**: Only **dev environment** is fully configured in v1.0. Staging and production require:
+
 1. Create Pulumi stacks (`staging`, `production`)
 2. Configure GitHub environments with protection rules
 3. Provision MongoDB Atlas clusters (M2, M10)
@@ -54,24 +55,24 @@
 
 **Required Secrets** (GitHub Secrets → GCP Secret Manager):
 
-| Secret | Dev | Staging | Production | Rotation Policy | Storage |
-|--------|-----|---------|------------|-----------------|---------|
-| `NEXTAUTH_SECRET` | ✅ Set | ⏸️ Required | ⏸️ Required | Annually or on compromise | GCP Secret Manager |
-| `OPENAI_API_KEY` | ✅ Set (or `not-set`) | ⏸️ Required | ⏸️ Required | On API key compromise | GCP Secret Manager |
-| `MONGODB_CONNECTION_STRING` | ✅ Set (Atlas M0) | ⏸️ Required (Atlas M2) | ⏸️ Required (Atlas M10) | On password compromise | GCP Secret Manager |
-| `GCP_SA_KEY` | ✅ Set | ⏸️ Same SA | ⏸️ Dedicated SA | 90 days (GCP best practice) | GitHub Secrets |
-| `PULUMI_ACCESS_TOKEN` | ✅ Set | ⏸️ Same token | ⏸️ Same token | On compromise | GitHub Secrets |
+| Secret                      | Dev                   | Staging                | Production              | Rotation Policy             | Storage            |
+| --------------------------- | --------------------- | ---------------------- | ----------------------- | --------------------------- | ------------------ |
+| `NEXTAUTH_SECRET`           | ✅ Set                | ⏸️ Required            | ⏸️ Required             | Annually or on compromise   | GCP Secret Manager |
+| `OPENAI_API_KEY`            | ✅ Set (or `not-set`) | ⏸️ Required            | ⏸️ Required             | On API key compromise       | GCP Secret Manager |
+| `MONGODB_CONNECTION_STRING` | ✅ Set (Atlas M0)     | ⏸️ Required (Atlas M2) | ⏸️ Required (Atlas M10) | On password compromise      | GCP Secret Manager |
+| `GCP_SA_KEY`                | ✅ Set                | ⏸️ Same SA             | ⏸️ Dedicated SA         | 90 days (GCP best practice) | GitHub Secrets     |
+| `PULUMI_ACCESS_TOKEN`       | ✅ Set                | ⏸️ Same token          | ⏸️ Same token           | On compromise               | GitHub Secrets     |
 
 **Configuration Secrets** (Pulumi Config):
 
 ```typescript
 // packages/infra/pulumi/gcp/index.ts
 const config = new pulumi.Config();
-const environment = config.require("environment");  // dev | staging | production
-const imageTag = config.require("image-tag");      // sha-abc123f
-const nextauthSecret = config.requireSecret("nextauth-secret");
-const openaiApiKey = config.requireSecret("openai-api-key");
-const mongoConnectionString = config.requireSecret("mongodb-connection-string");
+const environment = config.require('environment'); // dev | staging | production
+const imageTag = config.require('image-tag'); // sha-abc123f
+const nextauthSecret = config.requireSecret('nextauth-secret');
+const openaiApiKey = config.requireSecret('openai-api-key');
+const mongoConnectionString = config.requireSecret('mongodb-connection-string');
 ```
 
 **Public Environment Variables** (deployed to Cloud Run):
@@ -91,11 +92,12 @@ NEXTAUTH_URL=https://procureflow-web-*.run.app  # Auto-updated after deployment
 **Trigger**: Push to `main` branch OR manual `workflow_dispatch`
 
 **Path Filters**:
+
 ```yaml
 paths:
-  - 'packages/web/**'        # Next.js application code changes
-  - 'packages/infra/**'      # Infrastructure/Dockerfile changes
-  - '.github/workflows/deploy-gcp.yml'  # Workflow changes
+  - 'packages/web/**' # Next.js application code changes
+  - 'packages/infra/**' # Infrastructure/Dockerfile changes
+  - '.github/workflows/deploy-gcp.yml' # Workflow changes
 ```
 
 **Workflow File**: `.github/workflows/deploy-gcp.yml`
@@ -109,13 +111,13 @@ graph TD
     Start([Push to main]) --> PathCheck{Path filters<br/>match?}
     PathCheck -->|No match| Skip([Skip deployment])
     PathCheck -->|Match| Job1[Job 1: Build]
-    
+
     Job1 --> Auth1[Authenticate to GCP]
     Auth1 --> GenTag[Generate image tag<br/>sha-abc123f]
     GenTag --> BuildDocker[Build Docker image<br/>Dockerfile.web]
     BuildDocker --> PushAR[Push to Artifact Registry<br/>tag: sha-abc123f, latest]
     PushAR --> Job2[Job 2: Deploy]
-    
+
     Job2 --> Auth2[Authenticate to GCP]
     Auth2 --> InstallPulumi[Install Pulumi CLI]
     InstallPulumi --> SelectStack[Select Pulumi stack<br/>dev/staging/production]
@@ -127,7 +129,7 @@ graph TD
     PulumiUp --> UpdateURL[Update NEXTAUTH_URL<br/>in Cloud Run]
     UpdateURL --> ExportURL[Export service URL]
     ExportURL --> Job3[Job 3: Health Check]
-    
+
     Job3 --> Wait[Wait 30 seconds<br/>service startup]
     Wait --> HealthAPI[GET /api/health]
     HealthAPI --> HealthCheck{HTTP 200?}
@@ -136,7 +138,7 @@ graph TD
     RootAPI --> RootCheck{HTTP 200<br/>or 302?}
     RootCheck -->|No| WarnRoot([⚠️ Warning: root endpoint issue])
     RootCheck -->|Yes| Success([✅ Deployment successful])
-    
+
     FailDeploy --> Notify[Notify team<br/>GitHub issue comment]
     FailHealth --> Notify
     WarnRoot --> Success
@@ -232,6 +234,7 @@ graph TD
     ```
 
 **Pulumi Resources Provisioned**:
+
 - Cloud Run service (`procureflow-web`)
 - Artifact Registry repository (`procureflow`)
 - Secret Manager secrets (6 secrets)
@@ -262,6 +265,7 @@ graph TD
    ```
 
 **Success Criteria**:
+
 - ✅ Health endpoint returns HTTP 200
 - ✅ Root endpoint returns HTTP 200 or 302
 - ❌ Health endpoint returns non-200 → **Fail deployment**
@@ -275,14 +279,15 @@ graph TD
 
 ### Total Deployment Time
 
-| Job | Duration | Parallelization |
-|-----|----------|-----------------|
-| Job 1: Build | ~3-4 min | Serial |
-| Job 2: Deploy | ~2-3 min | Serial (depends on Job 1) |
-| Job 3: Health Check | ~30 sec | Serial (depends on Job 2) |
-| **Total** | **~5-8 min** | **Serial pipeline** |
+| Job                 | Duration     | Parallelization           |
+| ------------------- | ------------ | ------------------------- |
+| Job 1: Build        | ~3-4 min     | Serial                    |
+| Job 2: Deploy       | ~2-3 min     | Serial (depends on Job 1) |
+| Job 3: Health Check | ~30 sec      | Serial (depends on Job 2) |
+| **Total**           | **~5-8 min** | **Serial pipeline**       |
 
 **Optimization Opportunities** (Future):
+
 - ❌ Parallel: Jobs 1 and 2 cannot run in parallel (Job 2 needs image tag from Job 1)
 - ✅ Caching: Docker layer caching with `docker buildx` (reduces build time to ~1-2 min)
 - ✅ Warm starts: Cloud Run min instances > 0 (reduces health check startup time)
@@ -314,11 +319,13 @@ graph LR
 **Trigger**: Manual `workflow_dispatch` in GitHub Actions
 
 **Prerequisites**:
+
 - ✅ Staging environment configured (Pulumi stack, MongoDB Atlas M2)
 - ✅ GitHub environment `staging` created
 - ✅ Staging secrets configured in GitHub
 
 **Process**:
+
 1. Navigate to: `https://github.com/USER/REPO/actions/workflows/deploy-gcp.yml`
 2. Click "Run workflow"
 3. Select environment: `staging`
@@ -327,6 +334,7 @@ graph LR
 6. Verify staging URL: `https://procureflow-web-staging-*.run.app`
 
 **Validation** (Manual):
+
 - ✅ Login with test user
 - ✅ Search catalog and verify results
 - ✅ Add items to cart
@@ -343,6 +351,7 @@ graph LR
 **Trigger**: Manual `workflow_dispatch` with approval
 
 **Prerequisites**:
+
 - ✅ Production environment configured (Pulumi stack, MongoDB Atlas M10)
 - ✅ GitHub environment `production` created with protection rules:
   - Required reviewers: Tech Lead or Senior Engineer
@@ -351,6 +360,7 @@ graph LR
 - ✅ Staging validation passed (see above)
 
 **Process**:
+
 1. Navigate to: `https://github.com/USER/REPO/actions/workflows/deploy-gcp.yml`
 2. Click "Run workflow"
 3. Select environment: `production`
@@ -365,12 +375,14 @@ graph LR
 9. If rejected: Workflow cancelled
 
 **Validation** (Automated):
+
 - ✅ Health check passes (Job 3)
 - ✅ Root endpoint accessible
 - ⏸️ Error rate < baseline (future: Prometheus metrics check)
 - ⏸️ P95 latency < baseline (future: performance check)
 
 **Validation** (Manual):
+
 - ✅ Login with production user
 - ✅ Smoke test critical flows (search → add to cart → checkout)
 - ✅ Monitor error logs for 1 hour post-deployment
@@ -387,6 +399,7 @@ graph LR
 **Automatic Rollback**: ❌ Not implemented in v1.0
 
 **Manual Rollback**:
+
 1. Cloud Run automatically serves previous revision if new revision crashes
 2. If health check fails: No traffic routed to new revision (zero downtime)
 3. If manual rollback needed: See [Rollback Strategy](./rollback-strategy.md)
@@ -397,16 +410,16 @@ graph LR
 
 ### Automated Checks (CI/CD)
 
-| Check | Enforcement | Failure Action | Status |
-|-------|-------------|----------------|--------|
-| **Pulumi Preview Clean** | ✅ Enforced (Job 2) | Block deployment | ✅ Active |
-| **Docker Build Success** | ✅ Enforced (Job 1) | Block deployment | ✅ Active |
-| **Health Check HTTP 200** | ✅ Enforced (Job 3) | Fail deployment | ✅ Active |
-| **Root Endpoint Accessible** | ⚠️ Warning only | Log warning | ✅ Active |
+| Check                           | Enforcement             | Failure Action   | Status    |
+| ------------------------------- | ----------------------- | ---------------- | --------- |
+| **Pulumi Preview Clean**        | ✅ Enforced (Job 2)     | Block deployment | ✅ Active |
+| **Docker Build Success**        | ✅ Enforced (Job 1)     | Block deployment | ✅ Active |
+| **Health Check HTTP 200**       | ✅ Enforced (Job 3)     | Fail deployment  | ✅ Active |
+| **Root Endpoint Accessible**    | ⚠️ Warning only         | Log warning      | ✅ Active |
 | **No Critical Vulnerabilities** | ⏸️ Planned (Snyk/Trivy) | Block deployment | ⏸️ Future |
-| **Unit Tests Pass** | ⏸️ Planned (Vitest) | Block deployment | ⏸️ Future |
-| **Coverage ≥ 60%** | ⏸️ Planned (Codecov) | Block deployment | ⏸️ Future |
-| **Linter Clean** | ⏸️ Planned (ESLint) | Block deployment | ⏸️ Future |
+| **Unit Tests Pass**             | ⏸️ Planned (Vitest)     | Block deployment | ⏸️ Future |
+| **Coverage ≥ 60%**              | ⏸️ Planned (Codecov)    | Block deployment | ⏸️ Future |
+| **Linter Clean**                | ⏸️ Planned (ESLint)     | Block deployment | ⏸️ Future |
 
 ---
 
@@ -451,10 +464,10 @@ graph LR
 
 **Tests**:
 
-| Test | Endpoint | Expected Response | Timeout | Status |
-|------|----------|-------------------|---------|--------|
-| **Health Check** | `GET /api/health` | `{ "status": "ok", "timestamp": "..." }` HTTP 200 | 10s | ✅ Active |
-| **Root Endpoint** | `GET /` | HTTP 200 (authenticated) or 302 (redirect to login) | 10s | ✅ Active |
+| Test              | Endpoint          | Expected Response                                   | Timeout | Status    |
+| ----------------- | ----------------- | --------------------------------------------------- | ------- | --------- |
+| **Health Check**  | `GET /api/health` | `{ "status": "ok", "timestamp": "..." }` HTTP 200   | 10s     | ✅ Active |
+| **Root Endpoint** | `GET /`           | HTTP 200 (authenticated) or 302 (redirect to login) | 10s     | ✅ Active |
 
 **Implementation** (`.github/workflows/deploy-gcp.yml`):
 
@@ -464,7 +477,7 @@ graph LR
   run: |
     SERVICE_URL="${{ needs.deploy.outputs.serviceUrl }}"
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/api/health")
-    
+
     if [ $HTTP_CODE -eq 200 ]; then
       echo "✅ Health check passed (HTTP $HTTP_CODE)"
     else
@@ -476,7 +489,7 @@ graph LR
   run: |
     SERVICE_URL="${{ needs.deploy.outputs.serviceUrl }}"
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL")
-    
+
     if [ $HTTP_CODE -eq 200 ] || [ $HTTP_CODE -eq 302 ]; then
       echo "✅ Root endpoint accessible (HTTP $HTTP_CODE)"
     else
@@ -492,18 +505,19 @@ graph LR
 
 **Tests**:
 
-| Test | Description | Expected Outcome | Priority |
-|------|-------------|------------------|----------|
-| **Login Flow** | Navigate to production URL, login with test account | Redirect to `/catalog`, no errors | 🔴 Critical |
-| **Catalog Search** | Search for "pen" in catalog | 5+ results displayed, p95 latency < 1s | 🔴 Critical |
-| **Add to Cart** | Add 1 item to cart with quantity 5 | Cart displays item, total cost correct | 🔴 Critical |
-| **Checkout** | Complete checkout flow from cart | PR number displayed, cart cleared, purchase saved | 🔴 Critical |
-| **Agent Chat** | Send message "search for notebooks" | Agent responds with search results, no errors | 🟡 High |
-| **API Direct** | `GET /api/items?q=pen` with auth token | JSON response with items array | 🟢 Low |
+| Test               | Description                                         | Expected Outcome                                  | Priority    |
+| ------------------ | --------------------------------------------------- | ------------------------------------------------- | ----------- |
+| **Login Flow**     | Navigate to production URL, login with test account | Redirect to `/catalog`, no errors                 | 🔴 Critical |
+| **Catalog Search** | Search for "pen" in catalog                         | 5+ results displayed, p95 latency < 1s            | 🔴 Critical |
+| **Add to Cart**    | Add 1 item to cart with quantity 5                  | Cart displays item, total cost correct            | 🔴 Critical |
+| **Checkout**       | Complete checkout flow from cart                    | PR number displayed, cart cleared, purchase saved | 🔴 Critical |
+| **Agent Chat**     | Send message "search for notebooks"                 | Agent responds with search results, no errors     | 🟡 High     |
+| **API Direct**     | `GET /api/items?q=pen` with auth token              | JSON response with items array                    | 🟢 Low      |
 
 **Execution Time**: ~5 minutes for all tests
 
 **Failure Action**:
+
 - 🔴 Critical test fails → **Immediate rollback** (see [Rollback Strategy](./rollback-strategy.md))
 - 🟡 High test fails → Investigate within 30 minutes, rollback if no fix available
 - 🟢 Low test fails → Create bug ticket, monitor for 1 hour
@@ -516,20 +530,22 @@ graph LR
 
 ```typescript
 // packages/web/src/test/e2e/smoke.e2e.test.ts
-test('critical user flow: search → add to cart → checkout', async ({ page }) => {
+test('critical user flow: search → add to cart → checkout', async ({
+  page,
+}) => {
   await page.goto(process.env.SERVICE_URL);
   await page.fill('input[name="email"]', 'test@procureflow.com');
   await page.fill('input[name="password"]', 'test123');
   await page.click('button[type="submit"]');
-  
+
   await page.fill('input[placeholder="Search catalog..."]', 'pen');
   await page.press('input[placeholder="Search catalog..."]', 'Enter');
   await expect(page.locator('text=Red Ballpoint Pen')).toBeVisible();
-  
+
   await page.click('button:has-text("Add to Cart")').first();
   await page.fill('input[name="quantity"]', '5');
   await page.click('button:has-text("Confirm")');
-  
+
   await page.click('a[href="/cart"]');
   await page.click('button:has-text("Checkout")');
   await expect(page.locator('text=Purchase request submitted')).toBeVisible();

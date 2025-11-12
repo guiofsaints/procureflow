@@ -4,8 +4,9 @@
  * Next.js 16 renamed middleware to proxy to better reflect its purpose.
  *
  * Implements:
- * 1. Authentication via NextAuth withAuth
- * 2. Security headers (helmet-style)
+ * 1. Intercept Nextra metadata files for static docs
+ * 2. Authentication via NextAuth withAuth
+ * 3. Security headers (helmet-style)
  *
  * Headers configured:
  * - X-Frame-Options: Prevent clickjacking
@@ -18,80 +19,91 @@
  */
 
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from 'next-auth/middleware';
 
-export default withAuth(
-  // This function runs AFTER authentication check
-  function proxy(_req) {
-    const response = NextResponse.next();
+function applySecurityHeaders(response: NextResponse) {
+  // X-Frame-Options: Prevent clickjacking
+  response.headers.set('X-Frame-Options', 'DENY');
 
-    // Security Headers
-    // ================
+  // X-Content-Type-Options: Prevent MIME sniffing
+  response.headers.set('X-Content-Type-Options', 'nosniff');
 
-    // X-Frame-Options: Prevent clickjacking
-    response.headers.set('X-Frame-Options', 'DENY');
+  // X-XSS-Protection: Enable XSS protection (legacy, but still useful)
+  response.headers.set('X-XSS-Protection', '1; mode=block');
 
-    // X-Content-Type-Options: Prevent MIME sniffing
-    response.headers.set('X-Content-Type-Options', 'nosniff');
+  // Referrer-Policy: Control referrer information
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-    // X-XSS-Protection: Enable XSS protection (legacy, but still useful)
-    response.headers.set('X-XSS-Protection', '1; mode=block');
+  // Permissions-Policy: Control browser features
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+  );
 
-    // Referrer-Policy: Control referrer information
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Content-Security-Policy: Comprehensive CSP
+  const cspDirectives = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://api.openai.com",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    'upgrade-insecure-requests',
+  ];
 
-    // Permissions-Policy: Control browser features
+  response.headers.set('Content-Security-Policy', cspDirectives.join('; '));
+
+  // Strict-Transport-Security: Force HTTPS (only in production)
+  if (process.env.NODE_ENV === 'production') {
     response.headers.set(
-      'Permissions-Policy',
-      'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains'
     );
+  }
+}
 
-    // Content-Security-Policy: Comprehensive CSP
-    // Note: This is a strict policy - adjust as needed for third-party integrations
-    const cspDirectives = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Allow Next.js scripts
-      "style-src 'self' 'unsafe-inline'", // Allow inline styles for Tailwind
-      "img-src 'self' data: https:", // Allow images from data URIs and HTTPS
-      "font-src 'self' data:", // Allow fonts from self and data URIs
-      "connect-src 'self' https://api.openai.com", // Allow API connections to OpenAI
-      "frame-ancestors 'none'", // Prevent embedding (same as X-Frame-Options: DENY)
-      "base-uri 'self'", // Restrict base tag
-      "form-action 'self'", // Restrict form submissions
-      'upgrade-insecure-requests', // Force HTTPS
-    ];
-
-    response.headers.set('Content-Security-Policy', cspDirectives.join('; '));
-
-    // Strict-Transport-Security: Force HTTPS (only in production)
-    if (process.env.NODE_ENV === 'production') {
-      response.headers.set(
-        'Strict-Transport-Security',
-        'max-age=31536000; includeSubDomains'
-      );
-    }
-
+// Wrapper to handle both public docs and protected routes
+const authMiddleware = withAuth(
+  function authProxy(_req) {
+    const response = NextResponse.next();
+    applySecurityHeaders(response);
     return response;
   },
   {
     callbacks: {
-      // Authorization callback - determines if user can access the route
       authorized({ token }) {
-        // If there is a token, the user is authenticated
         return !!token;
       },
     },
     pages: {
-      // Redirect to home page instead of signin page
       signIn: '/',
     },
   }
 );
 
-// Configure which routes require authentication
+export default function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // For documentation routes, allow public access with security headers
+  if (pathname.startsWith('/docs')) {
+    const response = NextResponse.next();
+    applySecurityHeaders(response);
+    return response;
+  }
+
+  // For protected routes, use NextAuth authentication
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- withAuth typing is incompatible with direct call, but functionally correct
+  return (authMiddleware as any)(req, {} as any);
+}
+
+// Configure which routes this proxy handles
 export const config = {
   matcher: [
-    // Protected routes (require authentication)
+    '/docs/:path*',
     '/catalog/:path*',
     '/cart/:path*',
     '/agent/:path*',

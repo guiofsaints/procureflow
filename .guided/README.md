@@ -34,15 +34,15 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 
 ## Documentation Status
 
-| Section | Status | Completion |
-|---------|--------|------------|
-| **Assessment** | ✅ Complete | 100% (2/2 files) |
+| Section           | Status      | Completion       |
+| ----------------- | ----------- | ---------------- |
+| **Assessment**    | ✅ Complete | 100% (2/2 files) |
 | **Product (PRD)** | ✅ Complete | 100% (3/3 files) |
-| **Architecture** | ✅ Complete | 100% (4/4 files) |
-| **API** | ✅ Complete | 100% (1/1 files) |
-| **Testing** | ✅ Complete | 100% (1/1 files) |
-| **Operations** | 📝 Planned | 0% (0/3 files) |
-| **Runbooks** | 📝 Planned | 0% (0/6 files) |
+| **Architecture**  | ✅ Complete | 100% (4/4 files) |
+| **API**           | ✅ Complete | 100% (1/1 files) |
+| **Testing**       | ✅ Complete | 100% (1/1 files) |
+| **Operations**    | 📝 Planned  | 0% (0/3 files)   |
+| **Runbooks**      | 📝 Planned  | 0% (0/6 files)   |
 
 **Last Updated**: 2025-11-12  
 **Current Phase**: Phase 2 - Operations and Runbooks
@@ -95,6 +95,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 ### Assessment (100% Complete)
 
 **[docs.discovery-summary.md](./assessment/docs.discovery-summary.md)**
+
 - Repository structure and package inventory
 - API surface analysis (13 endpoints)
 - Deployment paths (local Docker, GCP Cloud Run)
@@ -103,6 +104,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 - Prioritized documentation backlog
 
 **[docs.information-architecture.md](./assessment/docs.information-architecture.md)**
+
 - Minimal IA with navigation table
 - Document ownership and update SLA definitions
 - Standard document format and templates
@@ -113,6 +115,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 ### Product Requirements (100% Complete)
 
 **[prd.objective-and-features.md](./product/prd.objective-and-features.md)**
+
 - Problem statement and vision
 - Success metrics (KPIs and business outcomes)
 - Target user personas (Employee, Buyer, Engineer)
@@ -121,12 +124,14 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 - Out of scope exclusions
 
 **[prd.functional-requirements.md](./product/prd.functional-requirements.md)**
+
 - 28 detailed functional requirements (FR-CAT, FR-CART, FR-CHECK, FR-AGENT, FR-AUTH)
 - Each FR includes: Trigger, Happy Path, Edge Cases, Acceptance Criteria
 - Performance targets embedded in acceptance criteria
 - Cross-cutting requirements (data integrity, security)
 
 **[prd.non-functional-requirements.md](./product/prd.non-functional-requirements.md)**
+
 - Performance: API latency targets (p50/p95/p99)
 - Security: Authentication, input validation, secrets management
 - Reliability: 99.5% uptime SLA, error rate < 0.1%
@@ -137,6 +142,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 ### Architecture (100% Complete)
 
 **[c4.context.md](./architecture/c4.context.md)**
+
 - Level 1 C4 diagram with Mermaid syntax
 - Three primary actors (Employee, Buyer, Engineer)
 - System boundary definition
@@ -144,6 +150,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 - Assumptions and limitations
 
 **[c4.container.md](./architecture/c4.container.md)**
+
 - Level 2 C4 diagram showing Next.js app, MongoDB, OpenAI interactions
 - Container-level architecture (Web App, API Routes, Agent Service, Database)
 - Sequence diagrams for key workflows (catalog search, agent chat, checkout)
@@ -151,12 +158,14 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 - Technology choices for each container
 
 **[stack-and-patterns.md](./architecture/stack-and-patterns.md)**
+
 - Complete technology stack with versions
 - 6 architectural patterns (feature-based, service layer, domain-driven design, agent-first, reliability patterns, observability)
 - Decision log with 18 architectural decisions
 - Technology constraints and trade-offs
 
 **[infrastructure.md](./architecture/infrastructure.md)**
+
 - Environment matrix (dev/staging/prod configuration)
 - Deployment architecture (Docker Compose local, Cloud Run dev/prod)
 - CI/CD pipeline with GitHub Actions
@@ -167,6 +176,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 ### API (100% Complete)
 
 **[openapi.status-and-plan.md](./api/openapi.status-and-plan.md)**
+
 - Current OpenAPI 3.0 specification analysis
 - 13 documented endpoints across 5 domains
 - 15 schema definitions with validation rules
@@ -178,6 +188,7 @@ Welcome to the ProcureFlow comprehensive documentation. This directory contains 
 ### Testing (100% Complete)
 
 **[testing-strategy.md](./testing/testing-strategy.md)**
+
 - Testing pyramid: 70% unit / 25% integration / 5% e2e
 - Tooling: Vitest 4.0.8 + Testing Library + mongodb-memory-server
 - Current state: 1 test file with 6 tests

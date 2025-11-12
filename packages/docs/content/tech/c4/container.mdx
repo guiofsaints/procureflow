@@ -60,6 +60,7 @@ graph TD
 **Technology**: React 19.2.0, TypeScript, Tailwind CSS, Radix UI
 
 **Responsibilities**:
+
 - Render catalog, cart, agent, settings pages
 - Handle user input (search, cart operations, chat)
 - Display API data in responsive layouts
@@ -67,6 +68,7 @@ graph TD
 - Provide real-time feedback (loading, errors, success)
 
 **Key Components**:
+
 - Catalog page with search and item cards
 - Cart page with quantity updates
 - Agent chat with streaming responses
@@ -77,6 +79,7 @@ graph TD
 **Technology**: Next.js 15 App Router API Routes
 
 **Responsibilities**:
+
 - Accept HTTP requests, parse JSON payloads
 - Validate authentication with NextAuth.js sessions
 - Call service layer functions with domain entities
@@ -84,6 +87,7 @@ graph TD
 - Handle errors and map to HTTP status codes
 
 **Endpoints** (13 total):
+
 - `/api/items` (GET, POST)
 - `/api/cart` (GET, POST, PATCH, DELETE)
 - `/api/purchase` (GET, POST)
@@ -97,6 +101,7 @@ graph TD
 **Technology**: TypeScript, framework-agnostic
 
 **Responsibilities**:
+
 - Implement business logic (validation, calculations, workflows)
 - Return domain entities (not Mongoose documents)
 - Throw typed errors (ValidationError, DuplicateItemError)
@@ -104,6 +109,7 @@ graph TD
 - Call OpenAI via LangChain client
 
 **Services** (6 total):
+
 1. `catalog.service.ts`: Search, register, get items
 2. `cart.service.ts`: Add, update, remove, view cart
 3. `checkout.service.ts`: Validate, create PR, get history
@@ -118,6 +124,7 @@ graph TD
 **Purpose**: Represent business concepts independent of database/framework
 
 **Entities** (10 total):
+
 - `User`: id, email, name, hashedPassword, createdAt
 - `Item`: id, name, category, description, price, status
 - `Cart`: id, userId, items[], totalCost
@@ -133,12 +140,14 @@ graph TD
 **Technology**: MongoDB 6.x, Mongoose 8.9.4 ODM
 
 **Responsibilities**:
+
 - Persist all application data
 - Execute full-text searches with text indexes
 - Maintain 3-node replica set for durability
 - Enforce schema validation via Mongoose
 
 **Collections** (6 total):
+
 - `users`: User accounts
 - `items`: Catalog items
 - `carts`: Shopping carts
@@ -151,12 +160,14 @@ graph TD
 **Technology**: OpenAI GPT-3.5-turbo, LangChain 0.3.19
 
 **Responsibilities**:
+
 - Process natural language messages
 - Decide which tools to call (function calling)
 - Generate conversational responses
 - Maintain conversation context
 
 **Integration Pattern**:
+
 1. Agent service sends message + conversation history
 2. OpenAI returns tool calls (e.g., `search_catalog`)
 3. Agent service executes tools via other services

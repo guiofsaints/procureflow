@@ -5,14 +5,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { ZodError } from 'zod';
 
 import {
   handleAgentMessage,
   ValidationError,
 } from '@/features/agent/lib/agent.service';
-import { authConfig } from '@/lib/auth/config';
+import { withAuth } from '@/lib/api';
 import { logger } from '@/lib/logger/winston.config';
 import { validateWithModeration } from '@/lib/validation/moderation';
 import { validateUserInput } from '@/lib/validation/promptInjection';
@@ -25,17 +24,14 @@ export const dynamic = 'force-dynamic';
  * POST /api/agent/chat
  *
  * Send message to AI agent and get response
- * Authentication recommended but optional for demo
+ * Requires authentication
  *
  * Body:
  * - message: string (required)
  * - conversationId?: string (optional, for continuing conversation)
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest, { userId }) => {
   try {
-    // Check authentication (optional for demo)
-    const session = await getServerSession(authConfig);
-
     // Parse request body
     const body = await request.json();
 
@@ -51,7 +47,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       logger.warn('Prompt injection blocked', {
-        userId: session?.user?.id,
+        userId,
         messageLength: validatedRequest.message.length,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -71,7 +67,7 @@ export async function POST(request: NextRequest) {
       await validateWithModeration(safeMessage);
     } catch (error) {
       logger.warn('Content moderation blocked message', {
-        userId: session?.user?.id,
+        userId,
         messageLength: safeMessage.length,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -93,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     // Call agent service
     const responsePromise = handleAgentMessage({
-      userId: session?.user?.id,
+      userId,
       message: safeMessage,
       conversationId: validatedRequest.conversationId,
     });
@@ -104,7 +100,7 @@ export async function POST(request: NextRequest) {
     ]).catch((error) => {
       logger.error('Error or timeout in handleAgentMessage', {
         error: error instanceof Error ? error.message : String(error),
-        userId: session?.user?.id,
+        userId,
       });
       throw error;
     });
@@ -167,4 +163,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
