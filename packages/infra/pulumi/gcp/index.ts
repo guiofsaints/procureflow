@@ -28,8 +28,8 @@
  */
 
 import * as pulumi from '@pulumi/pulumi';
-import { createSecrets, grantSecretAccess } from './secrets';
-import { createCloudRunService, createArtifactRegistry } from './cloudrun';
+import { createSecrets, grantSecretAccess } from './project/secrets';
+import { createCloudRunService, createArtifactRegistry } from './project/cloudrun';
 
 // ==============================================================================
 // Configuration
