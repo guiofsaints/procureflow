@@ -78,17 +78,27 @@ export function createSecrets(
 
   // 🔐 1. NEXTAUTH_SECRET - NextAuth.js session encryption key
   // Generate with: openssl rand -base64 32
-  const nextauthSecret = new gcp.secretmanager.Secret('nextauth-secret', {
-    secretId: 'nextauth-secret',
-    replication: {
-      auto: {}, // Automatic replication across regions
+  const nextauthSecret = new gcp.secretmanager.Secret(
+    'nextauth-secret',
+    {
+      secretId: 'nextauth-secret',
+      replication: {
+        auto: {}, // Automatic replication across regions
+      },
+      labels: {
+        environment: config.environment,
+        managed_by: 'pulumi',
+        app: 'procureflow',
+      },
     },
-    labels: {
-      environment: config.environment,
-      managed_by: 'pulumi',
-      app: 'procureflow',
-    },
-  });
+    {
+      // Protect resource from accidental deletion
+      protect: false,
+      // Import existing resource if it exists (won't fail on 409)
+      import: `projects/${config.projectId}/secrets/nextauth-secret`,
+      ignoreChanges: ['labels'],
+    }
+  );
 
   const nextauthSecretVersion = new gcp.secretmanager.SecretVersion(
     'nextauth-secret-v1',
@@ -100,17 +110,25 @@ export function createSecrets(
 
   // 🤖 2. OPENAI_API_KEY - OpenAI API key for agent features (optional)
   // Defaults to 'not-set' if not provided (agent features will be disabled)
-  const openaiApiKey = new gcp.secretmanager.Secret('openai-api-key', {
-    secretId: 'openai-api-key',
-    replication: {
-      auto: {},
+  const openaiApiKey = new gcp.secretmanager.Secret(
+    'openai-api-key',
+    {
+      secretId: 'openai-api-key',
+      replication: {
+        auto: {},
+      },
+      labels: {
+        environment: config.environment,
+        managed_by: 'pulumi',
+        app: 'procureflow',
+      },
     },
-    labels: {
-      environment: config.environment,
-      managed_by: 'pulumi',
-      app: 'procureflow',
-    },
-  });
+    {
+      protect: false,
+      import: `projects/${config.projectId}/secrets/openai-api-key`,
+      ignoreChanges: ['labels'],
+    }
+  );
 
   const openaiApiKeyVersion = new gcp.secretmanager.SecretVersion(
     'openai-api-key-v1',
@@ -122,17 +140,25 @@ export function createSecrets(
 
   // 🗄️ 3. MONGODB_URI - MongoDB Atlas connection string (required)
   // Sourced from Pulumi config (encrypted)
-  const mongodbUriSecret = new gcp.secretmanager.Secret('mongodb-uri', {
-    secretId: 'mongodb-uri',
-    replication: {
-      auto: {},
+  const mongodbUriSecret = new gcp.secretmanager.Secret(
+    'mongodb-uri',
+    {
+      secretId: 'mongodb-uri',
+      replication: {
+        auto: {},
+      },
+      labels: {
+        environment: config.environment,
+        managed_by: 'pulumi',
+        app: 'procureflow',
+      },
     },
-    labels: {
-      environment: config.environment,
-      managed_by: 'pulumi',
-      app: 'procureflow',
-    },
-  });
+    {
+      protect: false,
+      import: `projects/${config.projectId}/secrets/mongodb-uri`,
+      ignoreChanges: ['labels'],
+    }
+  );
 
   const mongodbUriVersion = new gcp.secretmanager.SecretVersion(
     'mongodb-uri-v1',

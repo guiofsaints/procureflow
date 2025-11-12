@@ -85,12 +85,20 @@ export function createCloudRunService(config: CloudRunConfig) {
   const pulumiConfig = new pulumi.Config();
 
   // Create dedicated service account for Cloud Run (least-privilege principle)
-  const serviceAccount = new gcp.serviceaccount.Account('cloudrun-sa', {
-    accountId: 'procureflow-cloudrun',
-    displayName: 'ProcureFlow Cloud Run Service Account',
-    description:
-      'Service account for ProcureFlow Cloud Run service with secret access',
-  });
+  const serviceAccount = new gcp.serviceaccount.Account(
+    'cloudrun-sa',
+    {
+      accountId: 'procureflow-cloudrun',
+      displayName: 'ProcureFlow Cloud Run Service Account',
+      description:
+        'Service account for ProcureFlow Cloud Run service with secret access',
+    },
+    {
+      protect: false,
+      import: `projects/${config.projectId}/serviceAccounts/procureflow-cloudrun@${config.projectId}.iam.gserviceaccount.com`,
+      ignoreChanges: ['displayName', 'description'],
+    }
+  );
 
   // Build fully-qualified image URL from Artifact Registry
   const imageUrl = pulumi.interpolate`${config.region}-docker.pkg.dev/${config.projectId}/procureflow/web:${config.imageTag}`;

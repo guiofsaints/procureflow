@@ -208,6 +208,7 @@ jobs:
         id: pulumi-up
         working-directory: packages/infra/pulumi/gcp
         run: |
+          # Deploy with automatic import of existing resources
           pulumi up --yes
 
           # Export service URL

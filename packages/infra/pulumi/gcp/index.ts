@@ -39,10 +39,7 @@
 
 import * as pulumi from '@pulumi/pulumi';
 import { createSecrets, grantSecretAccess } from './security/secrets';
-import {
-  createCloudRunService,
-  createArtifactRegistry,
-} from './compute/cloudrun';
+import { createCloudRunService } from './compute/cloudrun';
 
 // ==============================================================================
 // Configuration
@@ -73,11 +70,9 @@ const mongodbConnectionString = config.requireSecret(
 );
 
 // 2. Artifact Registry (for Docker images)
-const registry = createArtifactRegistry({
-  projectId: projectId,
-  region: region,
-  environment: environment,
-});
+// Note: Artifact Registry is managed manually due to CI/CD permission constraints
+// Registry URL: us-central1-docker.pkg.dev/{project-id}/procureflow
+const artifactRegistryUrl = `${region}-docker.pkg.dev/${projectId}/procureflow`;
 
 // 3. Secret Manager (FREE: first 6 secrets)
 const secrets = createSecrets(
@@ -111,8 +106,8 @@ export const outputs = {
   mongodbConnectionString: pulumi.secret(mongodbConnectionString), // Marked as secret
   mongodbClusterState: 'IDLE',
 
-  // Artifact Registry
-  artifactRegistryUrl: registry.repositoryUrl,
+  // Artifact Registry (managed manually)
+  artifactRegistryUrl: artifactRegistryUrl,
 
   // Cloud Run
   serviceUrl: cloudrun.serviceUrl,
@@ -142,16 +137,17 @@ export const outputs = {
    - Connection: Check Secret Manager (mongodb-uri)
 
 🐳 Container Registry:
-   - Registry: ${registry.repositoryUrl}
+   - Registry: ${artifactRegistryUrl}
    - Current Tag: ${imageTag}
+   - Note: Artifact Registry managed manually (permission constraint)
 
 📝 Next Steps:
 
 1. Build and push Docker image:
    cd ../../../../
-   docker build -f packages/infra/docker/Dockerfile.web -t ${registry.repositoryUrl}/web:${imageTag} .
+   docker build -f packages/infra/docker/Dockerfile.web -t ${artifactRegistryUrl}/web:${imageTag} .
    gcloud auth configure-docker ${region}-docker.pkg.dev
-   docker push ${registry.repositoryUrl}/web:${imageTag}
+   docker push ${artifactRegistryUrl}/web:${imageTag}
 
 2. Update Cloud Run with new image:
    cd packages/infra/pulumi/gcp
@@ -171,7 +167,7 @@ export const outputs = {
    - Cloud Run: ✅ Always Free (2M req/month)
    - MongoDB Atlas: ✅ M0 Free Forever (512MB)
    - Secret Manager: ✅ Free (6 secrets)
-   - Artifact Registry: ⚠️  ~$0.30/month (only cost)
+   - Artifact Registry: ⚠️  ~$0.30/month (only cost, managed manually)
    
    Estimated Monthly Cost: $0.30 - $0.50
 =============================================================================
@@ -180,6 +176,6 @@ export const outputs = {
 
 // Export individual values for easier access
 export const serviceUrl = outputs.serviceUrl;
-export const artifactRegistryUrl = outputs.artifactRegistryUrl;
+export const registryUrl = outputs.artifactRegistryUrl;
 export const mongodbConnectionUri = outputs.mongodbConnectionString;
 export const deploymentInstructions = outputs.deploymentInstructions;
