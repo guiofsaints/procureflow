@@ -36,6 +36,17 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 # Copy application source code
 COPY packages/web ./packages/web
 
+# Build arguments for version info
+ARG GIT_COMMIT_SHA=unknown
+ARG BUILD_DATE
+ARG VERSION
+
+# Set build-time environment variables
+ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA} \
+    NEXT_PUBLIC_GIT_COMMIT_SHA=${GIT_COMMIT_SHA} \
+    NEXT_PUBLIC_BUILD_DATE=${BUILD_DATE} \
+    NEXT_PUBLIC_APP_VERSION=${VERSION}
+
 # Build Next.js application (outputs to .next/standalone)
 # Build from packages/web directory with hoisted node_modules
 # Set Turbopack root to /app for monorepo support

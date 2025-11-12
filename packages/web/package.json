@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run generate-build-info && next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -13,6 +13,7 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "generate-build-info": "node scripts/generate-build-info.js",
     "db:create-text-index": "tsx scripts/create-text-index.ts",
     "db:seed-office-items": "tsx scripts/seed-office-items.ts",
     "db:seed-initial-user": "tsx scripts/seed-initial-user.ts",

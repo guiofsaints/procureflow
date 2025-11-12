@@ -64,8 +64,12 @@ jobs:
       - name: Build Docker image
         run: |
           IMAGE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/web"
+          GIT_COMMIT_SHA=$(git rev-parse HEAD)
           docker build \
             -f packages/infra/docker/Dockerfile.web \
+            --build-arg GIT_COMMIT_SHA=$GIT_COMMIT_SHA \
+            --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+            --build-arg VERSION=${{ steps.image-tag.outputs.tag }} \
             -t $IMAGE_URL:${{ steps.image-tag.outputs.tag }} \
             -t $IMAGE_URL:latest \
             .

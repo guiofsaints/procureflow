@@ -17,6 +17,10 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.buildinfo
+
+# Build info (auto-generated)
+build-info.json
 
 # Infrastructure environment files (keep .env.example)
 packages/infra/env/.env.web

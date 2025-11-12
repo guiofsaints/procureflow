@@ -12,6 +12,10 @@ services:
     build:
       context: ../..
       dockerfile: packages/infra/docker/Dockerfile.web
+      args:
+        GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-dev}
+        BUILD_DATE: ${BUILD_DATE}
+        VERSION: ${VERSION:-0.1.0}
     container_name: procureflow-web
     ports:
       - '3000:3000'
