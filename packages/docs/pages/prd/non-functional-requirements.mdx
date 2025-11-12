@@ -1,0 +1,287 @@
+# Non-Functional Requirements
+
+Performance, security, reliability, and observability targets for ProcureFlow v1.0.
+
+For complete NFR details, see the source document: [`.guided/product/prd.non-functional-requirements.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/product/prd.non-functional-requirements.md)
+
+## Executive Summary
+
+Key targets: p95 API latency < 2s, 99.5% uptime, zero critical vulnerabilities, 60% test coverage. Security: bcrypt password hashing, NextAuth.js sessions, input validation, HTTPS in production. Reliability: MongoDB connection retry, graceful degradation on AI API failures, health checks. Observability: structured logging (Winston), Prometheus metrics, health endpoint. Constraints: Cloud Run free tier (2M req/month), MongoDB M0 (512 MB), < $50/month infrastructure cost.
+
+---
+
+## Quick Reference
+
+### Performance (NFR-PERF)
+
+| Endpoint Category | p50 | p95 | p99 |
+|-------------------|-----|-----|-----|
+| Catalog search (< 100 results) | < 200ms | < 500ms | < 1s |
+| Item registration | < 400ms | < 1s | < 2s |
+| Cart operations (CRUD) | < 150ms | < 500ms | < 1s |
+| Checkout | < 800ms | < 2s | < 4s |
+| Agent chat (excluding LLM API) | < 2s | < 5s | < 10s |
+| Health check | < 50ms | < 100ms | < 200ms |
+
+**Database Query Performance**:
+- Catalog search (text index): < 300ms (p95)
+- Item retrieval by ID: < 50ms (p95)
+- Cart retrieval by userId: < 100ms (p95)
+- Purchase request list: < 200ms (p95)
+
+**Concurrent Users**: 50 simultaneous users, 100 req/sec throughput
+
+### Security (NFR-SEC)
+
+| Control | Implementation |
+|---------|----------------|
+| **Password Hashing** | bcrypt, salt rounds = 10 |
+| **Session Security** | NextAuth.js JWT, HTTP-only cookies |
+| **Session Expiration** | 30 days (configurable) |
+| **HTTPS Enforcement** | Production only |
+| **Input Validation** | Zod schemas, Mongoose validation |
+| **Authorization** | userId-based access control |
+| **Secrets Management** | GCP Secret Manager (prod), .env.local (dev) |
+| **Vulnerabilities** | Zero critical (CVSS ≥ 9.0) |
+
+### Reliability (NFR-REL)
+
+| Metric | Target |
+|--------|--------|
+| **Uptime SLA** | 99.5% (3.6 hours downtime/month) |
+| **Error Rate** | < 0.1% (99.9% success rate) |
+| **Database Connection** | Retry up to 3 times with exponential backoff |
+| **LLM API Failures** | Circuit breaker after 5 failures |
+| **API Timeouts** | 30s timeout |
+| **Backup Frequency** | Continuous (MongoDB replication) |
+| **RTO (Recovery Time)** | < 4 hours |
+| **RPO (Recovery Point)** | < 1 hour |
+
+### Observability (NFR-OBS)
+
+**Logging**:
+- Structured JSON format (Winston)
+- Correlation IDs for request tracing
+- Levels: ERROR, WARN, INFO, DEBUG
+- Sensitive data redacted
+
+**Metrics** (Prometheus):
+- HTTP requests: total, duration histogram
+- Database: connections, query duration
+- Agent: requests, tool calls, LLM API duration
+- Business: PRs created, cart items added
+
+**Health Checks**:
+- Endpoint: `/api/health`
+- Checks: API up, MongoDB connected
+- Response time: < 100ms (p95)
+- Status: 200 (healthy), 503 (degraded)
+
+### Scalability (NFR-SCAL)
+
+| Configuration | Dev/Staging | Production |
+|---------------|-------------|------------|
+| **Min Instances** | 0 (cost optimization) | 1 (reduce cold starts) |
+| **Max Instances** | 10 (cost control) | 100 (future) |
+| **Target Concurrency** | 80 req/instance | 80 req/instance |
+| **Connection Pool** | Min: 5, Max: 50 | Min: 5, Max: 50 |
+
+**Stateless Architecture**: No in-memory sessions, no local file storage, cloud-native
+
+### Cost Management (NFR-COST)
+
+**Infrastructure Budget**: < $50/month total
+
+| Service | Free Tier Limit | Estimated Usage | Est. Cost |
+|---------|----------------|-----------------|-----------|
+| GCP Cloud Run | 2M req/month | 100k req/month | $0.00 |
+| MongoDB Atlas M0 | 512 MB | Full usage | $0.00 |
+| OpenAI API | No free tier | 1M tokens/month | $2.00/month |
+| **Total** | | | **~$2/month** |
+
+**OpenAI Cost Control**:
+- Rate limiting: 60 req/min per user
+- Context window: Last 50 messages
+- Model: gpt-3.5-turbo (cheapest)
+- Monthly budget: $5 = 2500 requests
+
+### Maintainability (NFR-MAINT)
+
+**Code Quality**:
+- TypeScript strict mode
+- ESLint + Prettier
+- Conventional Commits (commitlint)
+- All changes via pull request
+
+**Test Coverage**: ≥ 60% (lines, functions, branches, statements)
+
+**Documentation**:
+- README quick start (< 10 steps)
+- CONTRIBUTING guide
+- OpenAPI spec for all endpoints
+- Runbooks for operations
+
+---
+
+## Detailed Requirements
+
+### NFR-PERF-001: API Response Latency
+
+Targets ensure responsive user experience:
+- Prometheus `http_request_duration_seconds` histogram
+- p50/p95/p99 calculated from histogram buckets
+- 95% of catalog searches complete in < 500ms under normal load
+- 95% of checkout requests complete in < 2s
+
+### NFR-PERF-002: Database Query Performance
+
+MongoDB optimization:
+- Text index on items collection (name, description, category)
+- Field weights: name (10), category (5), description (1)
+- Connection pooling: min 5, max 50 connections
+- Query timeout: 10 seconds
+- All queries use appropriate indexes (verified with explain())
+
+### NFR-PERF-003: Agent Response Time
+
+LLM API dependency management:
+- System processing (excluding LLM): < 2s (p95)
+- LLM API call: Accept up to 10s (provider-dependent)
+- Total response time: < 12s (p95 including LLM)
+- Streaming enabled for incremental UI updates
+- Circuit breaker prevents cascading failures
+- 30s total timeout with user-friendly error
+
+### NFR-SEC-001: Authentication Security
+
+Password and session protection:
+- bcrypt hashing with salt rounds = 10
+- Minimum 6 characters (lenient for demo)
+- JWT sessions, HTTP-only cookies
+- 30-day expiration (NEXTAUTH_MAX_AGE)
+- HTTPS in production only
+- Failed logins don't reveal email existence
+
+### NFR-SEC-002: Input Validation
+
+Injection attack prevention:
+- Zod schemas for all API request bodies
+- Mongoose schemas for database writes
+- Escape MongoDB special characters ($ and .)
+- TypeScript strict mode
+- Length limits: name (200), description (2000), notes (2000)
+- No `dangerouslySetInnerHTML` usage
+
+### NFR-SEC-003: Authorization
+
+User data isolation:
+- Cart: userId === session.user.id
+- Purchase Requests: userId === session.user.id
+- Conversations: userId === session.user.id
+- Catalog items: Read public, Write authenticated
+- Middleware validates session + query filters
+- 403 on unauthorized access
+
+### NFR-REL-001: Uptime and Availability
+
+Service availability targets:
+- 99.5% uptime SLA (~3.6 hours downtime/month)
+- Planned maintenance: Sunday 2-4 AM UTC
+- Health check returns 200 during normal operation
+- Auto-recovery from transient failures
+- Downtime tracked and reported monthly
+
+Dependencies:
+- GCP Cloud Run: 99.95% SLA (Google-provided)
+- MongoDB Atlas M0: No SLA (free tier, best-effort)
+- OpenAI API: No SLA (monitored, Gemini fallback)
+
+### NFR-REL-002: Error Rate
+
+Fault tolerance:
+- Error rate < 0.1% (99.9% success rate)
+- Database: Retry 3x with exponential backoff
+- LLM API: Circuit breaker after 5 failures
+- Timeouts: 30s with user-friendly errors
+- Try-catch around all async operations
+- Graceful degradation (agent down → use catalog UI)
+
+### NFR-OBS-001: Structured Logging
+
+Winston JSON logging:
+```json
+{
+  "timestamp": "2025-11-12T10:30:45.123Z",
+  "level": "info",
+  "message": "Purchase request created",
+  "userId": "507f1f77bcf86cd799439011",
+  "requestNumber": "PR-2025-0042",
+  "totalCost": 1250.00,
+  "correlationId": "req-abc123"
+}
+```
+
+Levels: ERROR (unrecoverable), WARN (degraded), INFO (normal), DEBUG (troubleshooting)
+
+### NFR-OBS-002: Metrics Collection
+
+Prometheus endpoint: `/api/metrics`
+
+Metric categories:
+- HTTP: requests_total, request_duration_seconds
+- Database: mongodb_connections_active, query_duration_seconds
+- Agent: agent_requests_total, llm_api_duration_seconds
+- Business: purchase_requests_created_total, cart_items_added_total
+
+Alerting thresholds (future):
+- Error rate > 1% for 5 min → Page
+- p95 latency > 5s for 10 min → Alert
+- DB connections > 45/50 → Warning
+
+---
+
+## Constraints and Limitations
+
+### Assumptions
+
+1. User base: 50-500 concurrent users (small/mid-size orgs)
+2. Geographic distribution: US-based (single GCP region)
+3. Internet connectivity: Reliable broadband required
+4. Browser support: Modern browsers (Chrome, Firefox, Safari, Edge)
+5. Database size: < 10 GB within first year
+6. Deployment frequency: Weekly releases
+
+### Known Limitations
+
+1. Cold start latency: 2-3s (Cloud Run inherent)
+2. MongoDB M0 storage: 512 MB limit
+3. MongoDB M0 connections: 500 max
+4. No point-in-time recovery (requires M10+)
+5. Single region deployment
+6. No CDN (assets from Cloud Run)
+7. No API-wide rate limiting (beyond agent)
+
+### Out of Scope
+
+1. WCAG 2.1 AA compliance
+2. Localization (English only)
+3. Mobile native apps
+4. Offline mode
+5. Real-time collaboration
+6. Advanced analytics/BI
+
+---
+
+## References
+
+- **[Objectives and Features](/prd/objective)** - Success metrics
+- **[Functional Requirements](/prd/functional-requirements)** - FR specifications
+- **[Infrastructure](/tech/infrastructure)** - Deployment architecture
+- **[Testing Strategy](/testing)** - Coverage and CI gates
+
+**Complete NFR Details**: [`.guided/product/prd.non-functional-requirements.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/product/prd.non-functional-requirements.md)
+
+---
+
+**Last Updated**: 2025-11-12  
+**Owner**: Engineering + Product Teams

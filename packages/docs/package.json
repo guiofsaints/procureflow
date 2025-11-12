@@ -1,0 +1,30 @@
+{
+  "name": "@procureflow/docs",
+  "version": "1.0.0",
+  "description": "ProcureFlow documentation site built with Nextra",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "export": "next build && next export",
+    "lint": "next lint",
+    "lint:mdx": "tsx scripts/lint-mdx.ts",
+    "fix:mdx": "tsx scripts/fix-mdx.ts"
+  },
+  "dependencies": {
+    "next": "^16.0.1",
+    "nextra": "^4.6.0",
+    "nextra-theme-docs": "^4.6.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.3",
+    "@types/react-dom": "^19.2.3",
+    "pagefind": "^1.4.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

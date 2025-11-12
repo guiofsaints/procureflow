@@ -1,0 +1,338 @@
+# Infrastructure
+
+Deployment architecture, environments, CI/CD pipeline, and observability setup.
+
+For complete infrastructure details, see: [`.guided/architecture/infrastructure.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/architecture/infrastructure.md)
+
+## Executive Summary
+
+ProcureFlow deploys via Docker Compose (local), GCP Cloud Run dev/staging/prod (serverless containers), with Pulumi TypeScript IaC. CI/CD via GitHub Actions with automated builds, tests, and deployments. Secrets in GCP Secret Manager (prod) and .env.local (dev). Observability via Winston structured logging, Prometheus metrics at /api/metrics, and health checks at /api/health. Auto-scaling 0-10 instances (dev) to 1-100 (prod future).
+
+---
+
+## Environments
+
+| Environment | Hosting | Database | URL | Auto-Scaling |
+|-------------|---------|----------|-----|--------------|
+| **Local** | Docker Compose | MongoDB container | http://localhost:3000 | No |
+| **Dev** | GCP Cloud Run (dev) | MongoDB Atlas M0 | https://dev.procureflow.app | 0-10 instances |
+| **Staging** | GCP Cloud Run (dev) | MongoDB Atlas M0 | https://staging.procureflow.app | 0-10 instances |
+| **Production** | GCP Cloud Run (prod) | MongoDB Atlas M0 | https://procureflow.app | 1-100 instances (future) |
+
+---
+
+## Local Development
+
+### Docker Compose Setup
+
+```yaml
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/procureflow
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+```
+
+### Quick Start
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Copy environment template
+cp packages/web/.env.example packages/web/.env.local
+
+# 3. Start local stack
+pnpm docker:up
+
+# 4. Create text index
+pnpm --filter web db:create-text-index
+
+# 5. Seed data (optional)
+pnpm --filter web db:seed-office-items
+```
+
+---
+
+## Production Deployment (GCP Cloud Run)
+
+### Infrastructure as Code (Pulumi)
+
+Located in `packages/infra/pulumi/gcp/`:
+
+```typescript
+// compute/cloudrun.ts
+const service = new gcp.cloudrunv2.Service("procureflow-web", {
+  location: region,
+  template: {
+    containers: [{
+      image: `${region}-docker.pkg.dev/${project}/procureflow/web:${version}`,
+      ports: [{ containerPort: 3000 }],
+      env: [
+        { name: "MONGODB_URI", valueSource: { secretKeyRef: ... } },
+        { name: "NEXTAUTH_SECRET", valueSource: { secretKeyRef: ... } },
+      ],
+      resources: {
+        limits: { cpu: "1", memory: "512Mi" },
+      },
+    }],
+    scaling: {
+      minInstanceCount: 0, // Dev: 0, Prod: 1
+      maxInstanceCount: 10, // Dev: 10, Prod: 100
+    },
+  },
+  traffic: [{ percent: 100, type: "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST" }],
+});
+```
+
+### Deployment Commands
+
+```bash
+# Deploy dev
+cd packages/infra/pulumi/gcp
+pulumi stack select dev
+pulumi up
+
+# Deploy production
+pulumi stack select prod
+pulumi up
+```
+
+---
+
+## CI/CD Pipeline (GitHub Actions)
+
+### Workflow: `.github/workflows/deploy-gcp.yml`
+
+```yaml
+name: Deploy to GCP Cloud Run
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install
+      - run: pnpm lint
+      - run: pnpm test:coverage
+      - run: pnpm build
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - run: docker build -t procureflow-web .
+      - run: docker tag procureflow-web $ARTIFACT_REGISTRY_URL
+      - run: docker push $ARTIFACT_REGISTRY_URL
+      - uses: pulumi/actions@v5
+        with:
+          command: up
+          stack-name: dev
+```
+
+### Deployment Flow
+
+```
+Git Push → GitHub Actions → Run Tests → Build Docker Image
+→ Push to Artifact Registry → Pulumi Deploy → Cloud Run Update
+→ Health Check → Traffic Switch
+```
+
+---
+
+## Secrets Management
+
+### Development (.env.local)
+
+```bash
+# packages/web/.env.local
+MONGODB_URI=mongodb://localhost:27017/procureflow
+NEXTAUTH_SECRET=your-secret-here-generate-with-openssl
+NEXTAUTH_URL=http://localhost:3000
+OPENAI_API_KEY=sk-...
+```
+
+### Production (GCP Secret Manager)
+
+```bash
+# Create secrets
+gcloud secrets create mongodb-uri --data-file=mongodb-uri.txt
+gcloud secrets create nextauth-secret --data-file=nextauth-secret.txt
+gcloud secrets create openai-api-key --data-file=openai-key.txt
+
+# Grant Cloud Run access
+gcloud secrets add-iam-policy-binding mongodb-uri \
+  --member=serviceAccount:procureflow@PROJECT_ID.iam.gserviceaccount.com \
+  --role=roles/secretmanager.secretAccessor
+```
+
+---
+
+## Observability
+
+### Structured Logging (Winston)
+
+```typescript
+// lib/logger/index.ts
+import winston from 'winston';
+
+export const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json(),
+  ),
+  transports: [
+    new winston.transports.Console(),
+    // Production: add Loki transport
+  ],
+});
+
+// Usage
+logger.info('Purchase request created', {
+  userId,
+  requestNumber,
+  totalCost,
+  correlationId: req.headers['x-correlation-id'],
+});
+```
+
+### Metrics (Prometheus)
+
+```typescript
+// lib/metrics/index.ts
+import { register, Counter, Histogram } from 'prom-client';
+
+export const httpRequestsTotal = new Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['method', 'route', 'status_code'],
+});
+
+export const httpRequestDuration = new Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request duration',
+  labelNames: ['method', 'route'],
+  buckets: [0.1, 0.5, 1, 2, 5],
+});
+
+// Endpoint: /api/metrics
+export async function GET() {
+  return new Response(await register.metrics(), {
+    headers: { 'Content-Type': register.contentType },
+  });
+}
+```
+
+### Health Checks
+
+```typescript
+// app/(app)/api/health/route.ts
+export async function GET() {
+  const checks = {
+    api: 'ok',
+    db: await mongoose.connection.readyState === 1 ? 'ok' : 'fail',
+    uptime: process.uptime(),
+  };
+
+  const status = checks.db === 'ok' ? 200 : 503;
+  return NextResponse.json({
+    status: checks.db === 'ok' ? 'ok' : 'degraded',
+    checks,
+    version: process.env.npm_package_version,
+  }, { status });
+}
+```
+
+---
+
+## Auto-Scaling Configuration
+
+### Cloud Run Scaling
+
+| Environment | Min Instances | Max Instances | Target Concurrency | Scale-Down Delay |
+|-------------|---------------|---------------|-------------------|------------------|
+| **Dev** | 0 | 10 | 80 req/instance | 15 min |
+| **Staging** | 0 | 10 | 80 req/instance | 15 min |
+| **Production** | 1 (future) | 100 (future) | 80 req/instance | 15 min |
+
+### Scaling Behavior
+
+- **Scale Up**: When 70% of target concurrency (56 requests) reached
+- **Scale Down**: After 15 minutes with zero requests (min instances = 0)
+- **Cold Start**: 2-3 seconds when scaling from 0
+
+---
+
+## Cost Management
+
+### Monthly Budget
+
+| Service | Free Tier | Estimated Usage | Est. Cost |
+|---------|-----------|-----------------|-----------|
+| Cloud Run | 2M req/month, 360k GB-sec | 100k req/month | $0.00 |
+| Artifact Registry | 0.5 GB | 0.2 GB | $0.10 |
+| Secret Manager | 6 secrets | 3 secrets | $0.00 |
+| MongoDB Atlas M0 | 512 MB | Full | $0.00 |
+| OpenAI API | No free tier | 1M tokens/month | $2.00 |
+| **Total** | | | **~$2.10** |
+
+### Cost Alerts
+
+```bash
+# Set up budget alert
+gcloud billing budgets create \
+  --billing-account=BILLING_ACCOUNT_ID \
+  --display-name="ProcureFlow Monthly Budget" \
+  --budget-amount=50USD \
+  --threshold-rule=percent=80 \
+  --threshold-rule=percent=100
+```
+
+---
+
+## References
+
+- **[Technology Stack](/tech/stack)** - Infrastructure technologies
+- **[Design Patterns](/tech/patterns)** - Reliability patterns
+- **[Deployment Strategy](/operations/deploy)** - Deployment procedures
+- **[Runbook: Build & Deploy](/runbooks/build-and-deploy)** - Step-by-step deployment
+
+**Complete Infrastructure Details**: [`.guided/architecture/infrastructure.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/architecture/infrastructure.md)
+
+---
+
+**Last Updated**: 2025-11-12  
+**Owner**: DevOps Team

@@ -1,0 +1,100 @@
+# Runbooks
+
+Executable operational procedures for ProcureFlow.
+
+For complete runbooks documentation, see: [`.guided/operation/runbooks.plan.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/operation/runbooks.plan.md)
+
+## Executive Summary
+
+ProcureFlow operational runbooks provide step-by-step procedures for common development and operations tasks. Five core runbooks cover local development setup, build and deploy (GitHub Actions or manual Pulumi), rollback execution (Cloud Run traffic split or Pulumi state revert), autoscaling monitoring (Cloud Run metrics, instance count, concurrency), and troubleshooting (diagnostic procedures for 10 common failures). Each runbook includes prerequisites, execution steps with shell commands, verification steps, and escalation paths. Runbooks owned by Platform Team, reviewed quarterly, updated per release.
+
+---
+
+## Available Runbooks
+
+| Runbook | Purpose | Frequency | Audience | Complexity |
+|---------|---------|-----------|----------|------------|
+| **[Local Development](/runbooks/local-dev)** | Set up local development environment with Docker Compose | Daily (new developers) | Developers | 🟢 Low |
+| **[Build and Deploy](/runbooks/build-and-deploy)** | Execute deployment to GCP Cloud Run (dev/staging/prod) | Weekly (releases) | Platform Engineers | 🟡 Medium |
+| **[Rollback](/runbooks/rollback)** | Rollback failed deployment using Cloud Run or Pulumi | As-needed (incidents) | Platform Engineers, On-Call | 🔴 High |
+| **[Autoscaling Check](/runbooks/autoscaling-check)** | Monitor and verify Cloud Run autoscaling behavior | Weekly (ops review) | Platform Engineers | 🟢 Low |
+| **[Troubleshooting](/runbooks/troubleshooting)** | Diagnose and resolve common failures (10 scenarios) | As-needed (incidents) | All Engineers, On-Call | 🟡 Medium |
+
+---
+
+## Runbook Format
+
+All runbooks follow a consistent structure:
+
+1. **Executive Summary**: Purpose and key steps
+2. **Metadata**: Owner, duration, complexity, prerequisites
+3. **Procedure**: Step-by-step commands with verification
+4. **Verification**: Final checks and success criteria
+5. **Rollback**: Recovery steps if procedure fails
+6. **References**: Related documentation
+
+---
+
+## Quick Access
+
+### For Developers
+
+- **New to codebase?** → [Local Development](/runbooks/local-dev)
+- **Build failing?** → [Troubleshooting](/runbooks/troubleshooting)
+
+### For Platform Engineers
+
+- **Deploying a release?** → [Build and Deploy](/runbooks/build-and-deploy)
+- **Deployment failed?** → [Rollback](/runbooks/rollback)
+- **Checking scaling?** → [Autoscaling Check](/runbooks/autoscaling-check)
+
+### For On-Call Engineers
+
+- **Incident response?** → [Troubleshooting](/runbooks/troubleshooting)
+- **Need to rollback?** → [Rollback](/runbooks/rollback)
+
+---
+
+## Planned Runbooks (Future)
+
+| Runbook | Purpose | Priority | Target Version |
+|---------|---------|----------|----------------|
+| **Database Migration** | Execute schema migration with rollback plan | 🔴 High | v1.2 (Q1 2026) |
+| **Secrets Rotation** | Rotate NEXTAUTH_SECRET, OPENAI_API_KEY, MongoDB credentials | 🟡 Medium | v1.2 (Q1 2026) |
+| **Incident Response** | Incident management workflow (detect → mitigate → resolve → postmortem) | 🔴 High | v1.3 (Q2 2026) |
+| **Backup and Restore** | MongoDB backup to GCS, restore from backup | 🟡 Medium | v1.2 (Q1 2026) |
+| **Load Testing** | Execute k6 load tests, analyze results | 🟢 Low | v1.3 (Q2 2026) |
+
+---
+
+## Runbook Maintenance
+
+### Ownership
+
+- **Owner**: Platform Team
+- **Review Frequency**: Quarterly
+- **Update Trigger**: Per release or after incident learnings
+
+### Quality Criteria
+
+✅ **All runbooks must meet**:
+1. Executable commands (copy-pasteable and tested)
+2. Clear prerequisites (no assumed knowledge)
+3. Verification steps (each step includes checks)
+4. Expected outputs (for comparison)
+5. Rollback instructions (recovery steps if fails)
+
+---
+
+## References
+
+- **[Operations Documentation](/operations)** - Deployment, rollback, autoscaling strategies
+- **[Troubleshooting Guide](/runbooks/troubleshooting)** - Common failure diagnostics
+- **[Infrastructure Documentation](/tech/infrastructure)** - Technical architecture
+
+**Complete Runbooks Plan**: [`.guided/operation/runbooks.plan.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/operation/runbooks.plan.md)
+
+---
+
+**Last Updated**: Nov 12, 2025  
+**Owner**: Platform Team

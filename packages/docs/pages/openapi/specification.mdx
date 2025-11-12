@@ -1,0 +1,72 @@
+# API Specification
+
+The complete OpenAPI 3.0 specification for ProcureFlow is served live at the `/api/openapi` endpoint.
+
+## Accessing the Spec
+
+### Live Endpoint
+
+```bash
+# Local development
+curl http://localhost:3000/api/openapi
+
+# Production
+curl https://procureflow.app/api/openapi
+```
+
+### Download
+
+```bash
+curl http://localhost:3000/api/openapi > openapi.json
+```
+
+## Specification Overview
+
+- **Format**: OpenAPI 3.0.3
+- **Endpoints**: 13 documented
+- **Schemas**: 15 defined
+- **Authentication**: Bearer token (NextAuth.js JWT)
+
+## Endpoint Summary
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/items` | GET | Search catalog items |
+| `/api/items` | POST | Register new item |
+| `/api/items/{id}` | GET | Get item by ID |
+| `/api/cart` | GET | Retrieve user cart |
+| `/api/cart` | POST | Add item to cart |
+| `/api/cart` | PATCH | Update cart item quantity |
+| `/api/cart` | DELETE | Remove item from cart |
+| `/api/purchase` | GET | List purchase requests |
+| `/api/purchase` | POST | Create purchase request |
+| `/api/purchase/{id}` | GET | Get purchase request by ID |
+| `/api/agent/chat` | POST | Send agent message |
+| `/api/health` | GET | Health check |
+| `/api/openapi` | GET | Get OpenAPI spec |
+
+## Schema Summary
+
+- `Item`: Catalog item entity
+- `Cart`: Shopping cart with items
+- `CartItem`: Individual cart item
+- `PurchaseRequest`: Submitted purchase request
+- `AgentMessage`: Agent conversation message
+- `User`: User profile
+- `Error`: Standard error response
+
+## Versioning
+
+Current version: **1.0.0**
+
+Future versions will follow semantic versioning (MAJOR.MINOR.PATCH).
+
+## References
+
+- **[Generation & Validation](/openapi/generation-and-validation)** - Update process
+- **[Functional Requirements](/prd/functional-requirements)** - API behavior specs
+
+---
+
+**Last Updated**: 2025-11-12  
+**Owner**: API Team

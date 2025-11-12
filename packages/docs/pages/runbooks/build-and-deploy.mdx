@@ -1,0 +1,236 @@
+# Runbook: Build and Deploy
+
+Execute deployment to GCP Cloud Run.
+
+## Metadata
+
+- **Owner**: Platform Team
+- **Estimated Duration**: 10-15 minutes (automated), 20-30 minutes (manual)
+- **Complexity**: 🟡 Medium
+- **Last Verified**: Nov 12, 2025
+
+## Prerequisites
+
+- [ ] GCP project access (Cloud Run Admin role)
+- [ ] GitHub repository access
+- [ ] Pulumi Cloud access (for manual deploy)
+- [ ] gcloud CLI installed and authenticated (for manual deploy)
+
+---
+
+## Procedure: Automated Deployment (Recommended)
+
+### Step 1: Push to Main Branch
+
+```powershell
+# Commit your changes
+git add .
+git commit -m "feat: add new feature"
+
+# Push to main (triggers CI/CD)
+git push origin main
+```
+
+**Verification**:
+- [ ] Push successful
+- [ ] GitHub Actions workflow triggered
+
+### Step 2: Monitor Workflow
+
+1. Go to: https://github.com/guiofsaints/procureflow/actions
+2. Select latest workflow run
+3. Monitor progress (5-8 minutes)
+
+**Expected Stages**:
+1. Checkout & Setup
+2. Run Tests
+3. Build Next.js
+4. Build & Push Docker Image
+5. Pulumi Deploy
+6. Health Check
+7. Smoke Tests
+
+**Verification**:
+- [ ] All stages pass ✅
+- [ ] No errors in logs
+
+### Step 3: Verify Deployment
+
+```powershell
+# Check Cloud Run service
+gcloud run services describe procureflow-web \
+  --region=us-central1 \
+  --format='value(status.url)'
+
+# Test health endpoint
+curl https://procureflow-web-*.run.app/api/health
+```
+
+**Expected Output**:
+```json
+{
+  "status": "ok",
+  "version": "1.0.0",
+  "checks": {"database": "connected"}
+}
+```
+
+**Verification**:
+- [ ] Health check returns 200
+- [ ] Root endpoint returns 200 or 302
+
+---
+
+## Procedure: Manual Deployment
+
+### Step 1: Build Application
+
+```powershell
+# From root directory
+cd packages\web
+
+# Run tests
+pnpm test
+
+# Build Next.js
+pnpm build
+```
+
+**Verification**:
+- [ ] Tests pass
+- [ ] Build completes successfully
+
+### Step 2: Build Docker Image
+
+```powershell
+# From root directory
+cd ..\..
+
+# Build image
+docker build -f packages\infra\docker\Dockerfile.web -t procureflow-web:latest .
+
+# Tag for GCP Artifact Registry
+docker tag procureflow-web:latest us-central1-docker.pkg.dev/PROJECT_ID/procureflow/web:latest
+```
+
+**Verification**:
+- [ ] Image built successfully
+- [ ] Image tagged for registry
+
+### Step 3: Push to Artifact Registry
+
+```powershell
+# Authenticate Docker with GCP
+gcloud auth configure-docker us-central1-docker.pkg.dev
+
+# Push image
+docker push us-central1-docker.pkg.dev/PROJECT_ID/procureflow/web:latest
+```
+
+**Verification**:
+- [ ] Image pushed successfully
+
+### Step 4: Deploy with Pulumi
+
+```powershell
+# Navigate to Pulumi project
+cd packages\infra\pulumi\gcp
+
+# Preview changes
+pulumi preview
+
+# Deploy
+pulumi up --yes
+```
+
+**Expected Output**:
+```
+Updating (dev)
+     Type                     Name                Status
+ +   pulumi:pulumi:Stack      procureflow-dev     created
+ +   └─ gcp:cloudrun:Service  procureflow-web     created
+
+Outputs:
+    serviceUrl: "https://procureflow-web-*.run.app"
+
+Resources:
+    + 2 created
+
+Duration: 3m45s
+```
+
+**Verification**:
+- [ ] Deployment successful
+- [ ] Service URL returned
+
+### Step 5: Run Smoke Tests
+
+```powershell
+$SERVICE_URL = "https://procureflow-web-*.run.app"
+
+# Test health
+curl "$SERVICE_URL/api/health"
+
+# Test root
+curl -I "$SERVICE_URL/"
+
+# Test catalog
+curl "$SERVICE_URL/api/items?query=chair"
+```
+
+**Verification**:
+- [ ] All endpoints return 200
+- [ ] No errors in responses
+
+---
+
+## Verification
+
+**Final Checks**:
+- [ ] GitHub Actions workflow passed (automated)
+- [ ] Cloud Run service updated
+- [ ] Health check returns 200
+- [ ] Application accessible via URL
+- [ ] No errors in Cloud Run logs
+
+**Success Criteria**:
+- ✅ Deployment completed without errors
+- ✅ All smoke tests pass
+- ✅ No rollback triggered
+
+---
+
+## Rollback
+
+**If Deployment Fails**:
+
+See [Rollback Runbook](/runbooks/rollback) for complete procedure.
+
+**Quick Rollback** (Cloud Run):
+```powershell
+# List revisions
+gcloud run revisions list --service=procureflow-web --region=us-central1
+
+# Rollback to previous revision
+gcloud run services update-traffic procureflow-web \
+  --to-revisions=PREVIOUS_REVISION=100 \
+  --region=us-central1
+```
+
+**Escalation Path**:
+1. Check [Troubleshooting](/runbooks/troubleshooting)
+2. Contact Platform Team lead
+3. Escalate to Tech Lead if critical
+
+---
+
+## References
+
+- **[Deployment Strategy](/operations/deploy)** - Complete deployment documentation
+- **[Rollback Runbook](/runbooks/rollback)** - Rollback procedures
+- **[Infrastructure](/tech/infrastructure)** - Technical architecture
+
+---
+
+**Last Updated**: Nov 12, 2025  
+**Status**: ✅ Verified

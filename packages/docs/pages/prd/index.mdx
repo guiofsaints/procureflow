@@ -1,0 +1,144 @@
+# Product Requirements Document
+
+## Executive Summary
+
+ProcureFlow is an AI-native procurement platform that simplifies corporate purchasing workflows through conversational interfaces and traditional catalog browsing. This PRD defines the product vision, success metrics, feature requirements, and acceptance criteria for v1.0 MVP. Target users include internal employees (requesters), procurement specialists (buyers), and platform engineers (operators). Primary goals: 80% reduction in procurement request time, 50% decrease in duplicate catalog items, 95% AI agent task success rate.
+
+---
+
+## Navigation
+
+This section contains the complete Product Requirements Document organized into focused subsections:
+
+| Page | Description | Last Updated |
+|------|-------------|--------------|
+| **[Objective & Vision](/prd/objective)** | Problem statement, product vision, success metrics, and target personas | Nov 12, 2025 |
+| **[Features](/prd/features)** | Must-have (MVP) and nice-to-have (future) features with priorities | Nov 12, 2025 |
+| **[Functional Requirements](/prd/functional-requirements)** | Detailed FR with triggers, flows, edge cases, and acceptance criteria | Nov 12, 2025 |
+| **[Non-Functional Requirements](/prd/non-functional-requirements)** | Performance, security, reliability, observability, and cost targets | Nov 12, 2025 |
+
+---
+
+## Document Purpose
+
+The PRD serves as the authoritative reference for:
+
+- **Product Teams**: Understanding user needs and feature priorities
+- **Engineering Teams**: Building features that meet acceptance criteria
+- **QA Teams**: Writing test cases based on functional requirements
+- **Stakeholders**: Tracking progress against success metrics
+
+---
+
+## Key Takeaways
+
+### What ProcureFlow Solves
+
+Corporate procurement workflows suffer from:
+- 10-15 minutes per purchase request (manual catalog search + form filling)
+- 20-30% duplicate catalog items (lack of deduplication)
+- 3-5 day approval delays (limited visibility)
+- 40% of buyer time on low-value admin tasks
+
+### How ProcureFlow Solves It
+
+- **AI Agent-First**: Natural language search, add-to-cart, and checkout via chat
+- **Intelligent Catalog**: ML-powered duplicate detection before item creation
+- **Hybrid Interaction**: Seamlessly blend chat and traditional UI
+- **Self-Service**: 70% of tasks completed without buyer intervention
+
+### Success Metrics (6-month targets)
+
+- Procurement request time: 15 min → 3 min (80% reduction)
+- Duplicate item rate: 25% → 5% (80% reduction)
+- AI agent task success: 95% completion rate
+- Employee satisfaction: NPS 20 → 70
+
+---
+
+## Feature Overview
+
+### MVP Features (v1.0)
+
+12 must-have features across 5 domains:
+
+1. **Catalog Management** (2 features)
+   - Full-text search with MongoDB text index
+   - Item registration with duplicate detection
+
+2. **Shopping Cart** (2 features)
+   - CRUD operations (add, update, remove, view)
+   - Cart analytics (item count, total cost)
+
+3. **Checkout** (2 features)
+   - Purchase request generation with immutable snapshots
+   - Purchase history with filters
+
+4. **AI Agent** (4 features)
+   - Conversational search, add-to-cart, checkout
+   - Agent memory and context across messages
+
+5. **Authentication** (2 features)
+   - User registration and login with NextAuth.js
+   - Session management with JWT (30-day expiration)
+
+### Future Features (v1.1+)
+
+- **Phase 2**: Approval workflows, auto-approval rules, email notifications
+- **Phase 3**: Multi-turn agent negotiation, budget awareness, ERP integration
+- **Phase 4**: Multi-tenancy, RBAC, audit trail, mobile app
+
+---
+
+## Requirements Summary
+
+### Functional Requirements
+
+28 detailed functional requirements organized by domain:
+
+- **FR-CAT** (3): Catalog search, item registration, item retrieval
+- **FR-CART** (6): Add/update/remove items, retrieve cart, analytics, clear cart
+- **FR-CHECK** (4): Validate cart, generate PR, retrieve PR list/detail
+- **FR-AGENT** (7): Natural language search, registration, add-to-cart, checkout, memory, conversation management, tool logging
+- **FR-AUTH** (4): User registration, login, session validation, session refresh
+
+Each requirement includes:
+- Trigger conditions
+- Happy path flow
+- Edge cases
+- Measurable acceptance criteria
+
+### Non-Functional Requirements
+
+6 categories with measurable targets:
+
+- **Performance**: p95 API latency <2s, catalog search <500ms, checkout <2s
+- **Security**: bcrypt password hashing, NextAuth.js sessions, input validation, zero critical vulnerabilities
+- **Reliability**: 99.5% uptime SLA, <0.1% error rate, automatic recovery
+- **Observability**: Structured logging (Winston), Prometheus metrics, health checks
+- **Scalability**: Horizontal auto-scaling (0-10 instances), stateless architecture, connection pooling
+- **Cost**: <$50/month infrastructure, OpenAI cost control with rate limiting
+
+---
+
+## Cross-References
+
+### Related Documentation
+
+- **Architecture**: [C4 Context Diagram](/tech/c4/context), [C4 Container Diagram](/tech/c4/container)
+- **Implementation**: [Technology Stack](/tech/stack), [Design Patterns](/tech/patterns)
+- **API**: [OpenAPI Specification](/openapi/specification)
+- **Testing**: [Testing Strategy](/testing), [CI Gates](/testing/ci-gates)
+- **Operations**: [Deployment Strategy](/operations/deploy), [Rollback Strategy](/operations/rollback)
+
+---
+
+## Update Frequency
+
+- **Per Release**: Updated when features change (every version bump)
+- **Owner**: Product Team (objectives, features) + Engineering Team (FR, NFR)
+- **Review**: Before each release tag (ensure alignment with implementation)
+
+---
+
+**Need more detail?** Navigate to specific sections using the table above or the sidebar navigation.

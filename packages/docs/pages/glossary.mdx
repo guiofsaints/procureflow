@@ -1,0 +1,204 @@
+# Glossary
+
+Domain terminology and definitions for ProcureFlow.
+
+## A
+
+**Agent**  
+AI-powered conversational interface that processes natural language requests to search catalog, add items to cart, and complete checkout. Built with LangChain and OpenAI function calling.
+
+**Agent Memory**  
+Conversation context stored in MongoDB to maintain state across messages, including previous items mentioned and cart state.
+
+**API Route**  
+Next.js server-side endpoint in `app/(app)/api/` that handles HTTP requests. Thin wrapper around service layer functions.
+
+**Autoscaling**  
+Cloud Run's automatic adjustment of container instances based on concurrent request load (target: 80 requests/instance).
+
+## B
+
+**Barrel Export**  
+Pattern where feature exports all public APIs through `index.ts` file. Consumers import from feature root: `import { searchItems } from '@/features/catalog'`.
+
+**Blue/Green Deployment**  
+Deployment strategy with two identical environments (blue=current, green=new). Traffic shifts 100% to green after validation. Not implemented in v1.0.
+
+## C
+
+**C4 Model**  
+Architecture visualization framework with 4 levels: Context (system boundary), Container (deployable units), Component (code modules), Code (classes). ProcureFlow uses Context and Container diagrams.
+
+**Cart**  
+Shopping cart containing items to purchase. Stored in MongoDB `carts` collection. Supports add, update, remove, clear operations.
+
+**Catalog**  
+Master list of available procurement items. Searchable via MongoDB text index. Items have name, category, description, estimated price, status.
+
+**Cloud Run**  
+GCP serverless container platform hosting ProcureFlow. Auto-scales from 0-2 instances (dev) based on traffic.
+
+**Cold Start**  
+Startup latency (~2-4s) when Cloud Run scales from 0 instances. Mitigated in production by maintaining min 1 instance.
+
+**Concurrency**  
+Number of simultaneous HTTP requests handled by single container instance. ProcureFlow target: 80 concurrent requests/instance.
+
+**Conventional Commits**  
+Commit message format: `type(scope): subject`. Types: feat, fix, docs, style, refactor, test, chore, perf.
+
+## D
+
+**Domain Entity**  
+Framework-agnostic TypeScript interface representing business concept (e.g., `Item`, `Cart`, `PurchaseRequest`). Defined in `domain/entities.ts`.
+
+**Duplicate Detection**  
+ML-powered feature that identifies similar catalog items before creation to prevent duplicates. Not implemented in v1.0.
+
+## E
+
+**Executive Summary**  
+8-line overview at top of every documentation page summarizing key points, metrics, and outcomes.
+
+## F
+
+**Feature-Based Structure**  
+Code organization pattern where each business domain (catalog, cart, checkout, agent, auth) lives in isolated `features/<name>/` directory with components, services, types.
+
+**Function Calling**  
+OpenAI technique where LLM decides which tools to execute (search_catalog, add_to_cart, checkout) based on user message.
+
+## H
+
+**Health Check**  
+API endpoint (`/api/health`) that returns 200 status with database connection state. Used by Cloud Run to determine service health.
+
+## I
+
+**IaC (Infrastructure as Code)**  
+Pulumi TypeScript code in `packages/infra/pulumi/gcp/` that provisions Cloud Run service, secrets, networking.
+
+## L
+
+**LangChain**  
+Framework for building LLM applications. ProcureFlow uses it for agent tool orchestration and conversation management.
+
+## M
+
+**Mermaid**  
+Diagram-as-code syntax embedded in documentation. Used for C4 diagrams, flowcharts, sequence diagrams.
+
+**Mongoose**  
+MongoDB ODM (Object Document Mapper) for Node.js. Provides schema definition, validation, type safety. Models in `lib/db/models.ts`.
+
+## N
+
+**NextAuth.js**  
+Authentication library for Next.js. ProcureFlow uses JWT strategy with 30-day session expiration.
+
+**Nextra**  
+Documentation framework built on Next.js. Powers this documentation site with MDX support and docs theme.
+
+**NFR (Non-Functional Requirement)**  
+System quality attributes: performance (p95 latency <2s), security (bcrypt, JWT), reliability (99.5% uptime), observability (Winston logs, Prometheus metrics).
+
+## O
+
+**OpenAPI**  
+API specification standard (OpenAPI 3.0.3). ProcureFlow spec manually maintained at `/api/openapi` endpoint with 13 routes and 7 schemas.
+
+## P
+
+**Pulumi**  
+Infrastructure as Code platform. ProcureFlow uses TypeScript Pulumi programs to manage GCP resources (Cloud Run, Secret Manager, Artifact Registry).
+
+**Purchase Request (PR)**  
+Immutable snapshot of cart at checkout time. Stored in `purchaseRequests` collection with items array, total price, status, timestamps.
+
+## R
+
+**Revision**  
+Cloud Run deployment version. Each deployment creates new revision (e.g., `procureflow-web-00042-xyz`). Traffic can split between revisions for rollback.
+
+**Rollback**  
+Reverting to previous stable version. Cloud Run: shift 100% traffic to previous revision (2-5 min). Pulumi: revert infrastructure code (10-30 min).
+
+## S
+
+**Scale-to-Zero**  
+Cloud Run feature terminating all instances after 15 min idle. Enabled in dev for cost savings ($0 when idle). Disabled in production to avoid cold starts.
+
+**Service Layer**  
+Business logic layer in `*.service.ts` files. Database-agnostic, framework-agnostic functions returning domain entities.
+
+**Smoke Test**  
+Post-deployment verification: health check returns 200, root endpoint accessible, catalog search functional.
+
+**SLO (Service Level Objective)**  
+Performance target: p95 API latency <2s, catalog search <500ms, checkout <2s, 99.5% uptime, <0.1% error rate.
+
+## T
+
+**Text Index**  
+MongoDB index enabling full-text search. Created on `items` collection fields: name, category, description. Required for catalog search.
+
+**Traffic Split**  
+Cloud Run feature dividing traffic between revisions (0-100%). Used for gradual rollout or instant rollback.
+
+**Turbopack**  
+Next.js fast bundler (Rust-based). Used in Next.js 16+ dev mode for faster compilation.
+
+## V
+
+**Vitest**  
+Test framework for unit and integration tests. Configuration in `vitest.config.ts`. Coverage thresholds: 60% lines/functions/branches/statements.
+
+---
+
+## Acronyms
+
+| Acronym | Full Term | Definition |
+|---------|-----------|------------|
+| **AI** | Artificial Intelligence | Machine learning models (OpenAI GPT-4) powering agent |
+| **API** | Application Programming Interface | HTTP endpoints in `app/(app)/api/` |
+| **C4** | Context, Containers, Components, Code | Architecture diagram framework |
+| **CI/CD** | Continuous Integration/Continuous Deployment | GitHub Actions workflow for automated deployment |
+| **CPU** | Central Processing Unit | Cloud Run instance CPU limit (1000m = 1 vCPU) |
+| **CRUD** | Create, Read, Update, Delete | Basic data operations |
+| **DDD** | Domain-Driven Design | Software design approach focusing on domain models |
+| **E2E** | End-to-End | Testing layer covering full user journeys (not implemented in v1.0) |
+| **FR** | Functional Requirement | Specific feature requirement with acceptance criteria |
+| **GCP** | Google Cloud Platform | Cloud provider hosting ProcureFlow |
+| **IaC** | Infrastructure as Code | Pulumi TypeScript programs |
+| **JWT** | JSON Web Token | Session token format used by NextAuth.js |
+| **LLM** | Large Language Model | OpenAI GPT-4 model |
+| **MDX** | Markdown + JSX | Documentation file format (Markdown with React components) |
+| **MVP** | Minimum Viable Product | v1.0 core features |
+| **NFR** | Non-Functional Requirement | System quality attributes |
+| **NPS** | Net Promoter Score | Customer satisfaction metric (target: 20 → 70) |
+| **ODM** | Object Document Mapper | Mongoose MongoDB library |
+| **ORM** | Object-Relational Mapper | Similar to ODM but for SQL databases |
+| **p50/p95/p99** | 50th/95th/99th Percentile | Latency percentile targets (p95 <2s) |
+| **PR** | Purchase Request | Checkout output (also Pull Request in Git context) |
+| **PRD** | Product Requirements Document | Product specification document |
+| **RBAC** | Role-Based Access Control | Permission system (planned for v1.1+) |
+| **SLA** | Service Level Agreement | Contractual uptime guarantee (99.5%) |
+| **SLO** | Service Level Objective | Performance target (p95 <2s) |
+| **SSR** | Server-Side Rendering | Next.js rendering strategy |
+| **TS** | TypeScript | Typed JavaScript superset |
+| **UI** | User Interface | Frontend React components |
+| **URL** | Uniform Resource Locator | Web address |
+
+---
+
+## References
+
+- **[PRD](/prd)** - Product requirements and domain concepts
+- **[Tech Stack](/tech/stack)** - Technology definitions
+- **[Design Patterns](/tech/patterns)** - Architecture patterns
+- **[Infrastructure](/tech/infrastructure)** - Deployment terminology
+
+---
+
+**Last Updated**: Nov 12, 2025  
+**Owner**: Documentation Team

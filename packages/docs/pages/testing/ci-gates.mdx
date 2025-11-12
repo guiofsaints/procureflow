@@ -1,0 +1,103 @@
+# CI Gates
+
+Automated quality checks in the CI/CD pipeline.
+
+## GitHub Actions Workflow
+
+```yaml
+# .github/workflows/test.yml
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - run: pnpm install
+      - run: pnpm lint        # ESLint + Prettier
+      - run: pnpm test:coverage # Run tests with coverage
+      - run: pnpm build       # TypeScript + Next.js build
+```
+
+---
+
+## Quality Gates
+
+### 1. Linting (ESLint + Prettier)
+
+**Blocks merge if**:
+- ESLint errors present
+- Prettier formatting violations
+
+**Command**:
+```bash
+pnpm lint
+```
+
+### 2. Test Execution
+
+**Blocks merge if**:
+- Any test fails
+- Test execution times out (> 5 min)
+
+**Command**:
+```bash
+pnpm test
+```
+
+### 3. Coverage Thresholds
+
+**Blocks merge if**:
+- Lines < 60%
+- Functions < 60%
+- Branches < 60%
+- Statements < 60%
+
+**Command**:
+```bash
+pnpm test:coverage
+```
+
+### 4. Build Validation
+
+**Blocks merge if**:
+- TypeScript compilation errors
+- Next.js build fails
+
+**Command**:
+```bash
+pnpm build
+```
+
+---
+
+## Waiving Failures
+
+In exceptional cases, failures can be waived with approval:
+
+1. Create PR with failing check
+2. Add comment explaining why waiver needed
+3. Get approval from Tech Lead
+4. Use admin override to merge
+
+**Note**: Coverage failures should rarely be waived.
+
+---
+
+## References
+
+- **[Testing Overview](/testing)** - Strategy
+- **[Layers & Tooling](/testing/layers-and-tooling)** - Test setup
+
+---
+
+**Last Updated**: 2025-11-12  
+**Owner**: Engineering Lead

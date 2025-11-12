@@ -1,0 +1,114 @@
+# Functional Requirements
+
+This page contains the complete functional requirements specification. For an overview with navigation, see the [PRD home page](/prd).
+
+For the complete detailed functional requirements including triggers, happy paths, edge cases, and acceptance criteria, please refer to the source document:
+
+**Source**: [`.guided/product/prd.functional-requirements.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/product/prd.functional-requirements.md)
+
+## Overview
+
+28 functional requirements organized by domain:
+
+- **FR-CAT** (3 requirements): Catalog Management
+- **FR-CART** (6 requirements): Shopping Cart Operations
+- **FR-CHECK** (4 requirements): Checkout and Purchase Requests
+- **FR-AGENT** (7 requirements): AI Agent Capabilities
+- **FR-AUTH** (4 requirements): Authentication and Sessions
+
+Each requirement includes trigger conditions, happy path flow, edge cases, and measurable acceptance criteria.
+
+## Quick Reference
+
+### Catalog Management (FR-CAT)
+
+| ID | Requirement | Key Acceptance Criteria |
+|----|-------------|------------------------|
+| FR-CAT-001 | Full-Text Catalog Search | Results in < 500ms (p95), relevance scoring |
+| FR-CAT-002 | Item Registration with Duplicate Detection | Prevents duplicates without confirmation, case-insensitive |
+| FR-CAT-003 | Retrieve Single Catalog Item | Retrieval in < 100ms (p95), validates ObjectId |
+
+### Shopping Cart (FR-CART)
+
+| ID | Requirement | Key Acceptance Criteria |
+|----|-------------|------------------------|
+| FR-CART-001 | Add Item to Cart | Price snapshot, combines quantities, < 500ms |
+| FR-CART-002 | Update Cart Item Quantity | Recalculates subtotal/total, < 300ms |
+| FR-CART-003 | Remove Item from Cart | Idempotent operation, < 300ms |
+| FR-CART-004 | Retrieve User Cart | Auto-creates empty cart, < 200ms |
+| FR-CART-005 | Get Cart Analytics | itemCount, uniqueItemCount, totalCost, averagePrice |
+| FR-CART-006 | Clear Cart After Checkout | Atomic with PR creation, rollback on failure |
+
+### Checkout (FR-CHECK)
+
+| ID | Requirement | Key Acceptance Criteria |
+|----|-------------|------------------------|
+| FR-CHECK-001 | Validate Cart Before Checkout | Rejects empty cart, < 100ms validation |
+| FR-CHECK-002 | Generate Purchase Request | Unique PR number (PR-YYYY-NNNN), immutable snapshots, < 2s |
+| FR-CHECK-003 | Retrieve Purchase Request List | Own PRs only, sorted newest first, < 500ms |
+| FR-CHECK-004 | Retrieve Single Purchase Request | Authorization check, < 200ms |
+
+### AI Agent (FR-AGENT)
+
+| ID | Requirement | Key Acceptance Criteria |
+|----|-------------|------------------------|
+| FR-AGENT-001 | Natural Language Search | 90% keyword extraction accuracy, < 5s response |
+| FR-AGENT-002 | Conversational Item Registration | Collects all required fields, shows duplicates |
+| FR-AGENT-003 | Conversational Add to Cart | Explicit confirmation required, shows price/quantity |
+| FR-AGENT-004 | Conversational Checkout | Two confirmations, provides PR number |
+| FR-AGENT-005 | Agent Memory and Context | Remembers cart, last 50 messages in context |
+| FR-AGENT-006 | Conversation Management | Users access own conversations only |
+| FR-AGENT-007 | Tool Execution Logging | All tool calls logged with parameters/results |
+
+### Authentication (FR-AUTH)
+
+| ID | Requirement | Key Acceptance Criteria |
+|----|-------------|------------------------|
+| FR-AUTH-001 | User Registration | bcrypt hashing, email uniqueness, < 1s |
+| FR-AUTH-002 | User Login | No email/password revelation on failure, < 500ms |
+| FR-AUTH-003 | Session Validation | JWT signature check, < 50ms |
+| FR-AUTH-004 | Session Refresh | Auto-refresh within expiration window |
+
+---
+
+## Cross-Cutting Requirements
+
+### Performance Targets (p95 Latency)
+
+- Catalog search: < 500ms
+- Item registration: < 1s
+- Cart operations: < 500ms (add), < 300ms (update/remove), < 200ms (retrieve)
+- Checkout: < 2s
+- Agent response: < 5s (excluding LLM API)
+- Session validation: < 50ms
+
+### Data Integrity
+
+1. **Immutable Purchase Requests**: Once created, PR items cannot be modified
+2. **Cart Atomicity**: Cart operations complete atomically or rollback
+3. **Checkout Atomicity**: PR creation and cart clearing are atomic
+4. **Price Snapshots**: Cart and PR items snapshot catalog prices at operation time
+
+### Security
+
+1. **Password Storage**: bcrypt with salt rounds ≥ 10
+2. **Session Security**: HTTP-only, Secure cookies in production
+3. **Input Validation**: All user inputs validated before database operations
+4. **Authorization**: Users access only their own carts, PRs, and conversations
+5. **NoSQL Injection Prevention**: Escape MongoDB special characters in searches
+
+---
+
+## Related Documentation
+
+- **[Features Overview](/prd/features)** - Feature list and priorities
+- **[Non-Functional Requirements](/prd/non-functional-requirements)** - Performance and security targets
+- **[C4 Container Diagram](/tech/c4/container)** - Component interactions
+- **[Testing Strategy](/testing)** - Test coverage approach
+
+---
+
+**For complete FR details**: See [`.guided/product/prd.functional-requirements.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/product/prd.functional-requirements.md)
+
+**Last Updated**: 2025-11-12  
+**Owner**: Product + Engineering Teams

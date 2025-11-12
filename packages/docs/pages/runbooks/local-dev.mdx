@@ -1,0 +1,236 @@
+# Runbook: Local Development
+
+Set up ProcureFlow local development environment.
+
+## Metadata
+
+- **Owner**: Platform Team
+- **Estimated Duration**: 15-20 minutes
+- **Complexity**: 🟢 Low
+- **Last Verified**: Nov 12, 2025
+
+## Prerequisites
+
+- [ ] Git installed
+- [ ] Node.js 20+ installed
+- [ ] pnpm 10+ installed (`npm install -g pnpm`)
+- [ ] Docker Desktop installed and running
+- [ ] GitHub access to procureflow repository
+
+---
+
+## Procedure
+
+### Step 1: Clone Repository
+
+```powershell
+# Clone repository
+git clone https://github.com/guiofsaints/procureflow.git
+cd procureflow
+```
+
+**Verification**:
+- [ ] Repository cloned successfully
+- [ ] In procureflow directory
+
+### Step 2: Install Dependencies
+
+```powershell
+# Install all workspace dependencies
+pnpm install
+```
+
+**Expected Output**: `✓ XX packages installed`
+
+**Verification**:
+- [ ] node_modules created
+- [ ] pnpm-lock.yaml present
+
+### Step 3: Configure Environment
+
+```powershell
+# Copy environment template
+cd packages\web
+copy .env.example .env.local
+
+# Edit .env.local with your values
+notepad .env.local
+```
+
+**Required Variables**:
+```bash
+MONGODB_URI=mongodb://localhost:27017/procureflow
+NEXTAUTH_SECRET=generate-with-openssl-rand-base64-32
+NEXTAUTH_URL=http://localhost:3000
+OPENAI_API_KEY=sk-... # or "not-set"
+```
+
+**Verification**:
+- [ ] .env.local file created
+- [ ] All required variables set
+
+### Step 4: Start Docker Services
+
+```powershell
+# Start MongoDB with Docker Compose (from root)
+cd ..\..
+pnpm docker:up
+```
+
+**Expected Output**:
+```
+[+] Running 2/2
+ ✔ Container procureflow-mongo   Started
+ ✔ Container mongo-express        Started
+```
+
+**Verification**:
+- [ ] MongoDB running on port 27017
+- [ ] mongo-express accessible at http://localhost:8081
+
+### Step 5: Seed Database
+
+```powershell
+# Create text index for catalog search
+pnpm --filter web db:create-text-index
+
+# Seed test data (200 office items)
+pnpm --filter web db:seed-office-items
+
+# Create demo user (demo@procureflow.com / demo123)
+pnpm --filter web db:seed-initial-user
+```
+
+**Verification**:
+- [ ] Text index created
+- [ ] 200 items in database
+- [ ] Demo user created
+
+### Step 6: Start Development Server
+
+```powershell
+# Start Next.js dev server
+cd packages\web
+pnpm dev
+```
+
+**Expected Output**:
+```
+▲ Next.js 16.0.1 (Turbopack)
+- Local:        http://localhost:3000
+✓ Ready in 2.4s
+```
+
+**Verification**:
+- [ ] Server running at http://localhost:3000
+- [ ] No compilation errors
+
+### Step 7: Verify Application
+
+Open browser and test:
+
+1. **Login**: http://localhost:3000
+   - Email: `demo@procureflow.com`
+   - Password: `demo123`
+
+2. **Catalog**: http://localhost:3000/catalog
+   - Should show 200 office items
+
+3. **Agent**: http://localhost:3000/agent
+   - Try: "search for ergonomic chairs"
+
+**Verification**:
+- [ ] Login successful
+- [ ] Catalog loads items
+- [ ] Agent responds to queries
+
+---
+
+## Verification
+
+**Final Checks**:
+- [ ] Application accessible at http://localhost:3000
+- [ ] MongoDB accessible at http://localhost:8081 (mongo-express)
+- [ ] Catalog search returns results
+- [ ] Agent chat functional
+- [ ] No console errors
+
+**Success Criteria**:
+- ✅ All services running
+- ✅ Database seeded
+- ✅ Application functional
+
+---
+
+## Rollback
+
+**If Procedure Fails**:
+
+1. **Stop all services**:
+   ```powershell
+   pnpm docker:down
+   ```
+
+2. **Clean dependencies**:
+   ```powershell
+   Remove-Item -Recurse -Force node_modules, pnpm-lock.yaml
+   pnpm install
+   ```
+
+3. **Reset database**:
+   ```powershell
+   pnpm docker:db:reset
+   ```
+
+**Escalation Path**:
+- Check [Troubleshooting](/runbooks/troubleshooting)
+- Ask in #dev-support Slack channel
+- Contact Platform Team lead
+
+---
+
+## Common Issues
+
+### MongoDB Connection Refused
+
+**Symptom**: `Error: ECONNREFUSED 127.0.0.1:27017`
+
+**Solution**:
+```powershell
+# Ensure Docker Desktop is running
+# Restart MongoDB container
+pnpm docker:down
+pnpm docker:up
+```
+
+### Text Index Not Found
+
+**Symptom**: Catalog search returns empty
+
+**Solution**:
+```powershell
+pnpm --filter web db:create-text-index
+```
+
+### Port Already in Use
+
+**Symptom**: `Error: Port 3000 is already in use`
+
+**Solution**:
+```powershell
+# Find and kill process using port 3000
+Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process -Force
+```
+
+---
+
+## References
+
+- **[Contributing Guide](/contributing)** - Development workflow
+- **[Tech Stack](/tech/stack)** - Technology overview
+- **[Troubleshooting](/runbooks/troubleshooting)** - Common failures
+
+---
+
+**Last Updated**: Nov 12, 2025  
+**Status**: ✅ Verified

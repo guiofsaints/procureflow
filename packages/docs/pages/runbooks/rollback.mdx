@@ -1,0 +1,211 @@
+# Runbook: Rollback
+
+Execute rollback for failed deployments.
+
+## Metadata
+
+- **Owner**: Platform Team
+- **Estimated Duration**: 2-5 minutes (Cloud Run), 10-30 minutes (full rollback)
+- **Complexity**: 🔴 High
+- **Last Verified**: Nov 12, 2025
+
+## Prerequisites
+
+- [ ] GCP project access (Cloud Run Admin role)
+- [ ] gcloud CLI installed and authenticated
+- [ ] Rollback decision approved (for production)
+
+---
+
+## Procedure: Cloud Run Revision Rollback (Fast)
+
+### Step 1: List Available Revisions
+
+```powershell
+# List all revisions
+gcloud run revisions list \
+  --service=procureflow-web \
+  --region=us-central1
+```
+
+**Expected Output**:
+```
+REVISION                    ACTIVE  SERVICE          DEPLOYED
+procureflow-web-00042-abc   yes     procureflow-web  2025-11-12 10:30 UTC
+procureflow-web-00041-xyz           procureflow-web  2025-11-11 09:15 UTC
+```
+
+**Verification**:
+- [ ] At least 2 revisions available
+- [ ] Identify previous healthy revision
+
+### Step 2: Shift Traffic to Previous Revision
+
+```powershell
+# Rollback to previous revision (replace with actual revision name)
+gcloud run services update-traffic procureflow-web \
+  --to-revisions=procureflow-web-00041-xyz=100 \
+  --region=us-central1
+```
+
+**Expected Output**:
+```
+✓ Updating traffic...
+✓ Traffic set to 100% for revision procureflow-web-00041-xyz
+Done.
+```
+
+**Verification**:
+- [ ] Traffic updated successfully
+- [ ] No errors in output
+
+### Step 3: Verify Rollback
+
+```powershell
+# Check traffic split
+gcloud run services describe procureflow-web \
+  --region=us-central1 \
+  --format='value(status.traffic)'
+
+# Test health endpoint
+curl https://procureflow-web-*.run.app/api/health
+```
+
+**Verification**:
+- [ ] Previous revision serves 100% traffic
+- [ ] Health check returns 200
+- [ ] No errors
+
+---
+
+## Procedure: Pulumi Infrastructure Rollback (Full)
+
+### Step 1: Backup Current State
+
+```powershell
+# Navigate to Pulumi project
+cd packages\infra\pulumi\gcp
+
+# Export current state
+pulumi stack export > backup-$(Get-Date -Format yyyyMMdd-HHmmss).json
+```
+
+**Verification**:
+- [ ] State exported to JSON file
+
+### Step 2: Revert Infrastructure Code
+
+```powershell
+# Option A: Revert last commit
+git revert HEAD
+git push origin main
+
+# Option B: Reset to specific commit
+git reset --hard PREVIOUS_COMMIT_SHA
+git push --force origin main
+```
+
+**Verification**:
+- [ ] Code reverted successfully
+- [ ] Push completed
+
+### Step 3: Deploy Reverted State
+
+```powershell
+# Preview changes
+pulumi preview
+
+# Deploy
+pulumi up --yes
+```
+
+**Verification**:
+- [ ] Deployment successful
+- [ ] Previous configuration restored
+
+---
+
+## Procedure: Database Rollback
+
+### Step 1: Stop Write Operations
+
+```powershell
+# Scale Cloud Run to 0 instances temporarily
+gcloud run services update procureflow-web \
+  --min-instances=0 \
+  --max-instances=0 \
+  --region=us-central1
+```
+
+### Step 2: Restore Database Backup
+
+```powershell
+# Restore from backup (replace with actual backup path)
+mongorestore --uri="mongodb+srv://user:pass@cluster.mongodb.net/procureflow" \
+  --drop \
+  ./backup-20251112-103045/
+```
+
+**Verification**:
+- [ ] Restore completed
+- [ ] Data verified
+
+### Step 3: Resume Service
+
+```powershell
+# Restore instance limits
+gcloud run services update procureflow-web \
+  --min-instances=0 \
+  --max-instances=2 \
+  --region=us-central1
+```
+
+---
+
+## Verification
+
+**Final Checks**:
+- [ ] Health check returns 200
+- [ ] Root endpoint accessible
+- [ ] Catalog search functional
+- [ ] Agent responds to queries
+- [ ] Error rate < 0.1%
+- [ ] P95 latency < 2s
+
+**Success Criteria**:
+- ✅ Previous stable version serving traffic
+- ✅ All smoke tests pass
+- ✅ No errors in Cloud Run logs
+
+---
+
+## Post-Rollback Actions
+
+1. **Document incident**: Create incident report
+2. **Notify team**: Post in #ops Slack channel
+3. **Root cause analysis**: Investigate failure cause
+4. **Create fix**: Prepare hotfix for next deployment
+
+---
+
+## Escalation
+
+**If Rollback Fails**:
+
+1. **Immediate**: Contact Platform Team lead
+2. **Within 15 min**: Escalate to Tech Lead
+3. **Within 30 min**: Page on-call engineer
+4. **Critical**: Consider full service shutdown
+
+---
+
+## References
+
+- **[Rollback Strategy](/operations/rollback)** - Complete rollback documentation
+- **[Deployment Runbook](/runbooks/build-and-deploy)** - Deployment procedures
+- **[Troubleshooting](/runbooks/troubleshooting)** - Common issues
+
+---
+
+**Last Updated**: Nov 12, 2025  
+**Status**: ✅ Verified

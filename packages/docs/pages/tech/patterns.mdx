@@ -1,0 +1,310 @@
+# Design Patterns
+
+Architectural patterns and key technical decisions.
+
+For complete patterns documentation and 18-entry decision log, see: [`.guided/architecture/stack-and-patterns.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/architecture/stack-and-patterns.md)
+
+## Executive Summary
+
+ProcureFlow employs 6 core architectural patterns: feature-based organization (isolated modules with barrel exports), service layer separation (business logic in framework-agnostic *.service.ts files), domain-driven design (10 domain entities as TypeScript interfaces), agent-first design (conversational AI with function calling), reliability patterns (circuit breaker, rate limiting, retries), and observability patterns (structured logging, Prometheus metrics, health checks).
+
+---
+
+## Core Patterns
+
+### 1. Feature-Based Organization
+
+**Pattern**: Organize code by feature (catalog, cart, checkout, agent) rather than by type (models, views, controllers)
+
+**Structure**:
+```
+features/
+  <feature-name>/
+    components/        # React UI components
+    lib/              # Service layer (*.service.ts)
+    index.ts          # Public API exports
+    types.ts          # Feature-specific types
+    mock.ts           # Test fixtures (optional)
+```
+
+**Benefits**:
+- Isolated modules reduce coupling
+- Easy to locate feature code
+- Scales better than MVC for large apps
+- Enables feature flags and lazy loading
+
+**Example**:
+```typescript
+// features/catalog/index.ts
+export { searchItems, createItem, getItemById } from './lib/catalog.service';
+export type { Item, SearchOptions } from './types';
+
+// Usage
+import { searchItems } from '@/features/catalog';
+```
+
+### 2. Service Layer Pattern
+
+**Pattern**: Business logic in `*.service.ts` files, NOT in route handlers
+
+**Responsibilities**:
+- **Route Handlers**: Extract request data, validate auth, call service, return response
+- **Services**: Implement business logic, return domain entities, throw typed errors
+
+**Benefits**:
+- Testable without HTTP layer
+- Reusable in API routes, server components, background jobs
+- Framework-agnostic (easy to migrate)
+
+**Example**:
+```typescript
+// lib/catalog.service.ts
+export async function createItem(data: CreateItemInput, userId: string): Promise<Item> {
+  // Business logic
+  const duplicates = await findDuplicates(data.name, data.category);
+  if (duplicates.length > 0 && !data.confirmDuplicate) {
+    throw new DuplicateItemError(duplicates);
+  }
+  
+  const item = await ItemModel.create({ ...data, createdByUserId: userId });
+  return toDomainEntity(item); // Return domain entity, not Mongoose doc
+}
+
+// app/(app)/api/items/route.ts
+export async function POST(request: Request) {
+  const session = await getServerSession(authConfig);
+  if (!session) return new Response('Unauthorized', { status: 401 });
+  
+  const body = await request.json();
+  const item = await createItem(body, session.user.id); // Call service
+  return NextResponse.json(item, { status: 201 });
+}
+```
+
+### 3. Domain-Driven Design
+
+**Pattern**: Framework-agnostic domain entities as TypeScript interfaces
+
+**Purpose**:
+- Represent business concepts (User, Item, Cart, PurchaseRequest)
+- Decoupled from database schemas (Mongoose)
+- Services return domain entities, not Mongoose documents
+
+**Example**:
+```typescript
+// domain/entities.ts
+export interface Item {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  estimatedPrice: number;
+  unit?: string;
+  preferredSupplier?: string;
+  status: 'Active' | 'Inactive';
+  createdByUserId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// lib/db/schemas/item.schema.ts (Mongoose)
+const itemSchema = new Schema({
+  name: { type: String, required: true },
+  category: { type: String, required: true },
+  // ... (database-specific)
+});
+
+// Mapping function
+function toDomainEntity(doc: ItemDocument): Item {
+  return {
+    id: doc._id.toString(),
+    name: doc.name,
+    category: doc.category,
+    // ...
+  };
+}
+```
+
+### 4. Agent-First Design
+
+**Pattern**: Conversational AI as primary interaction model
+
+**Implementation**:
+- LangChain orchestrates LLM (OpenAI GPT-3.5-turbo)
+- Function calling for 8 tools (search, register, cart ops, checkout)
+- Conversation persistence for context
+
+**Tool Integration Flow**:
+```
+User Message → Agent Service → LangChain → OpenAI (decide tool)
+→ OpenAI returns tool call → Agent executes via service layer
+→ Agent sends result to OpenAI → OpenAI generates response
+→ Save conversation → Return to user
+```
+
+**Example Tools**:
+- `search_catalog`: Search items by keywords
+- `add_to_cart`: Add item with confirmation
+- `checkout`: Submit purchase request with validation
+
+### 5. Reliability Patterns
+
+**Circuit Breaker** (for OpenAI API):
+```typescript
+import CircuitBreaker from 'opossum';
+
+const breaker = new CircuitBreaker(callOpenAI, {
+  errorThresholdPercentage: 50, // Open after 50% errors
+  timeout: 30000,                // 30s timeout
+  resetTimeout: 30000,           // Try again after 30s
+});
+
+breaker.on('open', () => logger.warn('OpenAI circuit breaker opened'));
+```
+
+**Retry with Exponential Backoff**:
+```typescript
+import pRetry from 'p-retry';
+
+const result = await pRetry(() => callOpenAI(prompt), {
+  retries: 3,
+  minTimeout: 1000,  // 1s
+  factor: 2,         // Exponential
+});
+```
+
+**Rate Limiting**:
+```typescript
+import Bottleneck from 'bottleneck';
+
+const limiter = new Bottleneck({
+  reservoir: 60,         // 60 requests
+  reservoirRefreshAmount: 60,
+  reservoirRefreshInterval: 60 * 1000, // per minute
+});
+```
+
+### 6. Observability Patterns
+
+**Structured Logging**:
+```typescript
+import winston from 'winston';
+
+logger.info('Purchase request created', {
+  userId: '507f1f77bcf86cd799439011',
+  requestNumber: 'PR-2025-0042',
+  totalCost: 1250.00,
+  itemCount: 5,
+  correlationId: 'req-abc123',
+});
+```
+
+**Prometheus Metrics**:
+```typescript
+import { register, Counter, Histogram } from 'prom-client';
+
+const httpRequestDuration = new Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+});
+
+// In middleware
+httpRequestDuration.labels(req.method, req.route, res.statusCode).observe(duration);
+```
+
+**Health Checks**:
+```typescript
+// app/(app)/api/health/route.ts
+export async function GET() {
+  const checks = {
+    api: 'ok',
+    db: await checkMongoDB() ? 'ok' : 'fail',
+  };
+  
+  const status = Object.values(checks).every(v => v === 'ok') ? 200 : 503;
+  return NextResponse.json({ status: checks.db === 'ok' ? 'ok' : 'degraded', checks }, { status });
+}
+```
+
+---
+
+## Decision Log (Summary)
+
+For complete 18-entry decision log, see [`.guided/architecture/stack-and-patterns.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/architecture/stack-and-patterns.md)
+
+| Date | Decision | Rationale | Impact |
+|------|----------|-----------|--------|
+| 2025-11-01 | Use Next.js 15 App Router | Server Components, file routing, API routes | Simplified architecture |
+| 2025-11-01 | MongoDB over PostgreSQL | Document model for carts/PRs, text search, M0 free tier | Flexible schema, cost savings |
+| 2025-11-01 | Feature-based structure | Isolated modules, better scalability | Improved maintainability |
+| 2025-11-01 | Service layer pattern | Framework-agnostic logic, testability | Decoupled business logic |
+| 2025-11-02 | OpenAI GPT-3.5-turbo | Cost ($0.002/1K tokens) + speed (< 2s) | AI agent feasibility |
+| 2025-11-02 | LangChain for orchestration | Function calling abstractions, memory | Simplified agent development |
+| 2025-11-03 | Pulumi (TypeScript IaC) | Same language as app, type safety | Consistent dev experience |
+| 2025-11-03 | GCP Cloud Run | Serverless, auto-scaling, pay-per-use | Cost optimization |
+
+---
+
+## Pattern Anti-Patterns (What NOT to Do)
+
+### ❌ Business Logic in Route Handlers
+
+```typescript
+// BAD
+export async function POST(request: Request) {
+  const body = await request.json();
+  const duplicates = await ItemModel.find({ name: body.name }); // Business logic in route!
+  if (duplicates.length > 0) throw new Error('Duplicate');
+  // ...
+}
+
+// GOOD
+export async function POST(request: Request) {
+  const body = await request.json();
+  const item = await createItem(body, session.user.id); // Delegate to service
+  return NextResponse.json(item);
+}
+```
+
+### ❌ Mongoose Documents in API Responses
+
+```typescript
+// BAD
+const item = await ItemModel.findById(id); // Returns Mongoose document
+return NextResponse.json(item); // Leaks _id, __v, methods
+
+// GOOD
+const item = await getItemById(id); // Service returns domain entity
+return NextResponse.json(item); // Clean { id, name, ... }
+```
+
+### ❌ No Error Handling for External APIs
+
+```typescript
+// BAD
+const response = await fetch(openAIUrl); // No error handling!
+
+// GOOD
+try {
+  const response = await pRetry(() => fetch(openAIUrl), { retries: 3 });
+} catch (error) {
+  logger.error('OpenAI API failed', { error });
+  return fallbackResponse();
+}
+```
+
+---
+
+## References
+
+- **[Technology Stack](/tech/stack)** - Tech choices and versions
+- **[Infrastructure](/tech/infrastructure)** - Deployment patterns
+- **[C4 Container Diagram](/tech/c4/container)** - Component responsibilities
+
+**Complete Patterns & Decision Log**: [`.guided/architecture/stack-and-patterns.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/architecture/stack-and-patterns.md)
+
+---
+
+**Last Updated**: 2025-11-12  
+**Owner**: Architecture Team

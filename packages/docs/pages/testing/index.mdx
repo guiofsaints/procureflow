@@ -1,0 +1,152 @@
+# Testing Strategy
+
+Test layers, tooling, coverage targets, and CI gates.
+
+For complete testing strategy, see: [`.guided/testing/testing-strategy.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/testing/testing-strategy.md)
+
+## Executive Summary
+
+ProcureFlow testing follows the testing pyramid: 70% unit / 25% integration / 5% e2e. Current state: 1 test file with 6 tests. Target state: 100 tests achieving 60% coverage by Q1 2025. Tooling: Vitest 4.0.8 + Testing Library + mongodb-memory-server. CI gates: test execution, coverage thresholds, linting. Flakiness mitigation via isolated tests, deterministic fixtures, and retry logic.
+
+---
+
+## Quick Links
+
+- **[Layers & Tooling](/testing/layers-and-tooling)** - Test types and tools
+- **[CI Gates](/testing/ci-gates)** - Quality enforcement
+
+---
+
+## Testing Pyramid
+
+```
+    /\
+   /  \  5% E2E Tests
+  /____\  (Critical user flows)
+ /      \
+/  25%   \ Integration Tests
+/__________\ (API + DB)
+|          |
+|   70%    | Unit Tests
+|__________| (Service layer, utilities)
+```
+
+### Coverage Goals
+
+| Layer | Target % | Current Tests | Target Tests |
+|-------|----------|---------------|--------------|
+| **Unit** | 70% | 4 | 70 |
+| **Integration** | 25% | 2 | 25 |
+| **E2E** | 5% | 0 | 5 (future) |
+| **Total** | 100% | 6 | 100 |
+
+### Coverage Thresholds
+
+- **Lines**: ≥ 60%
+- **Functions**: ≥ 60%
+- **Branches**: ≥ 60%
+- **Statements**: ≥ 60%
+
+---
+
+## Current State
+
+```bash
+# Run tests
+pnpm test
+
+# With coverage
+pnpm test:coverage
+
+# Watch mode
+pnpm test:watch
+```
+
+### Existing Tests
+
+```
+src/test/
+  integration/
+    catalog.test.ts  # Catalog search and registration
+  unit/
+    utils.test.ts    # Utility functions
+```
+
+---
+
+## Target State (Q1 2025)
+
+### Unit Tests (70 tests)
+
+- Service layer functions (catalog, cart, checkout, agent, auth)
+- Domain entity validation
+- Utility functions
+- Error handling
+
+### Integration Tests (25 tests)
+
+- API route handlers with mongodb-memory-server
+- Database queries and indexes
+- NextAuth.js authentication flows
+- Agent tool execution
+
+### E2E Tests (5 tests - future)
+
+- Critical user journeys (Playwright)
+  1. Search → Add to cart → Checkout
+  2. Agent search → Agent add to cart → Agent checkout
+  3. Duplicate detection workflow
+  4. Login → Cart persistence → Logout → Login
+  5. Purchase history retrieval
+
+---
+
+## Test Data Strategy
+
+### Fixtures
+
+```typescript
+// test/mocks/fixtures.ts
+export const mockItem: Item = {
+  id: '507f1f77bcf86cd799439011',
+  name: 'Office Chair',
+  category: 'Furniture',
+  description: 'Ergonomic office chair with lumbar support',
+  estimatedPrice: 299.99,
+  status: 'Active',
+  createdByUserId: '507f191e810c19729de860ea',
+  createdAt: new Date('2025-11-01'),
+  updatedAt: new Date('2025-11-01'),
+};
+```
+
+### Test Databases
+
+- **Unit**: No database (mocked repositories)
+- **Integration**: mongodb-memory-server (isolated, fast)
+- **E2E**: Dedicated test MongoDB instance
+
+---
+
+## Flakiness Mitigation
+
+1. **Isolated Tests**: Each test uses separate database/fixtures
+2. **Deterministic Data**: Fixed timestamps, IDs, prices
+3. **Retry Logic**: Retry transient failures up to 3x
+4. **Cleanup**: Tear down fixtures after each test
+5. **Timeouts**: Reasonable timeouts (5s unit, 30s integration)
+
+---
+
+## References
+
+- **[Layers & Tooling](/testing/layers-and-tooling)** - Detailed test setup
+- **[CI Gates](/testing/ci-gates)** - Automated quality checks
+- **[Functional Requirements](/prd/functional-requirements)** - FR as test specs
+
+**Complete Testing Strategy**: [`.guided/testing/testing-strategy.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/testing/testing-strategy.md)
+
+---
+
+**Last Updated**: 2025-11-12  
+**Owner**: QA + Engineering Teams

@@ -1,0 +1,305 @@
+# Rollback Strategy
+
+Complete rollback procedures for ProcureFlow deployments.
+
+For complete rollback documentation, see: [`.guided/operations/rollback-strategy.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/operations/rollback-strategy.md)
+
+## Executive Summary
+
+ProcureFlow rollback uses Cloud Run revision traffic splitting for instant zero-downtime rollback (shift 100% traffic to previous revision) or Pulumi IaC rollback for infrastructure changes. Decision tree: health check fails → automatic Cloud Run rollback (previous revision serves 100% traffic), bad deployment detected → manual traffic split via `gcloud` CLI or Cloud Console, database migration failed → restore MongoDB backup (manual `mongodump`/`mongorestore`), secrets corrupted → restore Secret Manager versions. No automated rollback in v1.0; requires manual execution. Post-rollback validation: health check 200, smoke tests pass, error rate < baseline. Rollback time: ~2-5 minutes for traffic split, ~10-30 minutes for full Pulumi rollback.
+
+---
+
+## Rollback Decision Tree
+
+```mermaid
+flowchart TD
+    Start{Deployment<br/>Issue?} --> HealthFail{Health check<br/>failed?}
+    Start --> BadDeploy{Bad deployment<br/>detected?}
+    Start --> DBFail{Database migration<br/>failed?}
+    Start --> SecretFail{Secrets<br/>corrupted?}
+    
+    HealthFail -->|Yes| AutoRollback[Automatic Cloud Run Rollback<br/>Previous revision serves traffic]
+    HealthFail -->|No| Monitor[Continue monitoring]
+    
+    BadDeploy -->|Critical bug| ManualRollback[Manual Traffic Split<br/>gcloud or Cloud Console]
+    BadDeploy -->|Minor issue| Hotfix{Hotfix<br/>feasible?}
+    Hotfix -->|Yes| DeployFix[Deploy hotfix<br/>Push to main]
+    Hotfix -->|No| ManualRollback
+    
+    DBFail -->|Yes| RestoreDB[Restore MongoDB Backup<br/>mongodump/mongorestore]
+    DBFail -->|No| CheckInfra{Pulumi state<br/>corrupted?}
+    CheckInfra -->|Yes| PulumiRollback[Pulumi Stack Rollback<br/>Import previous state]
+    CheckInfra -->|No| Monitor
+    
+    SecretFail -->|Yes| RestoreSecret[Restore Secret Manager Version<br/>gcloud secrets versions access]
+    SecretFail -->|No| Monitor
+    
+    AutoRollback & ManualRollback & RestoreDB & PulumiRollback & RestoreSecret & DeployFix --> Validate[Post-Rollback Validation]
+    
+    Validate --> HealthCheck{Health check<br/>200?}
+    HealthCheck -->|Yes| SmokeTest{Smoke tests<br/>pass?}
+    HealthCheck -->|No| Escalate[Escalate to Tech Lead<br/>Incident response]
+    
+    SmokeTest -->|Yes| Success([✅ Rollback successful])
+    SmokeTest -->|No| Escalate
+    
+    Monitor --> End([Continue deployment])
+    
+    style AutoRollback fill:#FFA500,stroke:#CC8400,color:#fff
+    style ManualRollback fill:#FFA500,stroke:#CC8400,color:#fff
+    style RestoreDB fill:#FF6B6B,stroke:#CC5555,color:#fff
+    style PulumiRollback fill:#9C27B0,stroke:#7B1FA2,color:#fff
+    style RestoreSecret fill:#FFA500,stroke:#CC8400,color:#fff
+    style Success fill:#4CAF50,stroke:#388E3C,color:#fff
+    style Escalate fill:#FF6B6B,stroke:#CC5555,color:#fff
+```
+
+---
+
+## Rollback Triggers
+
+| Trigger | Severity | Rollback Type | Automated? | Max Downtime |
+|---------|----------|---------------|------------|--------------|
+| **Health check fails** (HTTP non-200) | 🔴 Critical | Cloud Run revision rollback | ✅ Yes | 0s (zero downtime) |
+| **Error rate > 1%** for 5 minutes | 🔴 Critical | Manual traffic split | ❌ No | 2-5 min |
+| **P95 latency > 3s** for 5 minutes | 🟡 High | Manual traffic split or hotfix | ❌ No | 5-10 min |
+| **Critical feature broken** (e.g., checkout fails) | 🔴 Critical | Manual traffic split | ❌ No | 2-5 min |
+| **Database migration failed** (schema corruption) | 🔴 Critical | Restore backup + Pulumi rollback | ❌ No | 10-30 min |
+| **Secrets corrupted** (NextAuth login fails) | 🔴 Critical | Restore Secret Manager version | ❌ No | 2-5 min |
+
+---
+
+## Cloud Run Revision Rollback
+
+### Automatic Rollback
+
+Cloud Run automatically serves previous revision if new revision crashes on startup (unhealthy container, port not listening).
+
+**Behavior**: Health check fails → Cloud Run routes 100% traffic to previous healthy revision → Zero downtime
+
+### Manual Rollback via gcloud CLI
+
+```bash
+# List available revisions
+gcloud run revisions list \
+  --service=procureflow-web \
+  --region=us-central1
+
+# Example output:
+# REVISION                    ACTIVE  SERVICE          DEPLOYED                 BY
+# procureflow-web-00042-abc   yes     procureflow-web  2025-11-12 10:30:45 UTC  user@example.com
+# procureflow-web-00041-xyz          procureflow-web  2025-11-11 09:15:22 UTC  user@example.com
+
+# Rollback to previous revision (00041)
+gcloud run services update-traffic procureflow-web \
+  --to-revisions=procureflow-web-00041-xyz=100 \
+  --region=us-central1
+
+# Verify traffic split
+gcloud run services describe procureflow-web \
+  --region=us-central1 \
+  --format='value(status.traffic)'
+```
+
+**Rollback Time**: ~2-5 minutes
+
+### Manual Rollback via Cloud Console
+
+1. Navigate to **Cloud Run** → **procureflow-web** service
+2. Click **Revisions** tab
+3. Select previous healthy revision (e.g., `00041-xyz`)
+4. Click **Manage Traffic**
+5. Set traffic to **100%** for selected revision
+6. Click **Save**
+
+**Rollback Time**: ~2-5 minutes
+
+---
+
+## Pulumi Infrastructure Rollback
+
+If infrastructure changes cause issues (Dockerfile changes, environment variables, scaling config):
+
+### Option 1: Rollback via Git Revert
+
+```bash
+# Revert infrastructure commit
+git revert <commit-sha>
+git push origin main
+
+# Trigger automatic deployment with reverted changes
+# GitHub Actions will re-deploy with previous configuration
+```
+
+### Option 2: Manual Pulumi Stack Import
+
+```bash
+# From packages/infra/pulumi/gcp/
+cd packages/infra/pulumi/gcp
+
+# Export current state (backup)
+pulumi stack export > backup-$(date +%Y%m%d-%H%M%S).json
+
+# Import previous state from backup
+pulumi stack import < previous-state.json
+
+# Verify changes
+pulumi preview
+
+# Apply rollback
+pulumi up --yes
+```
+
+**Rollback Time**: ~10-30 minutes
+
+---
+
+## Database Migration Handling
+
+### Backup Before Migration
+
+```bash
+# Create backup before any schema changes
+mongodump --uri="mongodb+srv://user:pass@cluster.mongodb.net/procureflow" \
+  --out=./backup-$(date +%Y%m%d-%H%M%S)
+
+# Store backup securely
+tar -czf backup.tar.gz backup-*/
+# Upload to GCS or local secure storage
+```
+
+### Restore After Failed Migration
+
+```bash
+# Restore from backup
+mongorestore --uri="mongodb+srv://user:pass@cluster.mongodb.net/procureflow" \
+  --drop \
+  ./backup-20251112-103045/
+
+# Verify restoration
+mongosh "mongodb+srv://user:pass@cluster.mongodb.net/procureflow" \
+  --eval "db.items.countDocuments()"
+```
+
+**Restore Time**: ~5-15 minutes (depends on data size)
+
+### Data Migration Caveats
+
+⚠️ **Important**:
+- No automated migration rollback in v1.0
+- Manual backup required before schema changes
+- Test migrations on staging before production (future)
+- Consider forward-compatible migrations (additive changes only)
+
+---
+
+## Config and Secrets Rollback
+
+### Restore Secret Manager Version
+
+```bash
+# List secret versions
+gcloud secrets versions list nextauth-secret \
+  --filter="state=ENABLED"
+
+# Access previous version
+gcloud secrets versions access 2 --secret=nextauth-secret
+
+# Update Cloud Run to use previous version
+gcloud run services update procureflow-web \
+  --update-secrets=NEXTAUTH_SECRET=nextauth-secret:2 \
+  --region=us-central1
+```
+
+### Restore Environment Variables
+
+```bash
+# Update environment variable via gcloud
+gcloud run services update procureflow-web \
+  --set-env-vars=NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1 \
+  --region=us-central1
+```
+
+**Rollback Time**: ~2-5 minutes
+
+---
+
+## Post-Rollback Validation
+
+### Health Check
+
+```bash
+# Verify API health endpoint
+curl -f https://procureflow-web-*.run.app/api/health
+
+# Expected: 200 OK
+{
+  "status": "ok",
+  "timestamp": "2025-11-12T11:00:00.000Z",
+  "version": "1.0.0",
+  "checks": {
+    "database": "connected",
+    "memory": "ok"
+  }
+}
+```
+
+### Smoke Tests
+
+```bash
+# Test root endpoint
+curl -I https://procureflow-web-*.run.app/
+
+# Expected: 200 OK or 302 Found
+
+# Test catalog search
+curl "https://procureflow-web-*.run.app/api/items?query=chair"
+
+# Expected: 200 OK with search results
+```
+
+### Error Rate Verification
+
+Check Cloud Run metrics:
+- Error rate < 0.1%
+- P95 latency < 2s
+- No 5xx errors in last 5 minutes
+
+**If validation fails** → Escalate to Tech Lead
+
+---
+
+## Assumptions and Limitations
+
+### Current Limitations (v1.0)
+
+- ❌ No automated rollback on error rate threshold
+- ❌ No blue/green deployments with gradual traffic shifting
+- ❌ No database migration rollback automation
+- ❌ No rollback dry-run or preview
+- ❌ No rollback approval workflow
+
+### Future Enhancements (v1.1+)
+
+- ✅ Automated rollback on SLO violations
+- ✅ Canary deployments with automatic rollback
+- ✅ Database migration versioning with forward/backward compatibility
+- ✅ Rollback impact preview
+- ✅ Approval workflow for production rollbacks
+
+---
+
+## References
+
+- **[Deployment Strategy](/operations/deploy)** - Deployment workflow
+- **[Autoscaling Policy](/operations/autoscaling)** - Scaling configuration
+- **[Infrastructure Documentation](/tech/infrastructure)** - Technical architecture
+- **[Rollback Runbook](/runbooks/rollback)** - Executable rollback procedure
+
+**Complete Rollback Documentation**: [`.guided/operations/rollback-strategy.md`](https://github.com/guiofsaints/procureflow/blob/main/.guided/operations/rollback-strategy.md)
+
+---
+
+**Last Updated**: Nov 12, 2025  
+**Owner**: DevOps Team

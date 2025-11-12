@@ -1,0 +1,111 @@
+# Generation & Validation
+
+How to update and validate the OpenAPI specification.
+
+## Current Process (v1.0)
+
+The OpenAPI spec is **manually maintained** in the route handler at `app/(app)/api/openapi/route.ts`.
+
+### Updating the Spec
+
+1. **Modify the spec object** in `route.ts`:
+
+```typescript
+// app/(app)/api/openapi/route.ts
+export async function GET() {
+  const spec: OpenAPIV3.Document = {
+    openapi: '3.0.3',
+    info: {
+      title: 'ProcureFlow API',
+      version: '1.0.0',
+      description: 'AI-native procurement platform API',
+    },
+    paths: {
+      '/api/items': {
+        get: { /* ... */ },
+        post: { /* ... */ },
+      },
+      // Add/update endpoints here
+    },
+    components: {
+      schemas: {
+        // Add/update schemas here
+      },
+    },
+  };
+
+  return NextResponse.json(spec);
+}
+```
+
+2. **Test locally**:
+
+```bash
+pnpm dev
+curl http://localhost:3000/api/openapi | jq
+```
+
+3. **Validate** (future):
+
+```bash
+npx @redocly/cli lint openapi.json
+```
+
+## Future: Automated Generation
+
+### Phase 1: Zod Schema Sync
+
+Generate OpenAPI schemas from existing Zod validators:
+
+```typescript
+// lib/validation/item.ts
+import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+
+export const createItemSchema = z.object({
+  name: z.string().min(2).max(200),
+  category: z.string().min(2).max(100),
+  // ...
+});
+
+// Auto-generate OpenAPI schema
+const itemSchema = zodToJsonSchema(createItemSchema);
+```
+
+### Phase 2: Route Introspection
+
+Scan API routes and auto-generate endpoints:
+
+```bash
+pnpm generate:openapi
+```
+
+### Phase 3: CI Validation
+
+Add GitHub Actions check:
+
+```yaml
+- name: Validate OpenAPI
+  run: npx @redocly/cli lint openapi.json
+```
+
+## Validation Checklist
+
+Before committing OpenAPI changes:
+
+- [ ] All endpoints return correct HTTP status codes
+- [ ] All request/response schemas match actual types
+- [ ] Authentication requirements documented
+- [ ] Error responses included (400, 401, 404, 500)
+- [ ] Examples provided for complex schemas
+- [ ] Spec validates with Redocly CLI
+
+## References
+
+- **[OpenAPI Specification](/openapi/specification)** - Current spec
+- **[Functional Requirements](/prd/functional-requirements)** - API behavior
+
+---
+
+**Last Updated**: 2025-11-12  
+**Owner**: API Team

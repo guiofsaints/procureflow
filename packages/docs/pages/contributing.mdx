@@ -1,0 +1,369 @@
+# Contributing
+
+Contribution guidelines for ProcureFlow documentation and codebase.
+
+## Executive Summary
+
+Welcome contributors! ProcureFlow follows Conventional Commits, feature-based PR workflow, and automated quality checks (linting, testing, build validation). Documentation contributions: edit .mdx files in `packages/docs/pages/`, follow Nextra formatting, include Executive Summary (≤8 lines). Code contributions: create feature branch, implement in `features/` directory, write tests, pass CI gates. All PRs require review from Platform Team. First-time contributors: see [Local Development Runbook](/runbooks/local-dev) for setup.
+
+---
+
+## Quick Start for Contributors
+
+### 1. Fork and Clone
+
+```powershell
+# Fork repository on GitHub
+# Then clone your fork
+git clone https://github.com/YOUR_USERNAME/procureflow.git
+cd procureflow
+```
+
+### 2. Set Up Environment
+
+```powershell
+# Install dependencies
+pnpm install
+
+# Set up local environment
+cd packages\web
+copy .env.example .env.local
+# Edit .env.local with your values
+
+# Start development
+pnpm docker:up
+pnpm dev
+```
+
+See [Local Development Runbook](/runbooks/local-dev) for complete setup.
+
+### 3. Create Feature Branch
+
+```powershell
+# Create branch from main
+git checkout -b feat/your-feature-name
+
+# Make your changes
+# ... edit code ...
+
+# Commit with Conventional Commits
+git commit -m "feat: add new catalog filter"
+```
+
+### 4. Submit Pull Request
+
+1. Push branch to your fork
+2. Open PR against `main` branch
+3. Fill out PR template
+4. Wait for CI checks to pass
+5. Request review from maintainers
+
+---
+
+## Commit Conventions
+
+We use **Conventional Commits** for clear commit history:
+
+### Format
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### Types
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `feat` | New feature | `feat: add cart analytics endpoint` |
+| `fix` | Bug fix | `fix: resolve duplicate item detection` |
+| `docs` | Documentation only | `docs: update API spec for checkout` |
+| `style` | Formatting, no code change | `style: format catalog service` |
+| `refactor` | Code refactor | `refactor: extract cart validation logic` |
+| `test` | Add or update tests | `test: add catalog search integration tests` |
+| `chore` | Build, config, dependencies | `chore: upgrade Next.js to 16.0` |
+| `perf` | Performance improvement | `perf: optimize MongoDB text search` |
+
+### Examples
+
+```powershell
+# Feature
+git commit -m "feat(catalog): add category filter to search"
+
+# Bug fix
+git commit -m "fix(auth): prevent duplicate user creation"
+
+# Documentation
+git commit -m "docs(runbooks): add troubleshooting for MongoDB connection"
+
+# Breaking change
+git commit -m "feat(api)!: change cart API to return nested items
+
+BREAKING CHANGE: Cart response now includes nested item objects instead of IDs"
+```
+
+---
+
+## Pull Request Workflow
+
+### PR Checklist
+
+Before submitting PR, ensure:
+
+- [ ] Code follows project structure (feature-based organization)
+- [ ] Tests added for new features
+- [ ] All tests pass locally (`pnpm test`)
+- [ ] Code linted and formatted (`pnpm lint`, `pnpm format`)
+- [ ] TypeScript compiles without errors (`pnpm build`)
+- [ ] Documentation updated (if API or feature changes)
+- [ ] Commit messages follow Conventional Commits
+
+### PR Template
+
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Testing
+How was this tested?
+
+## Checklist
+- [ ] Tests pass
+- [ ] Linting passes
+- [ ] Documentation updated
+```
+
+### Review Process
+
+1. **Automated Checks**: GitHub Actions runs tests, linting, build
+2. **Code Review**: Platform Team reviews code quality, design
+3. **Approval**: At least 1 approval required
+4. **Merge**: Squash and merge to main
+
+---
+
+## Documentation Contributions
+
+### Editing Documentation
+
+Documentation lives in `packages/docs/pages/`:
+
+```
+packages/docs/pages/
+  prd/          # Product requirements
+  tech/         # Technical architecture
+  openapi/      # API documentation
+  testing/      # Testing strategy
+  operations/   # Deployment, rollback, autoscaling
+  runbooks/     # Operational procedures
+```
+
+### Documentation Standards
+
+**Every page must include**:
+
+1. **Executive Summary**: ≤8 lines, overview of page content
+2. **Clear Headings**: Use `##` for sections, `###` for subsections
+3. **Code Examples**: Include working code samples
+4. **References**: Link to related pages
+5. **Last Updated**: Date and owner at bottom
+
+**Example**:
+
+```markdown
+# Page Title
+
+Brief description of page.
+
+## Executive Summary
+
+8-line executive summary covering key points, metrics, and outcomes.
+
+---
+
+## Section 1
+
+Content...
+
+---
+
+## References
+
+- **[Related Page](/path/to/page)** - Description
+
+---
+
+**Last Updated**: Nov 12, 2025  
+**Owner**: Team Name
+```
+
+### Running Docs Locally
+
+```powershell
+cd packages\docs
+pnpm dev  # Starts on http://localhost:3001
+```
+
+---
+
+## Code Contribution Guidelines
+
+### Project Structure
+
+```
+packages/web/src/
+  features/          # Feature-based organization
+    <feature>/
+      components/    # React components
+      lib/          # Service layer (*.service.ts)
+      index.ts      # Public API
+      types.ts      # Types
+  lib/              # Shared libraries
+    db/             # Database (Mongoose models)
+    auth/           # Authentication (NextAuth)
+    ai/             # AI (LangChain)
+  app/              # Next.js App Router
+    (app)/          # Authenticated routes
+      api/          # API routes
+```
+
+### Service Layer Pattern
+
+Business logic always in `*.service.ts`:
+
+```typescript
+// features/catalog/lib/catalog.service.ts
+export async function searchItems(
+  query: string,
+  userId: string
+): Promise<Item[]> {
+  await connectDB();
+  
+  const items = await ItemModel.find({
+    $text: { $search: query },
+    status: 'Active',
+  }).limit(50);
+  
+  return items.map(toItem);
+}
+```
+
+API routes are thin wrappers:
+
+```typescript
+// app/(app)/api/items/route.ts
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(authConfig);
+  if (!session) return NextResponse.json({error: 'Unauthorized'}, {status: 401});
+  
+  const query = request.nextUrl.searchParams.get('query') || '';
+  const items = await searchItems(query, session.user.id);
+  
+  return NextResponse.json(items);
+}
+```
+
+### Testing Requirements
+
+- **Unit Tests**: Test service functions in isolation
+- **Integration Tests**: Test API routes with mongodb-memory-server
+- **Coverage**: Aim for 60% coverage minimum
+
+```powershell
+# Run tests
+pnpm test
+
+# With coverage
+pnpm test:coverage
+
+# Watch mode
+pnpm test:watch
+```
+
+---
+
+## Development Tools
+
+### Available Scripts
+
+```powershell
+# Development
+pnpm dev              # Start Next.js dev server
+pnpm docker:up        # Start MongoDB with Docker Compose
+pnpm docker:down      # Stop Docker services
+
+# Code Quality
+pnpm lint             # ESLint + Prettier check
+pnpm lint:fix         # Auto-fix issues
+pnpm format           # Format with Prettier
+pnpm build            # TypeScript + Next.js build
+
+# Testing
+pnpm test             # Run all tests
+pnpm test:coverage    # Run with coverage
+pnpm test:watch       # Watch mode
+
+# Database
+pnpm --filter web db:create-text-index   # Create text index
+pnpm --filter web db:seed-office-items   # Seed test data
+pnpm --filter web db:seed-initial-user   # Create demo user
+```
+
+---
+
+## Getting Help
+
+### Community
+
+- **GitHub Discussions**: Ask questions, share ideas
+- **Issues**: Report bugs, request features
+- **Pull Requests**: Contribute code, documentation
+
+### Contacts
+
+- **Platform Team Lead**: @platform-lead
+- **Tech Lead**: @tech-lead
+- **Documentation**: @docs-team
+
+---
+
+## Code of Conduct
+
+### Our Standards
+
+- **Be respectful**: Treat all contributors with respect
+- **Be constructive**: Provide helpful feedback
+- **Be inclusive**: Welcome contributors of all backgrounds
+
+### Unacceptable Behavior
+
+- Harassment, discrimination, or offensive comments
+- Spam or self-promotion
+- Violating others' privacy
+
+**Report issues to**: conduct@procureflow.com
+
+---
+
+## References
+
+- **[Local Development Runbook](/runbooks/local-dev)** - Complete setup guide
+- **[Tech Stack](/tech/stack)** - Technology overview
+- **[Design Patterns](/tech/patterns)** - Architectural patterns
+- **[Testing Strategy](/testing)** - Testing guidelines
+
+**Root Contributing Guide**: [`CONTRIBUTING.md`](https://github.com/guiofsaints/procureflow/blob/main/CONTRIBUTING.md)
+
+---
+
+**Last Updated**: Nov 12, 2025  
+**Owner**: Platform Team
