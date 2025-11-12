@@ -1,23 +1,28 @@
 {
   "name": "procureflow-gcp-infra",
   "version": "0.1.0",
-  "description": "ProcureFlow GCP infrastructure with Pulumi",
+  "description": "ProcureFlow GCP infrastructure with Pulumi (FREE TIER)",
   "main": "index.ts",
   "scripts": {
-    "pulumi:preview": "pulumi preview",
-    "pulumi:up": "pulumi up",
-    "pulumi:destroy": "pulumi destroy",
-    "pulumi:stack:init": "pulumi stack init",
-    "pulumi:config": "pulumi config",
+    "preview": "pulumi preview",
+    "deploy": "pulumi up --yes",
+    "destroy": "pulumi destroy --yes",
+    "refresh": "pulumi refresh",
+    "stack:init": "pulumi stack init",
+    "stack:select": "pulumi stack select",
+    "stack:output": "pulumi stack output",
+    "config": "pulumi config",
     "build": "tsc",
     "clean": "rm -rf node_modules dist"
   },
   "dependencies": {
-    "@pulumi/gcp": "9.4.0",
-    "@pulumi/pulumi": "^3.206.0"
+    "@pulumi/gcp": "^8.11.1",
+    "@pulumi/mongodbatlas": "^3.19.0",
+    "@pulumi/pulumi": "^3.140.0",
+    "@pulumi/random": "^4.16.7"
   },
   "devDependencies": {
-    "@types/node": "^24.10.0",
+    "@types/node": "^22.10.1",
     "typescript": "^5.9.3"
   },
   "engines": {

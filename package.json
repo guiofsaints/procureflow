@@ -25,7 +25,13 @@
     "docker:down": "pnpm --filter @procureflow/infra docker:down",
     "docker:db": "pnpm --filter @procureflow/infra docker:db",
     "docker:logs": "pnpm --filter @procureflow/infra docker:logs",
-    "docker:ps": "pnpm --filter @procureflow/infra docker:ps"
+    "docker:ps": "pnpm --filter @procureflow/infra docker:ps",
+    "infra:install": "cd packages/infra/pulumi/gcp && pnpm install",
+    "infra:preview": "cd packages/infra/pulumi/gcp && pnpm run preview",
+    "infra:deploy": "cd packages/infra/pulumi/gcp && pnpm run deploy",
+    "infra:destroy": "cd packages/infra/pulumi/gcp && pnpm run destroy",
+    "infra:output": "cd packages/infra/pulumi/gcp && pnpm run stack:output",
+    "infra:config": "cd packages/infra/pulumi/gcp && pnpm run config"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",

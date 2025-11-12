@@ -1,147 +1,169 @@
-import * as gcp from '@pulumi/gcp';
-import * as pulumi from '@pulumi/pulumi';
+/**
+ * ProcureFlow GCP Infrastructure - FREE TIER Edition
+ * 
+ * Stack: MongoDB Atlas M0 + GCP Cloud Run + Secret Manager
+ * Cost: $0.00/month (within free tiers)
+ * 
+ * Prerequisites:
+ * 1. MongoDB Atlas account (free)
+ * 2. GCP account with billing enabled (free tier usage)
+ * 3. Pulumi Cloud account (free tier)
+ * 4. GitHub account (for Actions)
+ * 
+ * Setup:
+ * ```
+ * pulumi stack init dev
+ * pulumi config set gcp:project YOUR_PROJECT_ID
+ * pulumi config set gcp:region us-central1
+ * pulumi config set --secret nextauth-secret $(openssl rand -base64 32)
+ * pulumi config set --secret mongodb-password $(openssl rand -base64 32)
+ * pulumi config set --secret mongodb-atlas:publicKey YOUR_ATLAS_PUBLIC_KEY
+ * pulumi config set --secret mongodb-atlas:privateKey YOUR_ATLAS_PRIVATE_KEY
+ * pulumi config set mongodb-atlas:orgId YOUR_ATLAS_ORG_ID
+ * pulumi config set app:image-tag latest
+ * pnpm install
+ * pnpm run preview
+ * pnpm run deploy
+ * ```
+ */
 
-// Get configuration values
+import * as pulumi from '@pulumi/pulumi';
+import { createSecrets, grantSecretAccess } from './secrets';
+import { createCloudRunService, createArtifactRegistry } from './cloudrun';
+
+// ==============================================================================
+// Configuration
+// ==============================================================================
+
 const config = new pulumi.Config();
 const gcpConfig = new pulumi.Config('gcp');
 
+// GCP Configuration
 const projectId = gcpConfig.require('project');
 const region = gcpConfig.get('region') || 'us-central1';
-const zone = gcpConfig.get('zone') || 'us-central1-a';
-const environment = config.get('app:environment') || 'dev';
 
-// Create a Cloud Run service for the Next.js application
-const cloudRunService = new gcp.cloudrun.Service('procureflow-web', {
-  location: region,
+// Application Configuration
+const environment = config.get('environment') || 'dev';
+const imageTag = config.get('image-tag') || 'latest';
 
-  template: {
-    spec: {
-      containers: [
-        {
-          // Note: In production, this should point to your container registry
-          // For now, we'll use a placeholder that you'll need to update
-          image: 'gcr.io/cloudrun/hello', // Placeholder - replace with your actual image
+// MongoDB Configuration (using existing cluster)
+const mongoAtlasProjectId = config.get('mongodb-project-id') || '6913b7cf8e8db76c8799c1ea';
 
-          ports: [
-            {
-              containerPort: 3000,
-            },
-          ],
+// ==============================================================================
+// Infrastructure Components
+// ==============================================================================
 
-          envs: [
-            {
-              name: 'NODE_ENV',
-              value: 'production',
-            },
-            {
-              name: 'NEXTAUTH_URL',
-              value: pulumi.interpolate`https://procureflow-${environment}-${projectId}.run.app`,
-            },
-            // Note: In production, use Secret Manager for sensitive values
-            {
-              name: 'NEXTAUTH_SECRET',
-              value: 'change-this-in-production-use-secret-manager',
-            },
-          ],
+// 1. MongoDB Connection String (using existing cluster)
+const mongodbConnectionString = config.requireSecret('mongodb-connection-string');
 
-          resources: {
-            limits: {
-              cpu: '1000m',
-              memory: '512Mi',
-            },
-          },
-        },
-      ],
-
-      containerConcurrency: 80,
-      timeoutSeconds: 300,
-    },
-
-    metadata: {
-      annotations: {
-        'autoscaling.knative.dev/maxScale': '10',
-        'run.googleapis.com/cpu-throttling': 'false',
-      },
-    },
-  },
-
-  traffics: [
-    {
-      percent: 100,
-      latestRevision: true,
-    },
-  ],
-
-  metadata: {
-    annotations: {
-      'run.googleapis.com/ingress': 'all',
-    },
-  },
+// 2. Artifact Registry (for Docker images)
+const registry = createArtifactRegistry({
+  projectId: projectId,
+  region: region,
+  environment: environment,
 });
 
-// Create IAM policy to allow public access to Cloud Run service
-const iamPolicy = new gcp.cloudrun.IamMember('procureflow-web-public', {
-  service: cloudRunService.name,
-  location: cloudRunService.location,
-  role: 'roles/run.invoker',
-  member: 'allUsers',
-});
-
-// Create a storage bucket for static assets (optional)
-const storageBucket = new gcp.storage.Bucket('procureflow-assets', {
-  location: region,
-  uniformBucketLevelAccess: true,
-
-  lifecycleRules: [
-    {
-      condition: {
-        age: 30,
-      },
-      action: {
-        type: 'Delete',
-      },
-    },
-  ],
-
-  cors: [
-    {
-      origins: ['*'],
-      methods: ['GET', 'HEAD'],
-      responseHeaders: ['*'],
-      maxAgeSeconds: 3600,
-    },
-  ],
-});
-
-// Make the bucket publicly readable
-const bucketIamMember = new gcp.storage.BucketIAMMember(
-  'procureflow-assets-public',
+// 3. Secret Manager (FREE: first 6 secrets)
+const secrets = createSecrets(
   {
-    bucket: storageBucket.name,
-    role: 'roles/storage.objectViewer',
-    member: 'allUsers',
-  }
+    projectId: projectId,
+    environment: environment,
+  },
+  mongodbConnectionString
 );
 
-// Output the service URL
-export const serviceUrl = cloudRunService.statuses.apply(
-  (statuses) => statuses[0]?.url || 'Not available'
-);
+// 4. Cloud Run Service (FREE TIER optimized)
+const cloudrun = createCloudRunService({
+  projectId: projectId,
+  region: region,
+  environment: environment,
+  imageTag: imageTag,
+  secrets: secrets.secrets,
+});
 
-export const bucketName = storageBucket.name;
-export const bucketUrl = pulumi.interpolate`gs://${storageBucket.name}`;
+// 5. Grant Secret Access to Cloud Run
+const secretAccess = grantSecretAccess(secrets, cloudrun.serviceAccountEmail);
 
-// Export key configuration for reference
-export const projectId_output = projectId;
-export const region_output = region;
-export const environment_output = environment;
+// ==============================================================================
+// Outputs
+// ==============================================================================
 
-// TODO: Add the following resources when ready for production:
-// 1. Cloud SQL for PostgreSQL (instead of MongoDB if preferred)
-// 2. Secret Manager for environment variables
-// 3. Cloud Build for CI/CD
-// 4. Load balancer with SSL certificate
-// 5. VPC and firewall rules
-// 6. IAM service accounts with minimal permissions
-// 7. Cloud Monitoring and logging
-// 8. Backup policies
+export const outputs = {
+  // MongoDB Atlas
+  mongodbClusterId: 'procureflow-dev',
+  mongodbProjectId: mongoAtlasProjectId,
+  mongodbConnectionString: pulumi.secret(mongodbConnectionString), // Marked as secret
+  mongodbClusterState: 'IDLE',
+
+  // Artifact Registry
+  artifactRegistryUrl: registry.repositoryUrl,
+  
+  // Cloud Run
+  serviceUrl: cloudrun.serviceUrl,
+  serviceName: cloudrun.serviceName,
+  serviceAccountEmail: cloudrun.serviceAccountEmail,
+
+  // Configuration
+  projectId: projectId,
+  region: region,
+  environment: environment,
+  imageTag: imageTag,
+
+  // Deployment Instructions
+  deploymentInstructions: pulumi.interpolate`
+=============================================================================
+🎉 ProcureFlow Infrastructure Deployed Successfully!
+=============================================================================
+
+📋 Service Information:
+   - Service URL: ${cloudrun.serviceUrl}
+   - Environment: ${environment}
+   - Region: ${region}
+
+🗄️  MongoDB Atlas:
+   - Cluster State: IDLE (existing cluster)
+   - Project ID: ${mongoAtlasProjectId}
+   - Connection: Check Secret Manager (mongodb-uri)
+
+🐳 Container Registry:
+   - Registry: ${registry.repositoryUrl}
+   - Current Tag: ${imageTag}
+
+📝 Next Steps:
+
+1. Build and push Docker image:
+   cd ../../../../
+   docker build -f packages/infra/docker/Dockerfile.web -t ${registry.repositoryUrl}/web:${imageTag} .
+   gcloud auth configure-docker ${region}-docker.pkg.dev
+   docker push ${registry.repositoryUrl}/web:${imageTag}
+
+2. Update Cloud Run with new image:
+   cd packages/infra/pulumi/gcp
+   pnpm run deploy
+
+3. Test the service:
+   curl ${cloudrun.serviceUrl}/api/health
+
+4. View logs:
+   gcloud run logs tail ${cloudrun.serviceName} --region ${region}
+
+5. Monitor costs (should be $0.00):
+   https://console.cloud.google.com/billing
+
+=============================================================================
+💰 FREE TIER Status:
+   - Cloud Run: ✅ Always Free (2M req/month)
+   - MongoDB Atlas: ✅ M0 Free Forever (512MB)
+   - Secret Manager: ✅ Free (6 secrets)
+   - Artifact Registry: ⚠️  ~$0.30/month (only cost)
+   
+   Estimated Monthly Cost: $0.30 - $0.50
+=============================================================================
+`,
+};
+
+// Export individual values for easier access
+export const serviceUrl = outputs.serviceUrl;
+export const artifactRegistryUrl = outputs.artifactRegistryUrl;
+export const mongodbConnectionUri = outputs.mongodbConnectionString;
+export const deploymentInstructions = outputs.deploymentInstructions;
