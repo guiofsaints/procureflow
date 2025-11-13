@@ -35,9 +35,6 @@ const nextConfig = {
   // tiktoken has WASM files that need to be externalized
   serverExternalPackages: ['winston-loki', 'snappy', 'tiktoken'],
 
-  // Configure font optimization
-  optimizeFonts: true,
-
   // Redirects and rewrites can be added here
   async redirects() {
     return [
