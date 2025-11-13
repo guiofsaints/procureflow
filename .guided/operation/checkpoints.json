@@ -100,14 +100,20 @@
         {
           "id": "it1.docker-cache",
           "title": "Enable Docker layer cache (BuildKit) + Next.js cache",
-          "status": "pending",
+          "status": "in-progress",
           "effort": "30m",
           "impact": "🟢 HIGH - Speed (-3-5 min)",
-          "startTime": null,
+          "startTime": "2025-11-13T14:30:00Z",
           "endTime": null,
-          "evidence": [],
-          "notes": "",
-          "rollbackPlan": "Remove cache-from/cache-to from workflow"
+          "evidence": [
+            "deploy-gcp.yml: Added docker/setup-buildx-action@v3",
+            "deploy-gcp.yml: Replaced 'docker build' with 'docker buildx build'",
+            "deploy-gcp.yml: Added --cache-from/--cache-to with registry backend",
+            "Cache backend: us-central1-docker.pkg.dev/.../web-cache:latest",
+            "Build step: Combined build+push with --push flag"
+          ],
+          "notes": "First build will establish cache (~8 min), subsequent builds will use cached layers (~3 min). Cache stored in Artifact Registry.",
+          "rollbackPlan": "Remove setup-buildx step and cache flags, revert to 'docker build'"
         },
         {
           "id": "it1.parallel",
