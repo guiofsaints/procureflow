@@ -158,10 +158,10 @@ Go to: `https://github.com/guiofsaints/procureflow/settings/variables/actions`
 
 Create the following **Repository Variables** (not secrets):
 
-| Variable Name | Value | Example |
-|---------------|-------|---------|
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | (from Step 8) | `projects/123456789/locations/global/workloadIdentityPools/github/providers/github-oidc` |
-| `GCP_SERVICE_ACCOUNT_EMAIL` | Deploy SA email | `github-actions-deploy@procureflow-dev.iam.gserviceaccount.com` |
+| Variable Name                    | Value           | Example                                                                                  |
+| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------- |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | (from Step 8)   | `projects/123456789/locations/global/workloadIdentityPools/github/providers/github-oidc` |
+| `GCP_SERVICE_ACCOUNT_EMAIL`      | Deploy SA email | `github-actions-deploy@procureflow-dev.iam.gserviceaccount.com`                          |
 
 **Note**: These are **variables**, not secrets. They are not sensitive.
 
@@ -175,6 +175,7 @@ git push origin main
 ```
 
 **Expected behavior**:
+
 - Workflows use OIDC authentication (no `GCP_SA_KEY` used)
 - Authentication succeeds with short-lived tokens
 - No errors in workflow logs
@@ -184,6 +185,7 @@ git push origin main
 After successful OIDC deploy:
 
 1. Verify workflows are using OIDC:
+
    ```bash
    # Check workflow logs for "Authenticating with Workload Identity"
    ```
@@ -193,11 +195,12 @@ After successful OIDC deploy:
    - Delete secret: `GCP_SA_KEY`
 
 3. **Revoke any downloaded keys**:
+
    ```bash
    # List keys
    gcloud iam service-accounts keys list \
      --iam-account=github-actions@$GCP_PROJECT_ID.iam.gserviceaccount.com
-   
+
    # Delete key (if any)
    gcloud iam service-accounts keys delete KEY_ID \
      --iam-account=github-actions@$GCP_PROJECT_ID.iam.gserviceaccount.com
@@ -225,6 +228,7 @@ After successful OIDC deploy:
 **Cause**: Service account not bound to WIF pool
 
 **Fix**:
+
 ```bash
 # Re-run Step 7 binding commands
 ```
@@ -234,6 +238,7 @@ After successful OIDC deploy:
 **Cause**: Wrong project number or pool name
 
 **Fix**:
+
 ```bash
 # Verify project number
 gcloud projects describe $(gcloud config get-value project) --format='value(projectNumber)'
@@ -247,6 +252,7 @@ gcloud iam workload-identity-pools list --location=global
 **Cause**: OIDC provider misconfigured
 
 **Fix**:
+
 ```bash
 # Check provider attribute mapping
 gcloud iam workload-identity-pools providers describe github-oidc \
@@ -259,6 +265,7 @@ gcloud iam workload-identity-pools providers describe github-oidc \
 **Cause**: GitHub variables not set
 
 **Fix**:
+
 - Verify variables exist: `https://github.com/guiofsaints/procureflow/settings/variables/actions`
 - Variable names must match exactly: `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_SERVICE_ACCOUNT_EMAIL`
 

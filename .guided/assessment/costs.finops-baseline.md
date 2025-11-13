@@ -11,6 +11,7 @@
 ProcureFlow operates at **near-zero cost** ($0.25-0.50/month) thanks to aggressive free-tier optimization. Current spend is **99% within free quotas** (GitHub Actions, Cloud Run, Secret Manager) with only Artifact Registry incurring cost.
 
 **Current Monthly Cost**: **$0.25-0.50 USD**
+
 - GitHub Actions: $0 (within 2,000 min free tier)
 - GCP Cloud Run: $0 (scales to zero, within free tier)
 - GCP Secret Manager: $0 (3 secrets, within 6 free)
@@ -18,6 +19,7 @@ ProcureFlow operates at **near-zero cost** ($0.25-0.50/month) thanks to aggressi
 - Pulumi Cloud: $0 (free tier, <5,000 resources)
 
 **Projected with Improvements**: **$0.15-0.30 USD/month** (-40% reduction)
+
 - GitHub Actions: $0 (improved caching reduces minutes by 50%)
 - GCP: $0.15-0.25 (image cleanup, optimized Docker layers)
 
@@ -29,13 +31,14 @@ ProcureFlow operates at **near-zero cost** ($0.25-0.50/month) thanks to aggressi
 
 #### Current Usage
 
-| Resource | Usage/Month | Free Tier | Overage Cost | Current Cost |
-|----------|-------------|-----------|--------------|--------------|
-| **Workflow minutes** | ~500 min | 2,000 min | $0.008/min | **$0.00** ✅ |
-| **Storage (artifacts)** | <1 GB | 500 MB | $0.008/GB/day | **$0.00** ✅ |
-| **Storage (cache)** | ~2 GB | 10 GB | $0.008/GB/day | **$0.00** ✅ |
+| Resource                | Usage/Month | Free Tier | Overage Cost  | Current Cost |
+| ----------------------- | ----------- | --------- | ------------- | ------------ |
+| **Workflow minutes**    | ~500 min    | 2,000 min | $0.008/min    | **$0.00** ✅ |
+| **Storage (artifacts)** | <1 GB       | 500 MB    | $0.008/GB/day | **$0.00** ✅ |
+| **Storage (cache)**     | ~2 GB       | 10 GB     | $0.008/GB/day | **$0.00** ✅ |
 
 **Breakdown**:
+
 - CI workflow (`ci.yml`): 7 min × 20 runs/month = 140 min
 - Deploy workflow (`deploy-gcp.yml`): 15 min × 10 deploys/month = 150 min
 - PR workflows: 7 min × 30 PRs/month = 210 min
@@ -43,14 +46,15 @@ ProcureFlow operates at **near-zero cost** ($0.25-0.50/month) thanks to aggressi
 
 #### Projected Usage (After Improvements)
 
-| Improvement | Time Saved | New Usage | Cost Impact |
-|-------------|-----------|-----------|-------------|
-| Docker layer cache | -3-5 min/build | -50 min/month | $0 (still free) |
-| Skip redundant tests | -4 min/deploy | -40 min/month | $0 (still free) |
-| Parallel CI jobs | -1-2 min/run | -40 min/month | $0 (still free) |
-| **Total Savings** | **-50%** | **~250 min/month** | **$0** |
+| Improvement          | Time Saved     | New Usage          | Cost Impact     |
+| -------------------- | -------------- | ------------------ | --------------- |
+| Docker layer cache   | -3-5 min/build | -50 min/month      | $0 (still free) |
+| Skip redundant tests | -4 min/deploy  | -40 min/month      | $0 (still free) |
+| Parallel CI jobs     | -1-2 min/run   | -40 min/month      | $0 (still free) |
+| **Total Savings**    | **-50%**       | **~250 min/month** | **$0**          |
 
 **Recommendation**: Set spending limit to prevent accidental overage
+
 ```yaml
 # GitHub Organization Settings → Billing
 Spending limit: $20/month
@@ -68,12 +72,14 @@ Email alerts: 50%, 75%, 90%
 **Pricing**: Pay-per-use with generous free tier
 
 **Free Tier** (Always Free):
+
 - 2,000,000 requests/month
 - 360,000 GB-seconds memory/month
 - 180,000 vCPU-seconds/month
 - 1 GB network egress/month (North America)
 
 **Current Usage** (Estimated):
+
 - Requests: ~5,000/month (0.25% of free tier)
 - Memory: 512 MiB × 5 min/day × 30 days = ~38,400 GB-seconds (10% of free tier)
 - vCPU: 1 vCPU × 5 min/day × 30 days = ~2,500 vCPU-seconds (1.4% of free tier)
@@ -82,16 +88,19 @@ Email alerts: 50%, 75%, 90%
 **Cost**: **$0.00** ✅ (within free tier)
 
 **Projected Usage** (Production traffic):
+
 - 100,000 requests/month → Still $0 (5% of free tier)
 - 10× traffic → Still $0 (within free tier)
 - Only exceeds free tier at ~500,000 requests/month
 
 **Cost at Scale** (if exceeded):
+
 - Additional requests: $0.40/million ($0.00 for 500k)
 - Additional memory: $0.0000025/GB-second ($0.00 for 100k GB-sec)
 - Additional vCPU: $0.00002400/vCPU-second ($0.00 for 10k vCPU-sec)
 
 **Optimization Opportunities**:
+
 - ✅ Already scales to zero (minScale: 0)
 - ✅ CPU throttling enabled when idle
 - ✅ Memory limit appropriate (512 MiB)
@@ -105,10 +114,12 @@ Email alerts: 50%, 75%, 90%
 **Versions**: 3 active (1 per secret)
 
 **Free Tier**:
+
 - First 6 secret versions: Free
 - First 10,000 access operations/month: Free
 
 **Current Usage**:
+
 - Secret versions: 3 (50% of free tier)
 - Access operations: ~5,000/month (50% of free tier)
   - Cloud Run startup: 3 secrets × 10 instances/month = 30 accesses
@@ -117,6 +128,7 @@ Email alerts: 50%, 75%, 90%
 **Cost**: **$0.00** ✅ (within free tier)
 
 **Paid Pricing** (if exceeded):
+
 - Additional secrets: $0.06/secret/month
 - Additional access: $0.03/10,000 operations
 
@@ -131,11 +143,13 @@ Email alerts: 50%, 75%, 90%
 **Format**: Docker
 
 **Pricing**:
+
 - Storage: $0.10/GB/month
 - Egress: $0.12/GB (same region: free)
 - No per-image or per-pull charges
 
 **Current Usage**:
+
 - Images: ~15 (1 per commit over 2 months)
 - Avg image size: 225 MB
 - Total storage: 15 × 0.225 GB = **3.375 GB**
@@ -143,18 +157,23 @@ Email alerts: 50%, 75%, 90%
 **Current Cost**: **$0.34/month** (3.375 GB × $0.10)
 
 **Projected with Retention Policy**:
+
 - Keep last 10 images (30-day retention)
 - Storage: 10 × 0.225 GB = 2.25 GB
 - **Projected Cost**: **$0.23/month** (-$0.11, -32%)
 
 **Optimization**:
+
 1. **Add cleanup policy**:
+
    ```typescript
-   cleanupPolicies: [{
-     id: 'keep-30-days',
-     action: 'DELETE',
-     condition: { olderThan: '30d', tagState: 'UNTAGGED' }
-   }]
+   cleanupPolicies: [
+     {
+       id: 'keep-30-days',
+       action: 'DELETE',
+       condition: { olderThan: '30d', tagState: 'UNTAGGED' },
+     },
+   ];
    ```
 
 2. **Optimize image size** (target: 150-180 MB):
@@ -181,12 +200,14 @@ Email alerts: 50%, 75%, 90%
 
 **Tier**: Free (Individual)  
 **Limits**:
+
 - 5,000 resources
 - Unlimited stacks
 - 100 state operations/day
 - 1 organization member
 
 **Current Usage**:
+
 - Stacks: 1 (dev)
 - Resources: 9 (0.18% of limit)
 - State operations: ~20/day (20% of limit)
@@ -194,6 +215,7 @@ Email alerts: 50%, 75%, 90%
 **Cost**: **$0.00** ✅ (within free tier)
 
 **Paid Tiers** (future):
+
 - Team: $50/month (5 members, 100k resources, policy packs)
 - Enterprise: Custom pricing (SAML SSO, RBAC, audit logs)
 
@@ -217,23 +239,23 @@ Email alerts: 50%, 75%, 90%
 
 ### Current Monthly Costs
 
-| Service | Current Cost | Free Tier Remaining | Overage Risk |
-|---------|-------------|---------------------|--------------|
-| GitHub Actions | $0.00 | 1,500 min (75%) | 🟢 Low |
-| GCP Cloud Run | $0.00 | 1,995,000 requests (99.75%) | 🟢 Low |
-| GCP Secret Manager | $0.00 | 3 secrets, 5,000 ops (50%) | 🟢 Low |
-| GCP Artifact Registry | **$0.34** | N/A (no free tier) | 🟢 Low |
-| Pulumi Cloud | $0.00 | 4,991 resources (99.82%) | 🟢 Low |
-| **TOTAL** | **$0.34/month** | | |
+| Service               | Current Cost    | Free Tier Remaining         | Overage Risk |
+| --------------------- | --------------- | --------------------------- | ------------ |
+| GitHub Actions        | $0.00           | 1,500 min (75%)             | 🟢 Low       |
+| GCP Cloud Run         | $0.00           | 1,995,000 requests (99.75%) | 🟢 Low       |
+| GCP Secret Manager    | $0.00           | 3 secrets, 5,000 ops (50%)  | 🟢 Low       |
+| GCP Artifact Registry | **$0.34**       | N/A (no free tier)          | 🟢 Low       |
+| Pulumi Cloud          | $0.00           | 4,991 resources (99.82%)    | 🟢 Low       |
+| **TOTAL**             | **$0.34/month** |                             |              |
 
 ### Projected Costs (After Optimizations)
 
-| Optimization | Current | Projected | Savings |
-|-------------|---------|-----------|---------|
-| Artifact Registry cleanup | $0.34 | $0.23 | -$0.11 (-32%) |
-| Docker image optimization | $0.34 | $0.18 | -$0.16 (-47%) |
-| GitHub Actions caching | $0.00 | $0.00 | $0.00 (time savings) |
-| **TOTAL** | **$0.34** | **$0.18-0.23** | **-$0.11-0.16** |
+| Optimization              | Current   | Projected      | Savings              |
+| ------------------------- | --------- | -------------- | -------------------- |
+| Artifact Registry cleanup | $0.34     | $0.23          | -$0.11 (-32%)        |
+| Docker image optimization | $0.34     | $0.18          | -$0.16 (-47%)        |
+| GitHub Actions caching    | $0.00     | $0.00          | $0.00 (time savings) |
+| **TOTAL**                 | **$0.34** | **$0.18-0.23** | **-$0.11-0.16**      |
 
 ---
 
@@ -242,6 +264,7 @@ Email alerts: 50%, 75%, 90%
 ### 1. GitHub Actions Spending Limits
 
 **Setup**:
+
 1. Navigate to: Organization Settings → Billing → Spending limits
 2. Set monthly cap: $20
 3. Enable alerts:
@@ -250,6 +273,7 @@ Email alerts: 50%, 75%, 90%
    - 90% threshold ($18): Urgent email
 
 **Acceptance Criteria**:
+
 - [ ] Spending limit configured
 - [ ] Alert recipients added
 - [ ] Test alert triggered (set low limit temporarily)
@@ -259,30 +283,32 @@ Email alerts: 50%, 75%, 90%
 ### 2. GCP Budget Alerts
 
 **Implementation via Pulumi**:
+
 ```typescript
 const budget = new gcp.billing.Budget('procureflow-monthly-budget', {
-  billingAccount: billingAccountId,  // From GCP Console
+  billingAccount: billingAccountId, // From GCP Console
   displayName: 'ProcureFlow Monthly Budget',
-  
+
   amount: {
-    specifiedAmount: { units: '10' }  // $10/month cap
+    specifiedAmount: { units: '10' }, // $10/month cap
   },
-  
+
   thresholdRules: [
-    { thresholdPercent: 0.5, spendBasis: 'CURRENT_SPEND' },   // $5: 50%
-    { thresholdPercent: 0.75, spendBasis: 'CURRENT_SPEND' },  // $7.50: 75%
-    { thresholdPercent: 0.9, spendBasis: 'CURRENT_SPEND' },   // $9: 90%
-    { thresholdPercent: 1.0, spendBasis: 'CURRENT_SPEND' },   // $10: 100%
+    { thresholdPercent: 0.5, spendBasis: 'CURRENT_SPEND' }, // $5: 50%
+    { thresholdPercent: 0.75, spendBasis: 'CURRENT_SPEND' }, // $7.50: 75%
+    { thresholdPercent: 0.9, spendBasis: 'CURRENT_SPEND' }, // $9: 90%
+    { thresholdPercent: 1.0, spendBasis: 'CURRENT_SPEND' }, // $10: 100%
   ],
-  
+
   allUpdatesRule: {
-    pubsubTopic: notificationTopic.id,  // For Slack/email integration
+    pubsubTopic: notificationTopic.id, // For Slack/email integration
     schemaVersion: '1.0',
   },
 });
 ```
 
 **Notification Setup**:
+
 ```typescript
 // Create Pub/Sub topic for budget alerts
 const notificationTopic = new gcp.pubsub.Topic('budget-alerts', {
@@ -293,12 +319,13 @@ const notificationTopic = new gcp.pubsub.Topic('budget-alerts', {
 const subscription = new gcp.pubsub.Subscription('budget-alerts-email', {
   topic: notificationTopic.id,
   pushConfig: {
-    pushEndpoint: 'https://YOUR_CLOUD_FUNCTION_URL'  // Send to Slack
-  }
+    pushEndpoint: 'https://YOUR_CLOUD_FUNCTION_URL', // Send to Slack
+  },
 });
 ```
 
 **Acceptance Criteria**:
+
 - [ ] Budget created in GCP Billing
 - [ ] Pub/Sub topic configured
 - [ ] Alert notifications sent to team (email/Slack)
@@ -309,6 +336,7 @@ const subscription = new gcp.pubsub.Subscription('budget-alerts-email', {
 ### 3. Artifact Registry Storage Monitoring
 
 **Setup via Cloud Console**:
+
 1. Navigate to: Cloud Monitoring → Metrics Explorer
 2. Create alert:
    - **Metric**: `artifactregistry.googleapis.com/repository/storage/size`
@@ -316,6 +344,7 @@ const subscription = new gcp.pubsub.Subscription('budget-alerts-email', {
    - **Notification**: Email or Pub/Sub
 
 **Acceptance Criteria**:
+
 - [ ] Monitoring dashboard created
 - [ ] Alert triggers at 5 GB threshold
 - [ ] Team receives alert notification
@@ -372,6 +401,7 @@ const subscription = new gcp.pubsub.Subscription('budget-alerts-email', {
 ### GitHub Actions
 
 **Limits**:
+
 - 2,000 minutes/month (ubuntu runners)
 - 500 MB artifact storage
 - 10 GB cache storage
@@ -387,6 +417,7 @@ const subscription = new gcp.pubsub.Subscription('budget-alerts-email', {
 ### GCP Cloud Run
 
 **Limits** (Always Free):
+
 - 2,000,000 requests/month
 - 360,000 GB-seconds/month
 - 180,000 vCPU-seconds/month
@@ -402,6 +433,7 @@ const subscription = new gcp.pubsub.Subscription('budget-alerts-email', {
 ### GCP Secret Manager
 
 **Limits** (Free):
+
 - 6 secret versions
 - 10,000 access operations/month
 
@@ -417,23 +449,24 @@ const subscription = new gcp.pubsub.Subscription('budget-alerts-email', {
 
 ### By Feature
 
-| Feature | Service | Cost | Notes |
-|---------|---------|------|-------|
-| **CI Pipeline** | GitHub Actions | $0.00 | Lint, test, build |
-| **Artifact Storage** | Artifact Registry | $0.34 | Docker images |
-| **Application Runtime** | Cloud Run | $0.00 | Web server |
-| **Secrets** | Secret Manager | $0.00 | App secrets |
-| **Infrastructure State** | Pulumi Cloud | $0.00 | IaC state |
+| Feature                  | Service           | Cost  | Notes             |
+| ------------------------ | ----------------- | ----- | ----------------- |
+| **CI Pipeline**          | GitHub Actions    | $0.00 | Lint, test, build |
+| **Artifact Storage**     | Artifact Registry | $0.34 | Docker images     |
+| **Application Runtime**  | Cloud Run         | $0.00 | Web server        |
+| **Secrets**              | Secret Manager    | $0.00 | App secrets       |
+| **Infrastructure State** | Pulumi Cloud      | $0.00 | IaC state         |
 
 ### By Environment
 
-| Environment | Cost | Notes |
-|-------------|------|-------|
+| Environment     | Cost  | Notes             |
+| --------------- | ----- | ----------------- |
 | **Development** | $0.34 | All current usage |
-| **Staging** | $0.00 | Not created yet |
-| **Production** | $0.00 | Not created yet |
+| **Staging**     | $0.00 | Not created yet   |
+| **Production**  | $0.00 | Not created yet   |
 
 **Projection with 3 environments**:
+
 - Dev: $0.18 (optimized)
 - Staging: $0.18 (same usage)
 - Prod: $0.25 (higher traffic, more images)
@@ -467,21 +500,21 @@ const subscription = new gcp.pubsub.Subscription('budget-alerts-email', {
 
 ### Baseline vs. Target
 
-| Metric | Baseline | Target | Achievement |
-|--------|----------|--------|-------------|
-| **Monthly Cost** | $0.34 | $0.18-0.23 | -40% |
-| **GitHub Actions Minutes** | 500 min | 250 min | -50% |
-| **Artifact Storage** | 3.4 GB | 1.8-2.3 GB | -30-47% |
-| **Deploy Time** | 15 min | 6-8 min | -50% (time) |
-| **Free Tier Usage** | 25% (Actions) | 12% (Actions) | -50% |
+| Metric                     | Baseline      | Target        | Achievement |
+| -------------------------- | ------------- | ------------- | ----------- |
+| **Monthly Cost**           | $0.34         | $0.18-0.23    | -40%        |
+| **GitHub Actions Minutes** | 500 min       | 250 min       | -50%        |
+| **Artifact Storage**       | 3.4 GB        | 1.8-2.3 GB    | -30-47%     |
+| **Deploy Time**            | 15 min        | 6-8 min       | -50% (time) |
+| **Free Tier Usage**        | 25% (Actions) | 12% (Actions) | -50%        |
 
 ### Industry Benchmarks
 
 | Project Size | Typical CI/CD Cost | ProcureFlow |
-|--------------|-------------------|-------------|
-| **Hobby** | $0-5/month | $0.34 ✅ |
-| **Startup** | $50-200/month | $0.34 ✅ |
-| **SMB** | $500-2000/month | $0.34 ✅ |
+| ------------ | ------------------ | ----------- |
+| **Hobby**    | $0-5/month         | $0.34 ✅    |
+| **Startup**  | $50-200/month      | $0.34 ✅    |
+| **SMB**      | $500-2000/month    | $0.34 ✅    |
 
 **Status**: ProcureFlow operates at **99% below** typical startup costs
 

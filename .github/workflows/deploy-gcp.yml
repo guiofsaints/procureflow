@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write  # Required for OIDC authentication
+      id-token: write # Required for OIDC authentication
     outputs:
       image-tag: ${{ steps.image-tag.outputs.tag }}
 
@@ -57,7 +57,7 @@ jobs:
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
-      
+
       - name: Authenticate to Google Cloud (Service Account Key)
         if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER == ''
         uses: google-github-actions/auth@v2
@@ -84,10 +84,10 @@ jobs:
           IMAGE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/web"
           CACHE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/web-cache"
           GIT_COMMIT_SHA=$(git rev-parse HEAD)
-          
+
           # Enable Docker BuildKit for cache support
           export DOCKER_BUILDKIT=1
-          
+
           # Build with inline cache export and registry cache import
           docker build \
             -f packages/infra/docker/Dockerfile.web \
@@ -115,7 +115,7 @@ jobs:
     needs: build
     permissions:
       contents: read
-      id-token: write  # Required for OIDC authentication
+      id-token: write # Required for OIDC authentication
     outputs:
       serviceUrl: ${{ steps.pulumi-up.outputs.serviceUrl }}
     environment:
@@ -153,7 +153,7 @@ jobs:
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
-      
+
       - name: Authenticate to Google Cloud (Service Account Key)
         if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER == ''
         uses: google-github-actions/auth@v2

@@ -7,6 +7,7 @@
 ## Variable 1: GCP_WORKLOAD_IDENTITY_PROVIDER
 
 **Value** (copy this):
+
 ```
 projects/592353558869/locations/global/workloadIdentityPools/github/providers/github-oidc
 ```
@@ -16,6 +17,7 @@ projects/592353558869/locations/global/workloadIdentityPools/github/providers/gi
 ## Variable 2: GCP_SERVICE_ACCOUNT_EMAIL
 
 **Value** (copy this):
+
 ```
 github-actions-deploy@procureflow-dev.iam.gserviceaccount.com
 ```
@@ -35,6 +37,7 @@ github-actions-deploy@procureflow-dev.iam.gserviceaccount.com
 ## Verification
 
 After setting variables:
+
 - Go to Actions tab
 - Trigger "Deploy to GCP" workflow manually
 - Check logs for "Authenticating with Workload Identity"

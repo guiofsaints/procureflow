@@ -5,7 +5,7 @@
   "generatedAt": "2025-11-13T00:00:00Z",
   "version": "1.0.0",
   "project": "procureflow",
-  
+
   "workflows": {
     "ci.yml": {
       "name": "CI - Lint and Test",
@@ -47,7 +47,7 @@
         "estimatedImprovement": { "value": 90, "unit": "seconds" }
       }
     },
-    
+
     "deploy-gcp.yml": {
       "name": "Deploy to GCP (FREE TIER)",
       "triggers": ["push", "workflow_dispatch"],
@@ -83,7 +83,7 @@
       }
     }
   },
-  
+
   "docker": {
     "image": {
       "name": "us-central1-docker.pkg.dev/procureflow-dev/procureflow/web",
@@ -114,7 +114,7 @@
       }
     }
   },
-  
+
   "artifactRegistry": {
     "region": "us-central1",
     "repository": "procureflow",
@@ -134,7 +134,7 @@
       "enabled": false
     }
   },
-  
+
   "pulumi": {
     "project": "procureflow-gcp",
     "stacks": {
@@ -180,7 +180,7 @@
       "enabled": false
     }
   },
-  
+
   "gcp": {
     "cloudRun": {
       "service": "procureflow-web",
@@ -252,7 +252,7 @@
       }
     }
   },
-  
+
   "github": {
     "secrets": {
       "count": 6,
@@ -288,7 +288,7 @@
       }
     }
   },
-  
+
   "performance": {
     "cicdPipeline": {
       "fullPipeline": {
@@ -308,16 +308,16 @@
       }
     },
     "cacheHitRates": {
-      "pnpm": { "current": 0.85, "target": 0.90 },
+      "pnpm": { "current": 0.85, "target": 0.9 },
       "docker": { "current": 0, "target": 0.75 },
-      "nextjs": { "current": 0, "target": 0.80 }
+      "nextjs": { "current": 0, "target": 0.8 }
     }
   },
-  
+
   "reliability": {
     "deployment": {
-      "successRate": { "current": 0.90, "target": 0.98 },
-      "rollbackRate": { "current": 0.10, "target": 0.02 },
+      "successRate": { "current": 0.9, "target": 0.98 },
+      "rollbackRate": { "current": 0.1, "target": 0.02 },
       "mttr": {
         "current": { "value": 900, "unit": "seconds" },
         "target": { "value": 60, "unit": "seconds" }
@@ -336,7 +336,7 @@
       }
     }
   },
-  
+
   "security": {
     "authentication": {
       "method": "service-account-key",
@@ -367,7 +367,7 @@
       "cicd": false
     }
   },
-  
+
   "costs": {
     "github": {
       "actions": {
@@ -388,10 +388,10 @@
     "totalPerMonth": {
       "current": { "value": 0.25, "unit": "USD" },
       "projected": { "value": 0.15, "unit": "USD" },
-      "savings": { "value": 0.10, "unit": "USD" }
+      "savings": { "value": 0.1, "unit": "USD" }
     }
   },
-  
+
   "compliance": {
     "auditTrail": {
       "githubActions": true,
@@ -410,7 +410,7 @@
       "target": 2
     }
   },
-  
+
   "opportunitySummary": {
     "total": 27,
     "byPriority": {

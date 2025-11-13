@@ -3,6 +3,7 @@
 **Purpose**: Reduce duplication in GitHub Actions workflows by creating reusable composite actions for common patterns.
 
 **Acceptance Criteria**:
+
 - [ ] Actions follow GitHub composite action best practices
 - [ ] Each action has clear inputs/outputs documented
 - [ ] Actions are version-tagged (e.g., v1, v1.0.0)
@@ -21,6 +22,7 @@ Composite actions encapsulate common workflow steps into reusable units. For Pro
 4. **Pulumi deployment boilerplate** (used in deploy workflows)
 
 Benefits:
+
 - ✅ Single source of truth for common patterns
 - ✅ Easier to update caching strategies (change once, apply everywhere)
 - ✅ Less YAML boilerplate in workflows
@@ -47,12 +49,12 @@ inputs:
     description: 'Node.js version to install'
     required: false
     default: '20'
-  
+
   pnpm-version:
     description: 'pnpm version to install'
     required: false
     default: '10.21.0'
-  
+
   cache-prefix:
     description: 'Cache key prefix (e.g., "ci", "deploy")'
     required: false
@@ -62,7 +64,7 @@ outputs:
   cache-hit:
     description: 'Whether the pnpm cache was hit'
     value: ${{ steps.cache.outputs.cache-hit }}
-  
+
   pnpm-store-path:
     description: 'Path to the pnpm store directory'
     value: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
@@ -74,17 +76,17 @@ runs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
-    
+
     - name: Setup pnpm
       uses: pnpm/action-setup@v4
       with:
         version: ${{ inputs.pnpm-version }}
-    
+
     - name: Get pnpm store directory
       id: pnpm-cache
       shell: bash
       run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-    
+
     - name: Cache pnpm store
       id: cache
       uses: actions/cache@v4
@@ -98,6 +100,7 @@ runs:
 ### Usage
 
 **Before** (7 steps):
+
 ```yaml
 - name: Setup Node.js
   uses: actions/setup-node@v4
@@ -123,13 +126,14 @@ runs:
 ```
 
 **After** (1 step):
+
 ```yaml
 - name: Setup pnpm with cache
   uses: ./.github/actions/setup-pnpm
   with:
     node-version: '20'
     pnpm-version: '10.21.0'
-    cache-prefix: 'ci'  # Optional, for cache isolation
+    cache-prefix: 'ci' # Optional, for cache isolation
 ```
 
 ### Benefits
@@ -160,35 +164,35 @@ inputs:
     description: 'Path to Dockerfile'
     required: false
     default: 'packages/infra/docker/Dockerfile.web'
-  
+
   context:
     description: 'Build context directory'
     required: false
     default: '.'
-  
+
   image-name:
     description: 'Full image name (e.g., us-central1-docker.pkg.dev/PROJECT/REPO/IMAGE)'
     required: true
-  
+
   image-tag:
     description: 'Image tag (e.g., "latest", "v1.2.3", commit SHA)'
     required: true
-  
+
   cache-from:
     description: 'Cache sources (newline-separated, e.g., "type=registry,ref=IMAGE:cache")'
     required: false
     default: ''
-  
+
   cache-to:
     description: 'Cache destination (e.g., "type=registry,ref=IMAGE:cache,mode=max")'
     required: false
     default: ''
-  
+
   build-args:
     description: 'Build arguments (newline-separated, e.g., "NODE_VERSION=20\nBUILD_DATE=$(date)")'
     required: false
     default: ''
-  
+
   push:
     description: 'Push image to registry after build'
     required: false
@@ -198,7 +202,7 @@ outputs:
   image-url:
     description: 'Full image URL with tag (IMAGE:TAG)'
     value: ${{ steps.build.outputs.image-url }}
-  
+
   image-digest:
     description: 'SHA256 digest of the built image'
     value: ${{ steps.build.outputs.digest }}
@@ -208,7 +212,7 @@ runs:
   steps:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-    
+
     - name: Build and push Docker image
       id: build
       uses: docker/build-push-action@v6
@@ -220,9 +224,9 @@ runs:
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
         build-args: ${{ inputs.build-args }}
-        provenance: mode=max  # Generate SLSA provenance
-        sbom: true            # Generate SBOM
-    
+        provenance: mode=max # Generate SLSA provenance
+        sbom: true # Generate SBOM
+
     - name: Output image details
       shell: bash
       run: |
@@ -234,6 +238,7 @@ runs:
 ### Usage
 
 **Before** (multiple steps for setup, build, push):
+
 ```yaml
 - name: Set up Docker Buildx
   uses: docker/setup-buildx-action@v3
@@ -254,6 +259,7 @@ runs:
 ```
 
 **After** (1 step):
+
 ```yaml
 - name: Build and cache Docker image
   id: docker-build
@@ -304,30 +310,30 @@ inputs:
     description: 'Working directory for Pulumi operations'
     required: false
     default: 'packages/infra/pulumi/gcp'
-  
+
   stack-name:
     description: 'Pulumi stack to deploy (e.g., "dev", "staging", "production")'
     required: true
-  
+
   pulumi-command:
     description: 'Pulumi command to run (e.g., "up", "preview", "destroy")'
     required: false
     default: 'up'
-  
+
   pulumi-access-token:
     description: 'Pulumi access token (use secrets.PULUMI_ACCESS_TOKEN)'
     required: true
-  
+
   config:
     description: 'Pulumi config values (newline-separated, e.g., "image-url=IMAGE\nregion=us-central1")'
     required: false
     default: ''
-  
+
   skip-preview:
     description: 'Skip preview and auto-approve changes'
     required: false
     default: 'false'
-  
+
   comment-on-pr:
     description: 'Post deployment summary as PR comment'
     required: false
@@ -337,7 +343,7 @@ outputs:
   stack-outputs:
     description: 'JSON string of all stack outputs'
     value: ${{ steps.outputs.outputs.result }}
-  
+
   service-url:
     description: 'Service URL from Pulumi outputs (if available)'
     value: ${{ steps.get-url.outputs.url }}
@@ -353,7 +359,7 @@ runs:
         echo "✅ Selected stack: ${{ inputs.stack-name }}"
       env:
         PULUMI_ACCESS_TOKEN: ${{ inputs.pulumi-access-token }}
-    
+
     - name: Configure Pulumi stack
       if: inputs.config != ''
       shell: bash
@@ -369,7 +375,7 @@ runs:
         done
       env:
         PULUMI_ACCESS_TOKEN: ${{ inputs.pulumi-access-token }}
-    
+
     - name: Run Pulumi command
       uses: pulumi/actions@v5
       with:
@@ -382,7 +388,7 @@ runs:
       env:
         PULUMI_ACCESS_TOKEN: ${{ inputs.pulumi-access-token }}
         PULUMI_SKIP_CONFIRMATIONS: ${{ inputs.skip-preview }}
-    
+
     - name: Capture stack outputs
       id: outputs
       shell: bash
@@ -394,7 +400,7 @@ runs:
         echo "EOF" >> $GITHUB_OUTPUT
       env:
         PULUMI_ACCESS_TOKEN: ${{ inputs.pulumi-access-token }}
-    
+
     - name: Extract service URL
       id: get-url
       shell: bash
@@ -409,6 +415,7 @@ runs:
 ### Usage
 
 **Before**:
+
 ```yaml
 - name: Setup Pulumi
   uses: pulumi/actions@v5
@@ -446,6 +453,7 @@ runs:
 ```
 
 **After**:
+
 ```yaml
 - name: Deploy with Pulumi
   id: pulumi
@@ -489,22 +497,22 @@ inputs:
   url:
     description: 'URL to check (e.g., https://example.com/api/health)'
     required: true
-  
+
   expected-status:
     description: 'Expected HTTP status code'
     required: false
     default: '200'
-  
+
   timeout:
     description: 'Total timeout in seconds'
     required: false
     default: '300'
-  
+
   interval:
     description: 'Interval between retries in seconds'
     required: false
     default: '10'
-  
+
   validate-json:
     description: 'Validate response as JSON (check for .status == "ok")'
     required: false
@@ -514,7 +522,7 @@ outputs:
   success:
     description: 'Whether the health check succeeded (true/false)'
     value: ${{ steps.check.outputs.success }}
-  
+
   response-time:
     description: 'Response time in milliseconds'
     value: ${{ steps.check.outputs.response-time }}
@@ -531,14 +539,14 @@ runs:
         TIMEOUT=${{ inputs.timeout }}
         INTERVAL=${{ inputs.interval }}
         VALIDATE_JSON="${{ inputs.validate-json }}"
-        
+
         echo "🏥 Health check: $URL"
         echo "Expected status: $EXPECTED_STATUS"
         echo "Timeout: ${TIMEOUT}s, Interval: ${INTERVAL}s"
-        
+
         ELAPSED=0
         SUCCESS=false
-        
+
         while [ $ELAPSED -lt $TIMEOUT ]; do
           START=$(date +%s%3N)
           HTTP_CODE=$(curl -s -o /tmp/response.txt -w "%{http_code}" "$URL" || echo "000")
@@ -568,19 +576,20 @@ runs:
           sleep $INTERVAL
           ELAPSED=$((ELAPSED + INTERVAL))
         done
-        
+
         if [ "$SUCCESS" = "false" ]; then
           echo "::error::Health check failed after ${TIMEOUT}s"
           echo "Last response: $(cat /tmp/response.txt 2>/dev/null || echo 'No response')"
           exit 1
         fi
-        
+
         echo "success=true" >> $GITHUB_OUTPUT
 ```
 
 ### Usage
 
 **Before**:
+
 ```yaml
 - name: Health check
   run: |
@@ -600,6 +609,7 @@ runs:
 ```
 
 **After**:
+
 ```yaml
 - name: Health check
   uses: ./.github/actions/health-check
@@ -624,6 +634,7 @@ runs:
 ### Phase 1: Setup Actions (1-2h)
 
 1. **Create action directories**:
+
    ```bash
    mkdir -p .github/actions/{setup-pnpm,docker-build-cached,pulumi-deploy,health-check}
    ```
@@ -674,11 +685,11 @@ runs:
 
 ### Before vs. After
 
-| Workflow | Before (lines) | After (lines) | Reduction |
-|----------|---------------|--------------|-----------|
-| `ci.yml` | 45 | 30 | -33% |
-| `deploy-gcp.yml` | 120 | 65 | -46% |
-| New workflows | N/A | 50 | N/A |
+| Workflow         | Before (lines) | After (lines) | Reduction |
+| ---------------- | -------------- | ------------- | --------- |
+| `ci.yml`         | 45             | 30            | -33%      |
+| `deploy-gcp.yml` | 120            | 65            | -46%      |
+| New workflows    | N/A            | 50            | N/A       |
 
 ### Maintenance Benefits
 
@@ -699,12 +710,14 @@ runs:
 ### 1. Version Tagging
 
 Tag composite actions with semantic versions:
+
 ```bash
 git tag -a actions/setup-pnpm/v1.0.0 -m "Release setup-pnpm v1.0.0"
 git push origin actions/setup-pnpm/v1.0.0
 ```
 
 Use tags in workflows:
+
 ```yaml
 uses: ./.github/actions/setup-pnpm@v1  # Major version (auto-updates)
 uses: ./.github/actions/setup-pnpm@v1.0.0  # Exact version (pinned)
@@ -713,6 +726,7 @@ uses: ./.github/actions/setup-pnpm@v1.0.0  # Exact version (pinned)
 ### 2. Documentation
 
 Each action should have:
+
 - **README.md** with usage examples
 - **Inline comments** explaining complex logic
 - **Input/output descriptions** in `action.yml`
@@ -720,6 +734,7 @@ Each action should have:
 ### 3. Testing
 
 Test actions in:
+
 - **Feature branches** before merging
 - **Multiple workflows** to ensure reusability
 - **Different environments** (dev, staging, production)
@@ -765,6 +780,7 @@ Test actions in:
 ---
 
 **Next Steps**:
+
 1. Review proposals with team
 2. Create action skeleton files
 3. Implement Phase 1 (setup actions)

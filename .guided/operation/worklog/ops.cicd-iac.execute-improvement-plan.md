@@ -11,11 +11,13 @@
 ### 2025-11-13 00:00:00 UTC - Session Initialization
 
 **Context**:
+
 - Loaded all assessment documents (current state, opportunities, target design, improvement plan, Pulumi review, FinOps baseline, composite actions proposal)
 - Initialized checkpoints.json with all tasks set to "pending"
 - Verified free-tier guardrails from costs.finops-baseline.md
 
 **Baseline Metrics**:
+
 - CI duration: 7 min
 - Deploy duration: 15 min
 - MTTR: 15 min (manual rollback)
@@ -24,6 +26,7 @@
 - Security: 1 long-lived key (GCP_SA_KEY), no OIDC, no SBOM, no vuln scanning
 
 **Target Metrics**:
+
 - CI duration: 4-5 min (-30%)
 - Deploy duration: 6-8 min (-50%)
 - MTTR: <1 min (-93%)
@@ -32,6 +35,7 @@
 - Security: OIDC only, SLSA Level 2, vuln scanning
 
 **Free-Tier Guardrails Confirmed**:
+
 - GitHub Actions: 2,000 min/month (currently 500 min, 25%)
 - GCP Cloud Run: 2M requests, 360k GB-sec, 180k vCPU-sec (currently 0.25%, 10%, 1.4%)
 - GCP Secret Manager: 6 secrets, 10k ops (currently 3, 50%)
@@ -39,6 +43,7 @@
 - Pulumi Cloud: 5k resources, unlimited stacks (currently 9 resources, 1 stack)
 
 **Improvement Plan Structure**:
+
 - **Phase 0 - Quick Wins** (2.5h): OIDC + concurrency + skip redundant tests
 - **Phase 1 - Iteration 1** (5h): Docker cache + parallel CI + build-once-promote-many
 - **Phase 2 - Iteration 2** (12h): Blue/green + attestation + Pulumi UX
@@ -47,10 +52,12 @@
 **Total Estimated Effort**: 24.5 hours
 
 **Current Workflows Analyzed**:
+
 - `.github/workflows/ci.yml`: 3 sequential jobs (lint → test → build), 7 min duration
 - `.github/workflows/deploy-gcp.yml`: 4 jobs (test, build, deploy, health-check), 15 min duration
 
 **Key Findings**:
+
 1. **Security Risk**: Using long-lived service account key (`GCP_SA_KEY`) instead of OIDC
 2. **Redundant Work**: Deploy workflow re-runs lint/test that already passed in CI (4 min waste)
 3. **No Caching**: Docker builds from scratch (5-7 min), no Next.js cache (90-120s)
@@ -59,6 +66,7 @@
 6. **No Attestation**: No SBOM, provenance, or vuln scanning
 
 **Initialized Files**:
+
 - `.guided/operation/checkpoints.json`: Task tracking with status, timings, evidence
 - `.guided/operation/worklog/ops.cicd-iac.execute-improvement-plan.md`: This file (timestamped entries)
 
@@ -94,17 +102,19 @@
      ```yaml
      workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || '' }}
      service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || '' }}
-     credentials_json: ${{ secrets.GCP_SA_KEY }}  # Fallback until OIDC configured
+     credentials_json: ${{ secrets.GCP_SA_KEY }} # Fallback until OIDC configured
      ```
    - **Created**: `.guided/operation/ci/OIDC_SETUP.md` with complete setup instructions
    - **Status**: Workflows ready for OIDC, but GCP-side setup required
 
 **Files Modified**:
+
 - `.github/workflows/ci.yml`: +3 lines (concurrency), -1 line (needs dependency)
 - `.github/workflows/deploy-gcp.yml`: +15 lines (concurrency, OIDC support), -40 lines (test job removal)
 - `.guided/operation/ci/OIDC_SETUP.md`: NEW (comprehensive OIDC setup guide)
 
 **Diff Summary**:
+
 ```diff
 ci.yml:
 + concurrency: ci-${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true
@@ -118,12 +128,14 @@ deploy-gcp.yml:
 ```
 
 **Metrics Impact**:
+
 - **CI duration**: 7 min → ~5 min (-28% from parallel jobs)
 - **Deploy duration**: 15 min → ~11 min (-27% from skipping redundant tests)
 - **GitHub Actions minutes**: -50 min/month (4 min × 10 deploys/month + cancelled old runs)
 - **Security**: OIDC-ready (pending GCP setup)
 
 **Validation**:
+
 - ✅ Workflows syntax valid (GitHub Actions linting passed)
 - ⚠️ OIDC variables not set yet (expected warnings: `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_SERVICE_ACCOUNT_EMAIL`)
 - ⚠️ Branch protection not yet configured (required for QW-3 to enforce CI passing)
@@ -147,17 +159,20 @@ deploy-gcp.yml:
    - Measure: Actual deploy time reduction
 
 **Rollback Plan**:
+
 - Revert commits to restore test job and sequential CI
 - Keep GCP_SA_KEY secret until OIDC fully validated
 
-**Evidence**: 
+**Evidence**:
+
 - Workflow files updated and committed
 - OIDC setup documentation created
 - Branch protection pending (manual GitHub UI step)
 
 **Time Spent**: ~15 minutes (automation + documentation)
 
-**Status**: 
+**Status**:
+
 - ✅ QW-2: COMPLETE
 - ✅ QW-3: COMPLETE (pending branch protection config)
 - ⚠️ QW-1: WORKFLOWS READY (pending GCP setup)
@@ -171,8 +186,9 @@ deploy-gcp.yml:
 **Changes Applied**:
 
 **GCP Resources Created**:
+
 1. ✅ **Workload Identity Pool**: `github` (global)
-2. ✅ **OIDC Provider**: `github-oidc` 
+2. ✅ **OIDC Provider**: `github-oidc`
    - Issuer: `https://token.actions.githubusercontent.com`
    - Attribute condition: `assertion.repository_owner == 'guiofsaints'`
 3. ✅ **Service Accounts**:
@@ -184,16 +200,19 @@ deploy-gcp.yml:
 5. ✅ **WIF Bindings**: Both service accounts bound to `principalSet://...attribute.repository/guiofsaints/procureflow`
 
 **APIs Enabled**:
+
 - `iamcredentials.googleapis.com`
 - `cloudresourcemanager.googleapis.com`
 - `sts.googleapis.com`
 
 **Configuration Generated**:
+
 - Workload Identity Provider: `projects/592353558869/locations/global/workloadIdentityPools/github/providers/github-oidc`
 - Service Account Email: `github-actions-deploy@procureflow-dev.iam.gserviceaccount.com`
 - Config saved to: `packages/infra/pulumi/gcp/scripts/setup/oidc-config.txt`
 
 **Files Created**:
+
 - `packages/infra/pulumi/gcp/scripts/setup/setup-oidc.ps1` (automated setup script)
 - `packages/infra/pulumi/gcp/scripts/setup/oidc-config.txt` (configuration reference)
 
@@ -250,6 +269,7 @@ deploy-gcp.yml:
    - **Security Posture**: `longLivedKeys: 0` (was 1), `oidc: true` (was false)
 
 **Workflow Validation**:
+
 - ✅ OIDC authentication successful (Workload Identity Federation)
 - ✅ Docker build completed (80s build + 52s docs build)
 - ✅ Image pushed to Artifact Registry
@@ -258,28 +278,31 @@ deploy-gcp.yml:
 
 **Phase 0 Metrics Achieved**:
 
-| Metric | Baseline | Current | Improvement |
-|--------|----------|---------|-------------|
-| **CI Duration** | 7 min | **5 min** | **-28%** ✅ |
-| **Deploy Duration** | 15 min | **11 min** | **-27%** ✅ |
-| **Long-Lived Keys** | 1 | **0** | **-100%** ✅ |
-| **OIDC Enabled** | ❌ | **✅** | **Security WIN** |
-| **Redundant Tests** | Yes | **No** | **-4 min/deploy** |
-| **Concurrency Control** | ❌ | **✅** | **Reliability WIN** |
+| Metric                  | Baseline | Current    | Improvement         |
+| ----------------------- | -------- | ---------- | ------------------- |
+| **CI Duration**         | 7 min    | **5 min**  | **-28%** ✅         |
+| **Deploy Duration**     | 15 min   | **11 min** | **-27%** ✅         |
+| **Long-Lived Keys**     | 1        | **0**      | **-100%** ✅        |
+| **OIDC Enabled**        | ❌       | **✅**     | **Security WIN**    |
+| **Redundant Tests**     | Yes      | **No**     | **-4 min/deploy**   |
+| **Concurrency Control** | ❌       | **✅**     | **Reliability WIN** |
 
 **Task Completion Summary**:
+
 - ✅ **QW-1 (OIDC)**: COMPLETE - Workflows authenticate via WIF, legacy key deleted
 - ✅ **QW-2 (Concurrency)**: COMPLETE - CI cancels old runs, deploys queue properly
 - ✅ **QW-3 (Skip Tests)**: COMPLETE - Deploy relies on branch protection (4 min saved)
 - ✅ **IT1.parallel (bonus)**: COMPLETE - Lint/test run in parallel (1-2 min saved)
 
 **Files Modified**:
+
 - `.github/workflows/deploy-gcp.yml`: Conditional OIDC auth (20 insertions, 10 deletions)
 - `packages/web/next.config.mjs`: Removed deprecated config (3 deletions)
 - `packages/infra/docker/Dockerfile.web`: Added git, suppressed API key warnings (4 insertions, 2 deletions)
 - `.guided/operation/checkpoints.json`: Marked Phase 0 "done", updated metrics
 
 **Evidence**:
+
 - Commit `c0c3ac5`: Auth fix for dual-mode issue
 - Commit `54201dc`: Next.js config cleanup
 - Commit `f466278`: Docker build warning fixes
@@ -288,6 +311,7 @@ deploy-gcp.yml:
 - Artifact Registry: Images successfully pushed with new auth
 
 **Time Spent (Phase 0 Total)**: ~2.5 hours
+
 - Task automation: 15 min
 - GCP OIDC setup: 30 min (mostly automated script)
 - Troubleshooting auth issues: 45 min
@@ -297,9 +321,8 @@ deploy-gcp.yml:
 **Status**: ✅ **PHASE 0 COMPLETE** - All Quick Wins delivered
 
 **Next Phase**: Iteration 1 (Build Speed & Immutability)
+
 - IT1: Docker layer cache (biggest time saver: -3-5 min)
 - IT1: Build once, promote by digest (reliability + immutability)
 
 ---
-
-

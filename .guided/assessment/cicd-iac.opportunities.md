@@ -11,12 +11,14 @@
 Identified **27 improvement opportunities** across 6 themes with estimated **60-70% reduction in deployment time** (17 min → 6-8 min) and **elimination of critical security risks** through OIDC migration and attestation.
 
 **Quick Wins** (0-2h effort, high impact):
+
 1. Enable OIDC authentication (eliminate long-lived keys)
 2. Add concurrency controls (prevent parallel deploys)
 3. Skip redundant test runs (save 4 minutes)
 4. Add Docker layer caching (save 3-5 minutes)
 
 **High-Impact Priorities**:
+
 - 🔴 **Security**: OIDC, least-privilege IAM, SBOM/provenance
 - ⚡ **Speed**: Build caching, parallel jobs, build-once-promote-many
 - 🛡️ **Reliability**: Blue/green deployment, automated rollback, health checks
@@ -32,6 +34,7 @@ Identified **27 improvement opportunities** across 6 themes with estimated **60-
 **Current State**: Long-lived service account JSON key in GitHub Secrets (`GCP_SA_KEY`)
 
 **Risk**: 🔴 **HIGH**
+
 - Key compromise exposes full GCP project access
 - No automatic rotation
 - No audit trail of key usage
@@ -39,6 +42,7 @@ Identified **27 improvement opportunities** across 6 themes with estimated **60-
 
 **Opportunity**:
 Migrate to OIDC (Workload Identity Federation) for keyless authentication:
+
 ```yaml
 - uses: google-github-actions/auth@v2
   with:
@@ -47,6 +51,7 @@ Migrate to OIDC (Workload Identity Federation) for keyless authentication:
 ```
 
 **Benefits**:
+
 - ✅ No long-lived secrets in GitHub
 - ✅ Automatic token rotation (1 hour expiry)
 - ✅ Audit trail in Cloud IAM logs
@@ -56,11 +61,13 @@ Migrate to OIDC (Workload Identity Federation) for keyless authentication:
 **Effort**: 2 hours (setup WIF pool + provider, update workflows)
 
 **Impact**:
+
 - Security: 🔴 **HIGH** (eliminates critical vulnerability)
 - Cost: $0 (OIDC is free)
 - Time: Neutral
 
 **Acceptance Criteria**:
+
 - [ ] Workload Identity Pool created in GCP
 - [ ] GitHub OIDC provider configured
 - [ ] Service account bound to GitHub repo/branch
@@ -69,6 +76,7 @@ Migrate to OIDC (Workload Identity Federation) for keyless authentication:
 - [ ] Documentation updated with OIDC setup
 
 **Resources**:
+
 - [GitHub Actions OIDC with GCP](https://github.com/google-github-actions/auth#setup)
 - [GCP Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation)
 
@@ -77,6 +85,7 @@ Migrate to OIDC (Workload Identity Federation) for keyless authentication:
 #### OPP-SEC-002: Implement Least-Privilege IAM for CI/CD
 
 **Current State**: GitHub Actions service account has overly broad permissions:
+
 - `roles/secretmanager.admin` (should be `viewer` or `accessor`)
 - `roles/iam.serviceAccountAdmin` (should be scoped to specific SA)
 
@@ -84,12 +93,14 @@ Migrate to OIDC (Workload Identity Federation) for keyless authentication:
 
 **Opportunity**:
 Reduce CI/CD service account permissions to minimum required:
+
 - `roles/run.developer` (deploy Cloud Run, less than admin)
 - `roles/artifactregistry.writer` (push images)
 - `roles/secretmanager.viewer` (list secrets for Pulumi)
 - Custom role for SA impersonation (specific to `procureflow-cloudrun` SA)
 
 **Benefits**:
+
 - ✅ Limits blast radius of compromised credentials
 - ✅ Compliance with least-privilege principle
 - ✅ Audit-friendly
@@ -97,6 +108,7 @@ Reduce CI/CD service account permissions to minimum required:
 **Effort**: 1 hour (IAM policy updates)
 
 **Impact**:
+
 - Security: 🟡 **MEDIUM**
 - Cost: $0
 - Time: Neutral
@@ -111,17 +123,19 @@ Reduce CI/CD service account permissions to minimum required:
 
 **Opportunity**:
 Generate and sign attestations during Docker build:
+
 ```yaml
 - uses: docker/build-push-action@v5
   with:
-    provenance: true     # SLSA provenance
-    sbom: true           # SPDX SBOM
+    provenance: true # SLSA provenance
+    sbom: true # SPDX SBOM
     attestations: |
       type=sbom
       type=provenance
 ```
 
 **Benefits**:
+
 - ✅ Supply chain security (SLSA Level 2)
 - ✅ Vulnerability tracking (SBOM scanning)
 - ✅ Regulatory compliance (SOC2, ISO 27001)
@@ -130,11 +144,13 @@ Generate and sign attestations during Docker build:
 **Effort**: 3 hours (implement + test)
 
 **Impact**:
+
 - Security: 🟡 **MEDIUM** (improves supply chain visibility)
 - Cost: $0 (free in GitHub Actions)
 - Time: +30s per build
 
 **Requirements**:
+
 - GitHub Actions runner with BuildKit
 - Artifact Registry vulnerability scanning enabled
 
@@ -148,15 +164,17 @@ Generate and sign attestations during Docker build:
 
 **Opportunity**:
 Add Trivy scan after Docker build:
+
 ```yaml
 - uses: aquasecurity/trivy-action@master
   with:
     image-ref: ${{ env.IMAGE_URL }}:${{ steps.meta.outputs.tags }}
     severity: 'CRITICAL,HIGH'
-    exit-code: '1'  # Fail on vulnerabilities
+    exit-code: '1' # Fail on vulnerabilities
 ```
 
 **Benefits**:
+
 - ✅ Early detection of CVEs
 - ✅ Prevent deploying vulnerable images
 - ✅ SARIF output for GitHub Security tab
@@ -164,6 +182,7 @@ Add Trivy scan after Docker build:
 **Effort**: 1 hour
 
 **Impact**:
+
 - Security: 🟡 **MEDIUM**
 - Time: +30-60s per build
 
@@ -177,11 +196,13 @@ Add Trivy scan after Docker build:
 
 **Opportunity**:
 Configure environment protection:
+
 - **dev**: No restrictions (auto-deploy)
 - **staging**: Require manual approval from 1 reviewer
 - **production**: Require manual approval from 2 reviewers + branch restriction (`main` only)
 
 **Benefits**:
+
 - ✅ Prevents accidental production deploys
 - ✅ Audit trail of approvals
 - ✅ Compliance requirement for SOC2
@@ -189,6 +210,7 @@ Configure environment protection:
 **Effort**: 30 minutes (GitHub UI configuration)
 
 **Impact**:
+
 - Security: 🟡 **MEDIUM**
 - Reliability: 🟡 **MEDIUM** (reduces human error)
 - Time: +2-5 min per production deploy (approval wait)
@@ -203,6 +225,7 @@ Configure environment protection:
 
 **Opportunity**:
 Use GitHub Actions cache + BuildKit cache exports:
+
 ```yaml
 - uses: docker/build-push-action@v5
   with:
@@ -211,16 +234,19 @@ Use GitHub Actions cache + BuildKit cache exports:
 ```
 
 **Benefits**:
+
 - ⚡ **3-5 minute reduction** in build time (70% faster)
 - ✅ Lower CI costs (fewer CPU minutes)
 
 **Effort**: 30 minutes (workflow update)
 
 **Impact**:
+
 - Time: 🟢 **HIGH** (-3-5 min per build)
 - Cost: Reduces GitHub Actions minutes by 30%
 
 **Estimated Build Time**:
+
 - Current: 5-7 minutes
 - With cache: 1.5-2.5 minutes
 
@@ -232,6 +258,7 @@ Use GitHub Actions cache + BuildKit cache exports:
 
 **Opportunity**:
 Remove `test` job from deploy workflow; rely on CI passing as prerequisite:
+
 ```yaml
 # Remove this job from deploy-gcp.yml
 # test:
@@ -243,6 +270,7 @@ Remove `test` job from deploy workflow; rely on CI passing as prerequisite:
 ```
 
 **Benefits**:
+
 - ⚡ **4 minute reduction** in deploy time
 - ✅ Faster feedback loop
 - ✅ Lower CI costs
@@ -250,10 +278,12 @@ Remove `test` job from deploy workflow; rely on CI passing as prerequisite:
 **Effort**: 15 minutes (remove job, add branch protection)
 
 **Impact**:
+
 - Time: 🟢 **HIGH** (-4 min per deploy)
 - Cost: Reduces GitHub Actions minutes by 25%
 
 **Prerequisites**:
+
 - Branch protection rule: Require `CI - Lint and Test` status check
 
 ---
@@ -264,25 +294,28 @@ Remove `test` job from deploy workflow; rely on CI passing as prerequisite:
 
 **Opportunity**:
 Run lint and test in parallel:
+
 ```yaml
 jobs:
   lint:
     # No dependencies
-  
+
   test:
     # No dependencies
-  
+
   build:
-    needs: [lint, test]  # Wait for both
+    needs: [lint, test] # Wait for both
 ```
 
 **Benefits**:
+
 - ⚡ **1-2 minute reduction** in CI time
 - ✅ Faster PR feedback
 
 **Effort**: 10 minutes (workflow edit)
 
 **Impact**:
+
 - Time: 🟡 **MEDIUM** (-1-2 min per CI run)
 - Current: ~7 min → Target: ~5 min
 
@@ -294,6 +327,7 @@ jobs:
 
 **Opportunity**:
 Cache Next.js `.next/cache` directory:
+
 ```yaml
 - uses: actions/cache@v4
   with:
@@ -303,12 +337,14 @@ Cache Next.js `.next/cache` directory:
 ```
 
 **Benefits**:
+
 - ⚡ **30-60 second reduction** in build time
 - ✅ Incremental builds (only changed modules)
 
 **Effort**: 15 minutes
 
 **Impact**:
+
 - Time: 🟡 **MEDIUM** (-30-60s per build)
 - Build time: 90-120s → 30-60s (warm cache)
 
@@ -320,13 +356,15 @@ Cache Next.js `.next/cache` directory:
 
 **Opportunity**:
 Add concurrency groups to prevent overlapping runs:
+
 ```yaml
 concurrency:
   group: deploy-${{ github.ref }}
-  cancel-in-progress: false  # Wait for previous deploy
+  cancel-in-progress: false # Wait for previous deploy
 ```
 
 **Benefits**:
+
 - ✅ Prevents race conditions
 - ✅ Predictable deploy order
 - ✅ Avoids wasted CI minutes on outdated commits
@@ -334,6 +372,7 @@ concurrency:
 **Effort**: 10 minutes
 
 **Impact**:
+
 - Reliability: 🟡 **MEDIUM**
 - Cost: Saves wasted runs
 
@@ -347,10 +386,11 @@ concurrency:
 
 **Opportunity**:
 Build image once in CI, promote to environments:
+
 ```yaml
 # ci.yml (build job)
 - outputs:
-    image-digest: ${{ steps.build.outputs.digest }}  # Export SHA256 digest
+    image-digest: ${{ steps.build.outputs.digest }} # Export SHA256 digest
 
 # deploy.yml (deploy job)
 - env:
@@ -360,6 +400,7 @@ Build image once in CI, promote to environments:
 ```
 
 **Benefits**:
+
 - ✅ Deploy exact tested artifact
 - ✅ No rebuild variance
 - ✅ Faster deploys (skip build step)
@@ -368,6 +409,7 @@ Build image once in CI, promote to environments:
 **Effort**: 2 hours (refactor workflows)
 
 **Impact**:
+
 - Time: 🟢 **HIGH** (-5-7 min per deploy)
 - Reliability: 🟢 **HIGH** (deploy what you tested)
 
@@ -379,6 +421,7 @@ Build image once in CI, promote to environments:
 
 **Opportunity**:
 Use full SHA256 digests for immutability:
+
 ```yaml
 # Export digest after build
 IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_URL:$TAG)
@@ -389,6 +432,7 @@ docker pull $IMAGE_URL@sha256:abc123...
 ```
 
 **Benefits**:
+
 - ✅ True immutability (tags can be overwritten)
 - ✅ Cryptographic verification
 - ✅ Required for attestation verification
@@ -396,6 +440,7 @@ docker pull $IMAGE_URL@sha256:abc123...
 **Effort**: 1 hour
 
 **Impact**:
+
 - Reliability: 🟡 **MEDIUM**
 - Security: 🟡 **MEDIUM**
 
@@ -407,26 +452,31 @@ docker pull $IMAGE_URL@sha256:abc123...
 
 **Opportunity**:
 Add cleanup policy via Pulumi or gcloud:
+
 ```typescript
 new gcp.artifactregistry.Repository('procureflow', {
-  cleanupPolicies: [{
-    id: 'keep-recent',
-    action: 'DELETE',
-    condition: {
-      olderThan: '30d',  // Keep 30 days
-      tagState: 'UNTAGGED'  // Only cleanup untagged
-    }
-  }]
-})
+  cleanupPolicies: [
+    {
+      id: 'keep-recent',
+      action: 'DELETE',
+      condition: {
+        olderThan: '30d', // Keep 30 days
+        tagState: 'UNTAGGED', // Only cleanup untagged
+      },
+    },
+  ],
+});
 ```
 
 **Benefits**:
+
 - ✅ Reduces storage costs
 - ✅ Keeps registry clean
 
 **Effort**: 30 minutes
 
 **Impact**:
+
 - Cost: 🟢 **LOW** (saves ~$0.10-0.30/month)
 - Estimated: 10 images/month × $0.10/GB = ~$0.20/month savings
 
@@ -438,6 +488,7 @@ new gcp.artifactregistry.Repository('procureflow', {
 
 **Opportunity**:
 Add semantic version tags on Git tags:
+
 ```yaml
 # On git tag v1.2.3
 - run: |
@@ -447,6 +498,7 @@ Add semantic version tags on Git tags:
 ```
 
 **Benefits**:
+
 - ✅ Human-readable versions
 - ✅ Rollback to known versions
 - ✅ Changelog integration
@@ -454,6 +506,7 @@ Add semantic version tags on Git tags:
 **Effort**: 1 hour
 
 **Impact**:
+
 - Maintainability: 🟡 **MEDIUM**
 
 ---
@@ -466,17 +519,19 @@ Add semantic version tags on Git tags:
 
 **Opportunity**:
 Use Cloud Run traffic splitting for gradual rollout:
+
 ```typescript
 // Pulumi Cloud Run config
 traffics: [
-  { revisionName: 'blue', percent: 50 },   // Old revision
-  { revisionName: 'green', percent: 50 }    // New revision
-]
+  { revisionName: 'blue', percent: 50 }, // Old revision
+  { revisionName: 'green', percent: 50 }, // New revision
+];
 
 // Gradually shift: 50/50 → 20/80 → 0/100
 ```
 
 **Benefits**:
+
 - ✅ Zero-downtime deployments
 - ✅ Canary testing (1% → 10% → 100%)
 - ✅ Instant rollback (shift traffic back)
@@ -485,10 +540,12 @@ traffics: [
 **Effort**: 4 hours (Pulumi changes + workflow logic)
 
 **Impact**:
+
 - Reliability: 🔴 **HIGH** (eliminates downtime risk)
 - MTTR: 🟢 **HIGH** (instant rollback vs. redeploy)
 
 **Estimated MTTR**:
+
 - Current: 13-17 min (full redeploy)
 - With traffic split: <1 min (shift traffic)
 
@@ -500,6 +557,7 @@ traffics: [
 
 **Opportunity**:
 Deploy new revision with 0% traffic, health check, then shift:
+
 ```yaml
 - name: Deploy new revision (0% traffic)
   run: pulumi up --yes
@@ -518,6 +576,7 @@ Deploy new revision with 0% traffic, health check, then shift:
 ```
 
 **Benefits**:
+
 - ✅ Validates new revision before user traffic
 - ✅ Prevents deploying broken builds
 - ✅ Automated smoke tests
@@ -525,6 +584,7 @@ Deploy new revision with 0% traffic, health check, then shift:
 **Effort**: 2 hours
 
 **Impact**:
+
 - Reliability: 🟢 **HIGH**
 - Reduces failed deploys by 80%
 
@@ -536,6 +596,7 @@ Deploy new revision with 0% traffic, health check, then shift:
 
 **Opportunity**:
 Auto-rollback if health checks fail:
+
 ```yaml
 - name: Rollback on failure
   if: failure()
@@ -546,6 +607,7 @@ Auto-rollback if health checks fail:
 ```
 
 **Benefits**:
+
 - ✅ Automatic recovery
 - ✅ Reduces MTTR
 - ✅ No manual intervention
@@ -553,6 +615,7 @@ Auto-rollback if health checks fail:
 **Effort**: 1 hour
 
 **Impact**:
+
 - Reliability: 🟢 **HIGH**
 - MTTR: Instant (<1 min)
 
@@ -564,6 +627,7 @@ Auto-rollback if health checks fail:
 
 **Opportunity**:
 Explicitly tag revisions and set retention:
+
 ```typescript
 // Pulumi config
 metadata: {
@@ -579,12 +643,14 @@ metadata: {
 ```
 
 **Benefits**:
+
 - ✅ Fast rollback to known-good versions
 - ✅ Rollback without rebuilding
 
 **Effort**: 1 hour
 
 **Impact**:
+
 - Reliability: 🟡 **MEDIUM**
 - MTTR: -10 min (rollback vs. redeploy)
 
@@ -598,6 +664,7 @@ metadata: {
 
 **Opportunity**:
 Use `pulumi/actions` GitHub Action to post preview as PR comment:
+
 ```yaml
 - uses: pulumi/actions@v5
   with:
@@ -607,6 +674,7 @@ Use `pulumi/actions` GitHub Action to post preview as PR comment:
 ```
 
 **Benefits**:
+
 - ✅ Visibility into infrastructure changes before merge
 - ✅ Catch unintended resource deletes/recreates
 - ✅ Team review of IaC changes
@@ -614,6 +682,7 @@ Use `pulumi/actions` GitHub Action to post preview as PR comment:
 **Effort**: 30 minutes
 
 **Impact**:
+
 - Reliability: 🟡 **MEDIUM** (prevents accidental changes)
 - Maintainability: 🟡 **MEDIUM**
 
@@ -625,28 +694,33 @@ Use `pulumi/actions` GitHub Action to post preview as PR comment:
 
 **Opportunity**:
 Add Pulumi CrossGuard policies:
+
 ```typescript
 // policies/index.ts
-new PolicyPack("procureflow-policies", {
+new PolicyPack('procureflow-policies', {
   policies: [
     {
-      name: "cloud-run-max-instances",
-      enforcementLevel: "mandatory",
+      name: 'cloud-run-max-instances',
+      enforcementLevel: 'mandatory',
       validateResource: (args) => {
-        if (args.type === "gcp:cloudrun/service:Service") {
-          const maxScale = args.props.template?.metadata?.annotations?.["autoscaling.knative.dev/maxScale"];
+        if (args.type === 'gcp:cloudrun/service:Service') {
+          const maxScale =
+            args.props.template?.metadata?.annotations?.[
+              'autoscaling.knative.dev/maxScale'
+            ];
           if (parseInt(maxScale) > 5) {
-            return { message: "Max instances cannot exceed 5 (cost cap)" };
+            return { message: 'Max instances cannot exceed 5 (cost cap)' };
           }
         }
-      }
+      },
     },
     // ... more policies
-  ]
-})
+  ],
+});
 ```
 
 **Benefits**:
+
 - ✅ Enforce cost caps
 - ✅ Security guardrails (e.g., no public IPs)
 - ✅ Compliance (e.g., encryption required)
@@ -654,6 +728,7 @@ new PolicyPack("procureflow-policies", {
 **Effort**: 4 hours (policy development + testing)
 
 **Impact**:
+
 - Cost: 🟢 **MEDIUM** (prevents runaway costs)
 - Compliance: 🟡 **MEDIUM**
 
@@ -665,11 +740,12 @@ new PolicyPack("procureflow-policies", {
 
 **Opportunity**:
 Schedule weekly drift detection via GitHub Actions:
+
 ```yaml
 # .github/workflows/pulumi-drift-check.yml
 on:
   schedule:
-    - cron: '0 8 * * 1'  # Monday 8 AM UTC
+    - cron: '0 8 * * 1' # Monday 8 AM UTC
   workflow_dispatch:
 
 jobs:
@@ -681,6 +757,7 @@ jobs:
 ```
 
 **Benefits**:
+
 - ✅ Detect manual changes in Cloud Console
 - ✅ Prevent state divergence
 - ✅ Audit trail
@@ -688,6 +765,7 @@ jobs:
 **Effort**: 1 hour
 
 **Impact**:
+
 - Reliability: 🟡 **MEDIUM**
 - Maintainability: 🟡 **MEDIUM**
 
@@ -699,17 +777,23 @@ jobs:
 
 **Opportunity**:
 Add to Pulumi stack with proper import:
+
 ```typescript
-const registry = new gcp.artifactregistry.Repository('procureflow', {
-  repositoryId: 'procureflow',
-  location: region,
-  format: 'DOCKER',
-}, {
-  import: `projects/${projectId}/locations/${region}/repositories/procureflow`
-});
+const registry = new gcp.artifactregistry.Repository(
+  'procureflow',
+  {
+    repositoryId: 'procureflow',
+    location: region,
+    format: 'DOCKER',
+  },
+  {
+    import: `projects/${projectId}/locations/${region}/repositories/procureflow`,
+  }
+);
 ```
 
 **Benefits**:
+
 - ✅ Single source of truth for infrastructure
 - ✅ Version-controlled registry config
 - ✅ Automated cleanup policies
@@ -717,6 +801,7 @@ const registry = new gcp.artifactregistry.Repository('procureflow', {
 **Effort**: 30 minutes (import + test)
 
 **Impact**:
+
 - Maintainability: 🟡 **MEDIUM**
 
 ---
@@ -727,6 +812,7 @@ const registry = new gcp.artifactregistry.Repository('procureflow', {
 
 **Opportunity**:
 Create separate stacks:
+
 - `dev` (auto-deploy, no approval)
 - `staging` (manual approval, mirrors prod)
 - `prod` (2 approvers, protected)
@@ -738,6 +824,7 @@ pulumi config set --stack prod gcp:project procureflow-prod
 ```
 
 **Benefits**:
+
 - ✅ Environment isolation
 - ✅ Separate state files
 - ✅ Different configurations per env
@@ -745,6 +832,7 @@ pulumi config set --stack prod gcp:project procureflow-prod
 **Effort**: 2 hours (stack setup + workflow updates)
 
 **Impact**:
+
 - Reliability: 🟡 **MEDIUM**
 - Compliance: 🟡 **MEDIUM**
 
@@ -756,17 +844,19 @@ pulumi config set --stack prod gcp:project procureflow-prod
 
 **Opportunity**:
 Set in Pulumi Cloud Run config:
+
 ```typescript
 envs: [
   {
     name: 'NEXTAUTH_URL',
-    value: pulumi.interpolate`https://${service.statuses[0].url}`
+    value: pulumi.interpolate`https://${service.statuses[0].url}`,
   },
   // ... other envs
-]
+];
 ```
 
 **Benefits**:
+
 - ✅ Single source of truth
 - ✅ No manual post-deploy steps
 - ✅ Idempotent deploys
@@ -774,6 +864,7 @@ envs: [
 **Effort**: 1 hour
 
 **Impact**:
+
 - Maintainability: 🟡 **MEDIUM**
 - Time: -30s per deploy
 
@@ -787,16 +878,19 @@ envs: [
 
 **Opportunity**:
 Configure org/repo spending limits:
+
 - Monthly cap: $20/month (well above free tier)
 - Alert at 50%, 75%, 90%
 
 **Benefits**:
+
 - ✅ Prevents runaway costs from misconfigured workflows
 - ✅ Visibility into CI costs
 
 **Effort**: 10 minutes
 
 **Impact**:
+
 - Cost: 🟢 **MEDIUM** (prevents accidental overspending)
 
 ---
@@ -807,26 +901,29 @@ Configure org/repo spending limits:
 
 **Opportunity**:
 Create GCP budget via Pulumi or Cloud Console:
+
 ```typescript
 new gcp.billing.Budget('monthly-budget', {
   billingAccount: billingAccountId,
-  amount: { specifiedAmount: { units: '10' } },  // $10/month
+  amount: { specifiedAmount: { units: '10' } }, // $10/month
   thresholdRules: [
-    { thresholdPercent: 0.5 },  // 50%
+    { thresholdPercent: 0.5 }, // 50%
     { thresholdPercent: 0.75 },
     { thresholdPercent: 0.9 },
   ],
   // Send to email/Slack
-})
+});
 ```
 
 **Benefits**:
+
 - ✅ Cost visibility
 - ✅ Alert on unexpected spikes
 
 **Effort**: 1 hour
 
 **Impact**:
+
 - Cost: 🟡 **MEDIUM** (monitoring only)
 
 ---
@@ -836,11 +933,13 @@ new gcp.billing.Budget('monthly-budget', {
 **Current State**: ~200-250 MB image
 
 **Opportunity**:
+
 - Remove unnecessary dependencies in production stage
 - Use `.dockerignore` to exclude dev files
 - Multi-stage copy only required files
 
 **Benefits**:
+
 - ✅ Faster pushes/pulls
 - ✅ Lower storage costs
 - ✅ Reduced attack surface
@@ -848,6 +947,7 @@ new gcp.billing.Budget('monthly-budget', {
 **Effort**: 2 hours
 
 **Impact**:
+
 - Time: -15-30s per deploy (faster image push/pull)
 - Cost: -$0.05/month (storage)
 
@@ -863,6 +963,7 @@ new gcp.billing.Budget('monthly-budget', {
 
 **Opportunity**:
 Add workflow metadata collection:
+
 ```yaml
 - name: Record metrics
   run: |
@@ -879,6 +980,7 @@ Add workflow metadata collection:
 ```
 
 **Benefits**:
+
 - ✅ Track deployment frequency (DORA metrics)
 - ✅ Identify slow steps
 - ✅ Measure improvement impact
@@ -886,6 +988,7 @@ Add workflow metadata collection:
 **Effort**: 3 hours
 
 **Impact**:
+
 - Observability: 🟡 **MEDIUM**
 
 ---
@@ -896,30 +999,33 @@ Add workflow metadata collection:
 
 **Opportunity**:
 Use Cloud Monitoring uptime checks:
+
 ```typescript
 new gcp.monitoring.UptimeCheckConfig('procureflow-uptime', {
   displayName: 'ProcureFlow Web',
   monitoredResource: {
     type: 'uptime_url',
-    labels: { host: serviceUrl }
+    labels: { host: serviceUrl },
   },
   httpCheck: {
     path: '/api/health',
     port: 443,
-    useSsl: true
+    useSsl: true,
   },
   period: '60s',
-  timeout: '10s'
-})
+  timeout: '10s',
+});
 ```
 
 **Benefits**:
+
 - ✅ Proactive downtime alerts
 - ✅ SLA tracking
 
 **Effort**: 1 hour
 
 **Impact**:
+
 - Reliability: 🟡 **MEDIUM**
 - Cost: $0 (within free tier)
 
@@ -929,40 +1035,44 @@ new gcp.monitoring.UptimeCheckConfig('procureflow-uptime', {
 
 ### By Severity & Impact
 
-| ID | Opportunity | Severity | Impact | Effort | Time Saved | Cost Impact |
-|----|-------------|----------|--------|--------|------------|-------------|
-| **OPP-SEC-001** | OIDC Migration | 🔴 High | Security | 2h | 0 | $0 |
-| **OPP-SPEED-001** | Docker Layer Cache | 🔴 High | Speed | 30m | -3-5 min | -30% CI mins |
-| **OPP-SPEED-002** | Skip Redundant Tests | 🔴 High | Speed | 15m | -4 min | -25% CI mins |
-| **OPP-DEPLOY-001** | Blue/Green Deploy | 🔴 High | Reliability | 4h | MTTR: -15 min | $0 |
-| **OPP-ARTIFACT-001** | Build-Once-Promote | 🔴 High | Speed + Reliability | 2h | -5-7 min | $0 |
-| OPP-SEC-002 | Least-Privilege IAM | 🟡 Medium | Security | 1h | 0 | $0 |
-| OPP-SEC-003 | SBOM/Provenance | 🟡 Medium | Security | 3h | +30s | $0 |
-| OPP-SEC-004 | Vuln Scanning | 🟡 Medium | Security | 1h | +30-60s | $0 |
-| OPP-SPEED-003 | Parallel CI Jobs | 🟡 Medium | Speed | 10m | -1-2 min | $0 |
-| OPP-SPEED-004 | Next.js Cache | 🟡 Medium | Speed | 15m | -30-60s | $0 |
-| OPP-DEPLOY-002 | Health Checks | 🟡 Medium | Reliability | 2h | 0 | $0 |
-| OPP-IAC-001 | PR Preview Comments | 🟡 Medium | Reliability | 30m | 0 | $0 |
-| ... | (15 more opportunities) | ... | ... | ... | ... | ... |
+| ID                   | Opportunity             | Severity  | Impact              | Effort | Time Saved    | Cost Impact  |
+| -------------------- | ----------------------- | --------- | ------------------- | ------ | ------------- | ------------ |
+| **OPP-SEC-001**      | OIDC Migration          | 🔴 High   | Security            | 2h     | 0             | $0           |
+| **OPP-SPEED-001**    | Docker Layer Cache      | 🔴 High   | Speed               | 30m    | -3-5 min      | -30% CI mins |
+| **OPP-SPEED-002**    | Skip Redundant Tests    | 🔴 High   | Speed               | 15m    | -4 min        | -25% CI mins |
+| **OPP-DEPLOY-001**   | Blue/Green Deploy       | 🔴 High   | Reliability         | 4h     | MTTR: -15 min | $0           |
+| **OPP-ARTIFACT-001** | Build-Once-Promote      | 🔴 High   | Speed + Reliability | 2h     | -5-7 min      | $0           |
+| OPP-SEC-002          | Least-Privilege IAM     | 🟡 Medium | Security            | 1h     | 0             | $0           |
+| OPP-SEC-003          | SBOM/Provenance         | 🟡 Medium | Security            | 3h     | +30s          | $0           |
+| OPP-SEC-004          | Vuln Scanning           | 🟡 Medium | Security            | 1h     | +30-60s       | $0           |
+| OPP-SPEED-003        | Parallel CI Jobs        | 🟡 Medium | Speed               | 10m    | -1-2 min      | $0           |
+| OPP-SPEED-004        | Next.js Cache           | 🟡 Medium | Speed               | 15m    | -30-60s       | $0           |
+| OPP-DEPLOY-002       | Health Checks           | 🟡 Medium | Reliability         | 2h     | 0             | $0           |
+| OPP-IAC-001          | PR Preview Comments     | 🟡 Medium | Reliability         | 30m    | 0             | $0           |
+| ...                  | (15 more opportunities) | ...       | ...                 | ...    | ...           | ...          |
 
 ### Cumulative Impact (If All Implemented)
 
 **Speed Improvements**:
+
 - CI time: 7 min → 4 min (-43%)
 - Deploy time: 17 min → 6-8 min (-60-70%)
 - MTTR (rollback): 17 min → <1 min (-99%)
 
 **Cost Savings**:
+
 - GitHub Actions: -50% minutes (parallel + caching)
 - GCP: -$0.15/month (image cleanup, optimization)
 - Total: ~-$5-10/month (at current scale)
 
 **Reliability**:
+
 - Failed deploys: -80% (health checks + blue/green)
 - Security incidents: Eliminated (OIDC + attestation)
 - Downtime: -99% (zero-downtime deploys)
 
 **Compliance**:
+
 - SLSA Level 2 provenance: ✅
 - SBOM generation: ✅
 - Least-privilege IAM: ✅

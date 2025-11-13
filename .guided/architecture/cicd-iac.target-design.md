@@ -12,6 +12,7 @@
 This document defines the **target reference architecture** for ProcureFlow's CI/CD and Infrastructure as Code (IaC) systems. The design prioritizes **security** (OIDC, attestation), **speed** (build-once-promote-many, caching), and **reliability** (blue/green deployment, automated rollback).
 
 **Key Design Principles**:
+
 1. **Build once, promote many**: Immutable artifacts deployed across environments
 2. **Keyless authentication**: OIDC-based (no long-lived service account keys)
 3. **Zero-downtime deployments**: Blue/green traffic splitting with health checks
@@ -21,6 +22,7 @@ This document defines the **target reference architecture** for ProcureFlow's CI
 7. **Attestation**: SBOM + provenance for supply chain security
 
 **Target Metrics**:
+
 - CI time: **4-5 min** (from 7 min, -30%)
 - Deploy time: **6-8 min** (from 15 min, -50%)
 - MTTR: **<1 min** (from 15 min, -93%)
@@ -44,12 +46,12 @@ graph LR
     G --> H{Pass?}
     H -->|Yes| I[Traffic Split 0% → 100%]
     H -->|No| J[Automated Rollback]
-    
+
     K[Manual Trigger] --> L[Deploy to Staging]
     L --> M[Approval Gate]
     M --> N[Deploy to Production]
     N --> O[Canary 10% → 100%]
-    
+
     style C fill:#90EE90
     style I fill:#90EE90
     style J fill:#FFD700
@@ -128,6 +130,7 @@ graph LR
 ### 1. Continuous Integration (ci.yml)
 
 **Triggers**:
+
 - Pull requests to `main`, `dev`
 - Pushes to `main`, `dev`
 - Path filters: Exclude `docs/**`, `*.md` (unless API/IaC changes)
@@ -135,6 +138,7 @@ graph LR
 **Jobs** (parallel):
 
 #### Job: `lint` (parallel)
+
 ```yaml
 lint:
   runs-on: ubuntu-latest
@@ -145,6 +149,7 @@ lint:
 ```
 
 #### Job: `test` (parallel)
+
 ```yaml
 test:
   runs-on: ubuntu-latest
@@ -159,27 +164,28 @@ test:
 ```
 
 #### Job: `build-and-scan` (depends on lint + test)
+
 ```yaml
 build-and-scan:
   needs: [lint, test]
   runs-on: ubuntu-latest
   permissions:
     contents: read
-    id-token: write  # OIDC
+    id-token: write # OIDC
     packages: write
-    security-events: write  # SARIF upload
+    security-events: write # SARIF upload
   outputs:
     image-digest: ${{ steps.build.outputs.digest }}
     image-tag: ${{ steps.meta.outputs.tags }}
   steps:
     - uses: actions/checkout@v4
-    
+
     # OIDC Authentication
     - uses: google-github-actions/auth@v2
       with:
         workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ vars.GCP_CI_SERVICE_ACCOUNT }}
-    
+
     # Docker Build (with BuildKit cache)
     - uses: ./.github/actions/docker-build-push
       id: build
@@ -193,7 +199,7 @@ build-and-scan:
         cache-to: type=gha,mode=max
         provenance: true
         sbom: true
-    
+
     # Vulnerability Scanning
     - uses: aquasecurity/trivy-action@master
       with:
@@ -201,7 +207,7 @@ build-and-scan:
         format: 'sarif'
         output: 'trivy-results.sarif'
         severity: 'CRITICAL,HIGH'
-    
+
     - uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'trivy-results.sarif'
@@ -210,15 +216,17 @@ build-and-scan:
 **Duration**: ~4-5 minutes (parallel lint/test: 2 min, build: 2-3 min)
 
 **Caching**:
+
 - pnpm store: `actions/cache@v4`
 - Docker layers: BuildKit GitHub Actions cache
 - Next.js build: `.next/cache` directory
 
 **Concurrency**:
+
 ```yaml
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true  # Cancel old runs on new push
+  cancel-in-progress: true # Cancel old runs on new push
 ```
 
 ---
@@ -236,7 +244,7 @@ on:
         type: string
       target-environment:
         required: true
-        type: string  # dev, staging, prod
+        type: string # dev, staging, prod
     outputs:
       promoted-digest:
         value: ${{ jobs.promote.outputs.digest }}
@@ -253,20 +261,20 @@ jobs:
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_CI_SERVICE_ACCOUNT }}
-      
+
       - name: Tag for environment
         id: tag
         run: |
           IMAGE_URL="us-central1-docker.pkg.dev/procureflow-${{ inputs.target-environment }}/procureflow/web"
-          
+
           # Pull by source tag
           gcloud artifacts docker images describe \
             $IMAGE_URL:${{ inputs.source-tag }} \
             --format='value(image_summary.digest)' > digest.txt
-          
+
           DIGEST=$(cat digest.txt)
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-          
+
           # Tag for environment (mutable promotion tag)
           gcloud artifacts docker tags add \
             $IMAGE_URL@$DIGEST \
@@ -285,7 +293,7 @@ on:
     inputs:
       environment:
         required: true
-        type: string  # dev, staging, prod
+        type: string # dev, staging, prod
       image-digest:
         required: true
         type: string
@@ -307,14 +315,14 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
-      
+
       - uses: ./.github/actions/setup-pnpm
-      
+
       - uses: pulumi/actions@v5
         id: pulumi
         with:
@@ -325,13 +333,13 @@ jobs:
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           IMAGE_DIGEST: ${{ inputs.image-digest }}
-      
+
       # Deploy new revision with 0% traffic
       - name: Deploy new revision (canary)
         run: |
           SERVICE_URL="${{ steps.pulumi.outputs.service-url }}"
           echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
-      
+
       # Health checks on new revision
       - uses: ./.github/actions/health-check
         with:
@@ -339,26 +347,26 @@ jobs:
           endpoints: |
             /api/health
             /api/items?limit=1
-      
+
       # Gradual traffic shift (canary)
       - name: Canary rollout
         run: |
           gcloud run services update-traffic procureflow-web \
             --region=us-central1 \
             --to-revisions=LATEST=10
-          
+
           sleep 60  # Monitor for 1 minute
-          
+
           gcloud run services update-traffic procureflow-web \
             --region=us-central1 \
             --to-revisions=LATEST=50
-          
+
           sleep 60
-          
+
           gcloud run services update-traffic procureflow-web \
             --region=us-central1 \
             --to-revisions=LATEST=100
-      
+
       # Automated rollback on failure
       - name: Rollback on failure
         if: failure()
@@ -369,11 +377,11 @@ jobs:
             --sort-by=~deployed \
             --limit=2 \
             --format='value(name)' | tail -n1)
-          
+
           gcloud run services update-traffic procureflow-web \
             --region=us-central1 \
             --to-revisions=$PREVIOUS=100
-          
+
           echo "⚠️ Deployment failed. Rolled back to $PREVIOUS"
 ```
 
@@ -383,15 +391,16 @@ jobs:
 
 #### Stack Organization
 
-| Stack | Environment | Auto-Deploy | Approval | Branch | Notes |
-|-------|-------------|-------------|----------|--------|-------|
-| `dev` | Development | ✅ | None | `main` | Auto-deploy on merge |
-| `staging` | Staging | ❌ | 1 reviewer | `main` | Manual trigger + approval |
-| `prod` | Production | ❌ | 2 reviewers | `main` | Manual trigger + 2 approvals |
+| Stack     | Environment | Auto-Deploy | Approval    | Branch | Notes                        |
+| --------- | ----------- | ----------- | ----------- | ------ | ---------------------------- |
+| `dev`     | Development | ✅          | None        | `main` | Auto-deploy on merge         |
+| `staging` | Staging     | ❌          | 1 reviewer  | `main` | Manual trigger + approval    |
+| `prod`    | Production  | ❌          | 2 reviewers | `main` | Manual trigger + 2 approvals |
 
 #### Resource Management
 
 **Managed Resources**:
+
 ```typescript
 // packages/infra/pulumi/gcp/index.ts
 
@@ -400,11 +409,13 @@ const registry = new gcp.artifactregistry.Repository('procureflow', {
   repositoryId: 'procureflow',
   location: region,
   format: 'DOCKER',
-  cleanupPolicies: [{
-    id: 'keep-30-days',
-    action: 'DELETE',
-    condition: { olderThan: '30d', tagState: 'UNTAGGED' }
-  }]
+  cleanupPolicies: [
+    {
+      id: 'keep-30-days',
+      action: 'DELETE',
+      condition: { olderThan: '30d', tagState: 'UNTAGGED' },
+    },
+  ],
 });
 
 // 2. Cloud Run with traffic splitting
@@ -417,25 +428,30 @@ const service = new gcp.cloudrun.Service('procureflow-web', {
         'autoscaling.knative.dev/maxScale': '2',
         'run.googleapis.com/execution-environment': 'gen2',
       },
-      name: `web-${imageDigest.substring(0, 12)}`  // Immutable revision name
+      name: `web-${imageDigest.substring(0, 12)}`, // Immutable revision name
     },
     spec: {
       serviceAccountName: serviceAccount.email,
-      containers: [{
-        image: pulumi.interpolate`${registry.location}-docker.pkg.dev/${projectId}/${registry.repositoryId}/web@${imageDigest}`,
-        envs: [
-          { name: 'NODE_ENV', value: 'production' },
-          { name: 'NEXTAUTH_URL', value: pulumi.interpolate`https://${service.statuses[0].url}` },
-          // Secrets from Secret Manager
-        ]
-      }]
-    }
+      containers: [
+        {
+          image: pulumi.interpolate`${registry.location}-docker.pkg.dev/${projectId}/${registry.repositoryId}/web@${imageDigest}`,
+          envs: [
+            { name: 'NODE_ENV', value: 'production' },
+            {
+              name: 'NEXTAUTH_URL',
+              value: pulumi.interpolate`https://${service.statuses[0].url}`,
+            },
+            // Secrets from Secret Manager
+          ],
+        },
+      ],
+    },
   },
   // Traffic management (blue/green)
   traffics: [
-    { revisionName: 'web-abc123', percent: 50 },  // Blue (previous)
-    { latestRevision: true, percent: 50 }          // Green (current)
-  ]
+    { revisionName: 'web-abc123', percent: 50 }, // Blue (previous)
+    { latestRevision: true, percent: 50 }, // Green (current)
+  ],
 });
 
 // 3. Uptime monitoring
@@ -443,15 +459,15 @@ const uptimeCheck = new gcp.monitoring.UptimeCheckConfig('procureflow-uptime', {
   displayName: 'ProcureFlow Web',
   monitoredResource: {
     type: 'uptime_url',
-    labels: { host: service.statuses[0].url }
+    labels: { host: service.statuses[0].url },
   },
   httpCheck: {
     path: '/api/health',
     port: 443,
-    useSsl: true
+    useSsl: true,
   },
   period: '60s',
-  timeout: '10s'
+  timeout: '10s',
 });
 
 // 4. Budget alert
@@ -461,8 +477,8 @@ const budget = new gcp.billing.Budget('monthly-budget', {
   thresholdRules: [
     { thresholdPercent: 0.5 },
     { thresholdPercent: 0.75 },
-    { thresholdPercent: 0.9 }
-  ]
+    { thresholdPercent: 0.9 },
+  ],
 });
 ```
 
@@ -478,32 +494,44 @@ new PolicyPack('procureflow-policies', {
       name: 'cloud-run-max-instances',
       description: 'Cloud Run max instances must not exceed 5 (cost cap)',
       enforcementLevel: 'mandatory',
-      validateResource: validateResourceOfType(gcp.cloudrun.Service, (service, args, reportViolation) => {
-        const maxScale = service.template?.metadata?.annotations?.['autoscaling.knative.dev/maxScale'];
-        if (parseInt(maxScale) > 5) {
-          reportViolation('Max instances exceeds 5 (cost cap)');
+      validateResource: validateResourceOfType(
+        gcp.cloudrun.Service,
+        (service, args, reportViolation) => {
+          const maxScale =
+            service.template?.metadata?.annotations?.[
+              'autoscaling.knative.dev/maxScale'
+            ];
+          if (parseInt(maxScale) > 5) {
+            reportViolation('Max instances exceeds 5 (cost cap)');
+          }
         }
-      })
+      ),
     },
     {
       name: 'secret-manager-auto-replication',
       description: 'Secrets must use automatic replication',
       enforcementLevel: 'mandatory',
-      validateResource: validateResourceOfType(gcp.secretmanager.Secret, (secret, args, reportViolation) => {
-        if (!secret.replication?.auto) {
-          reportViolation('Secrets must use automatic replication');
+      validateResource: validateResourceOfType(
+        gcp.secretmanager.Secret,
+        (secret, args, reportViolation) => {
+          if (!secret.replication?.auto) {
+            reportViolation('Secrets must use automatic replication');
+          }
         }
-      })
+      ),
     },
     {
       name: 'cloud-run-non-root-user',
       description: 'Cloud Run containers must run as non-root',
       enforcementLevel: 'advisory',
-      validateResource: validateResourceOfType(gcp.cloudrun.Service, (service, args, reportViolation) => {
-        // Check Dockerfile for USER directive (advisory only)
-      })
-    }
-  ]
+      validateResource: validateResourceOfType(
+        gcp.cloudrun.Service,
+        (service, args, reportViolation) => {
+          // Check Dockerfile for USER directive (advisory only)
+        }
+      ),
+    },
+  ],
 });
 ```
 
@@ -514,6 +542,7 @@ new PolicyPack('procureflow-policies', {
 #### OIDC Configuration
 
 **Workload Identity Pool** (GCP setup):
+
 ```bash
 # Create pool
 gcloud iam workload-identity-pools create github \
@@ -530,6 +559,7 @@ gcloud iam workload-identity-pools providers create-oidc github-oidc \
 ```
 
 **Service Account Bindings**:
+
 ```bash
 # CI/CD service account (build + push)
 gcloud iam service-accounts create github-actions-ci \
@@ -553,6 +583,7 @@ gcloud projects add-iam-policy-binding procureflow-dev \
 ```
 
 **Least-Privilege IAM**:
+
 - **CI service account**: `artifactregistry.writer` only
 - **Deploy service account**: `run.developer`, `secretmanager.viewer`, `iam.serviceAccountUser` (scoped to `procureflow-cloudrun` SA)
 - **Runtime service account**: `secretmanager.secretAccessor` on specific secrets
@@ -562,6 +593,7 @@ gcloud projects add-iam-policy-binding procureflow-dev \
 ### 6. Composite Actions
 
 #### setup-pnpm (`.github/actions/setup-pnpm/action.yml`)
+
 ```yaml
 name: 'Setup pnpm with caching'
 description: 'Setup Node.js, pnpm, and restore/save pnpm cache'
@@ -571,26 +603,27 @@ runs:
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
-    
+
     - uses: pnpm/action-setup@v4
       with:
         version: '10.21.0'
-    
+
     - name: Get pnpm store path
       shell: bash
       run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-    
+
     - uses: actions/cache@v4
       with:
         path: ${{ env.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: ${{ runner.os }}-pnpm-
-    
+
     - shell: bash
       run: pnpm install --frozen-lockfile
 ```
 
 #### docker-build-push (`.github/actions/docker-build-push/action.yml`)
+
 ```yaml
 name: 'Docker build and push with BuildKit cache'
 description: 'Build Docker image with BuildKit cache and push to Artifact Registry'
@@ -618,13 +651,13 @@ runs:
   using: 'composite'
   steps:
     - uses: docker/setup-buildx-action@v3
-    
+
     - uses: docker/login-action@v3
       with:
         registry: ${{ inputs.registry }}
         username: _json_key
         password: ${{ steps.auth.outputs.access_token }}
-    
+
     - uses: docker/build-push-action@v5
       id: build
       with:
@@ -639,6 +672,7 @@ runs:
 ```
 
 #### health-check (`.github/actions/health-check/action.yml`)
+
 ```yaml
 name: 'Health Check'
 description: 'Run smoke tests against deployed service'
@@ -653,7 +687,7 @@ runs:
     - name: Wait for service ready
       shell: bash
       run: sleep 30
-    
+
     - name: Health check
       shell: bash
       run: |
@@ -669,28 +703,29 @@ runs:
 
 ### CI vs IaC vs Runtime
 
-| Responsibility | Owner | Notes |
-|----------------|-------|-------|
-| **Build artifacts** | CI (GitHub Actions) | Docker image, SBOM, provenance |
-| **Store artifacts** | Artifact Registry | Immutable storage by digest |
+| Responsibility            | Owner                       | Notes                          |
+| ------------------------- | --------------------------- | ------------------------------ |
+| **Build artifacts**       | CI (GitHub Actions)         | Docker image, SBOM, provenance |
+| **Store artifacts**       | Artifact Registry           | Immutable storage by digest    |
 | **Deploy infrastructure** | Pulumi (via GitHub Actions) | Cloud Run, secrets, monitoring |
-| **Manage state** | Pulumi Cloud | Encrypted, versioned |
-| **Traffic management** | Cloud Run | Blue/green, canary rollout |
-| **Secrets injection** | Secret Manager → Cloud Run | Runtime secret access |
-| **Monitoring** | Cloud Monitoring | Uptime, metrics, logs |
-| **Policy enforcement** | Pulumi CrossGuard | Cost caps, security guardrails |
+| **Manage state**          | Pulumi Cloud                | Encrypted, versioned           |
+| **Traffic management**    | Cloud Run                   | Blue/green, canary rollout     |
+| **Secrets injection**     | Secret Manager → Cloud Run  | Runtime secret access          |
+| **Monitoring**            | Cloud Monitoring            | Uptime, metrics, logs          |
+| **Policy enforcement**    | Pulumi CrossGuard           | Cost caps, security guardrails |
 
 ---
 
 ## Environment Strategy
 
-| Environment | Stack | Deploy | Approval | Branch | Config |
-|-------------|-------|--------|----------|--------|--------|
-| **Development** | `dev` | Auto | None | `main` | `procureflow-dev` project |
-| **Staging** | `staging` | Manual | 1 reviewer | `main` | `procureflow-staging` project |
-| **Production** | `prod` | Manual | 2 reviewers | `main` | `procureflow-prod` project |
+| Environment     | Stack     | Deploy | Approval    | Branch | Config                        |
+| --------------- | --------- | ------ | ----------- | ------ | ----------------------------- |
+| **Development** | `dev`     | Auto   | None        | `main` | `procureflow-dev` project     |
+| **Staging**     | `staging` | Manual | 1 reviewer  | `main` | `procureflow-staging` project |
+| **Production**  | `prod`    | Manual | 2 reviewers | `main` | `procureflow-prod` project    |
 
 **GitHub Environments**:
+
 - **dev**: No restrictions, auto-deploy on merge
 - **staging**: Require 1 approval, branch: `main` only
 - **production**: Require 2 approvals, branch: `main` only, delay: 5 min
@@ -704,6 +739,7 @@ runs:
 **Trigger**: Health check failure post-deploy
 
 **Mechanism**: Traffic shift to previous revision
+
 ```bash
 gcloud run services update-traffic procureflow-web \
   --to-revisions=$PREVIOUS_REVISION=100
@@ -716,12 +752,15 @@ gcloud run services update-traffic procureflow-web \
 **Trigger**: Production issue discovered post-deploy
 
 **Procedure**:
+
 1. Identify last known-good revision:
+
    ```bash
    gcloud run revisions list --service=procureflow-web --sort-by=~deployed --limit=5
    ```
 
 2. Shift traffic:
+
    ```bash
    gcloud run services update-traffic procureflow-web \
      --to-revisions=web-abc123=100
@@ -739,30 +778,30 @@ gcloud run services update-traffic procureflow-web \
 
 ### Performance
 
-| Metric | Baseline | Target | Measurement |
-|--------|----------|--------|-------------|
-| CI duration (PR) | 7 min | 4-5 min | GitHub Actions logs |
-| Deploy duration | 15 min | 6-8 min | GitHub Actions logs |
-| MTTR (rollback) | 15 min | <1 min | Manual drill |
-| Cache hit rate (pnpm) | 85% | 90% | Actions cache metrics |
-| Cache hit rate (Docker) | 0% | 75% | BuildKit logs |
+| Metric                  | Baseline | Target  | Measurement           |
+| ----------------------- | -------- | ------- | --------------------- |
+| CI duration (PR)        | 7 min    | 4-5 min | GitHub Actions logs   |
+| Deploy duration         | 15 min   | 6-8 min | GitHub Actions logs   |
+| MTTR (rollback)         | 15 min   | <1 min  | Manual drill          |
+| Cache hit rate (pnpm)   | 85%      | 90%     | Actions cache metrics |
+| Cache hit rate (Docker) | 0%       | 75%     | BuildKit logs         |
 
 ### Reliability
 
-| Metric | Baseline | Target | Measurement |
-|--------|----------|--------|-------------|
-| Deployment success rate | 90% | 98% | Deploy workflow pass rate |
-| Downtime per deploy | 0s | 0s | Monitoring (no change expected) |
-| Rollback execution time | Manual | <60s | Automated health checks |
+| Metric                  | Baseline | Target | Measurement                     |
+| ----------------------- | -------- | ------ | ------------------------------- |
+| Deployment success rate | 90%      | 98%    | Deploy workflow pass rate       |
+| Downtime per deploy     | 0s       | 0s     | Monitoring (no change expected) |
+| Rollback execution time | Manual   | <60s   | Automated health checks         |
 
 ### Security
 
-| Metric | Baseline | Target | Measurement |
-|--------|----------|--------|-------------|
-| SLSA provenance level | 0 | 2 | Attestation presence |
-| Long-lived keys in CI | 1 | 0 | Secrets audit |
-| Vulnerability scan coverage | 0% | 100% | Trivy reports |
-| Least-privilege IAM | Partial | Full | IAM audit |
+| Metric                      | Baseline | Target | Measurement          |
+| --------------------------- | -------- | ------ | -------------------- |
+| SLSA provenance level       | 0        | 2      | Attestation presence |
+| Long-lived keys in CI       | 1        | 0      | Secrets audit        |
+| Vulnerability scan coverage | 0%       | 100%   | Trivy reports        |
+| Least-privilege IAM         | Partial  | Full   | IAM audit            |
 
 ---
 
@@ -771,6 +810,7 @@ gcloud run services update-traffic procureflow-web \
 See [Improvement Plan](../operation/cicd-iac.improvement-plan.md) for phased implementation roadmap.
 
 **Key Milestones**:
+
 1. **Phase 0 (Week 1)**: OIDC, concurrency, skip redundant tests → Immediate security + speed wins
 2. **Phase 1 (Week 2)**: Docker caching, build-once-promote-many → 50% faster deploys
 3. **Phase 2 (Week 3)**: Blue/green deployment, automated rollback → Zero-downtime, <1min MTTR

@@ -117,9 +117,7 @@
           "impact": "🟡 MEDIUM - Speed (-1-2 min)",
           "startTime": "2025-11-13T00:15:00Z",
           "endTime": "2025-11-13T00:15:00Z",
-          "evidence": [
-            "ci.yml: Removed needs dependency from test job"
-          ],
+          "evidence": ["ci.yml: Removed needs dependency from test job"],
           "notes": "Completed as bonus during QW phase. Lint and test now parallel",
           "rollbackPlan": "Restore needs dependency between lint and test"
         },
