@@ -50,13 +50,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud
+      # Authenticate with OIDC if variables are set, otherwise use service account key
+      - name: Authenticate to Google Cloud (OIDC)
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
         uses: google-github-actions/auth@v2
         with:
-          # OIDC authentication (recommended) - falls back to credentials_json if OIDC not configured
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || '' }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || '' }}
-          # Fallback to service account key (will be removed after OIDC setup verified)
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
+      
+      - name: Authenticate to Google Cloud (Service Account Key)
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER == ''
+        uses: google-github-actions/auth@v2
+        with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up Cloud SDK
@@ -133,13 +138,18 @@ jobs:
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
-      - name: Authenticate to Google Cloud
+      # Authenticate with OIDC if variables are set, otherwise use service account key
+      - name: Authenticate to Google Cloud (OIDC)
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
         uses: google-github-actions/auth@v2
         with:
-          # OIDC authentication (recommended) - falls back to credentials_json if OIDC not configured
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || '' }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || '' }}
-          # Fallback to service account key (will be removed after OIDC setup verified)
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
+      
+      - name: Authenticate to Google Cloud (Service Account Key)
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER == ''
+        uses: google-github-actions/auth@v2
+        with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up Cloud SDK
