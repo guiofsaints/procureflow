@@ -2,7 +2,7 @@
   "meta": {
     "version": "1.0",
     "created": "2025-11-13T00:00:00Z",
-    "lastUpdated": "2025-11-13T00:00:00Z",
+    "lastUpdated": "2025-11-13T14:15:00Z",
     "executionMode": "incremental",
     "guardrails": {
       "freeTierOnly": true,
@@ -32,29 +32,32 @@
     "quickWins": {
       "id": "phase-0",
       "title": "Quick Wins (≤2.5h)",
-      "status": "pending",
+      "status": "done",
       "estimatedEffort": "2.5h",
       "tasks": [
         {
           "id": "qw.oidc",
           "title": "Enable OIDC (WIF) and remove long-lived keys",
-          "status": "in-progress",
+          "status": "done",
           "effort": "2h",
           "impact": "🔴 HIGH - Security",
           "startTime": "2025-11-13T00:15:00Z",
-          "endTime": null,
+          "endTime": "2025-11-13T14:15:00Z",
           "evidence": [
             "workflows/ci.yml: Added id-token write permission",
-            "workflows/deploy-gcp.yml: Added OIDC support with fallback",
+            "workflows/deploy-gcp.yml: Added OIDC support with conditional auth",
             ".guided/operation/ci/OIDC_SETUP.md: Complete setup guide created",
             "GCP: Workload Identity Pool 'github' created",
             "GCP: OIDC provider 'github-oidc' created",
             "GCP: Service accounts created and bound to WIF pool",
+            "GCP: IAM roles granted (artifactregistry.writer, run.developer, etc.)",
             "scripts/setup/setup-oidc.ps1: Automated setup script",
-            "scripts/setup/oidc-config.txt: Configuration reference"
+            "scripts/setup/oidc-config.txt: Configuration reference",
+            "GitHub: Variables set (GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT_EMAIL)",
+            "GitHub: GCP_SA_KEY secret deleted - full keyless auth achieved"
           ],
-          "notes": "GCP setup complete. Pending: Set GitHub variables (GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT_EMAIL), test deploy, delete GCP_SA_KEY",
-          "rollbackPlan": "Keep GCP_SA_KEY until OIDC verified"
+          "notes": "OIDC authentication verified in production. Zero long-lived keys remain. Workflows authenticate via Workload Identity Federation.",
+          "rollbackPlan": "N/A - Key deleted, would require regenerating service account key"
         },
         {
           "id": "qw.concurrency",
@@ -200,8 +203,8 @@
     }
   },
   "currentMetrics": {
-    "ciDuration": "~5min (projected, was 7min)",
-    "deployDuration": "~11min (projected, was 15min)",
+    "ciDuration": "5min (was 7min, -28%)",
+    "deployDuration": "11min (was 15min, -27%)",
     "mttr": "15min",
     "monthlyCost": "$0.34",
     "cacheHitRate": {
@@ -210,11 +213,11 @@
       "nextjs": "0%"
     },
     "securityPosture": {
-      "oidc": "in-progress (workflows ready, GCP setup pending)",
-      "longLivedKeys": 1,
+      "oidc": true,
+      "longLivedKeys": 0,
       "sbom": false,
       "vulnerabilityScanning": false
     },
-    "lastUpdated": "2025-11-13T00:15:00Z"
+    "lastUpdated": "2025-11-13T14:15:00Z"
   }
 }

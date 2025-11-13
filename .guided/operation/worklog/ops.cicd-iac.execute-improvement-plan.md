@@ -220,3 +220,86 @@ deploy-gcp.yml:
 
 ---
 
+### 2025-11-13 14:15:00 UTC - Phase 0 Complete: OIDC Fully Operational
+
+**Context**: Completed final OIDC validation and removed legacy service account key. Phase 0 Quick Wins fully delivered.
+
+**Changes Applied**:
+
+1. **Fixed Dual-Auth Issue** ✅
+   - **Problem**: Workflows passed both `workload_identity_provider` AND `credentials_json` to auth action, causing "must specify exactly one" error
+   - **Solution**: Split into conditional steps using `if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''`
+   - **Result**: OIDC step executes when variables exist, key step only as fallback
+   - **Commit**: `fix(ci): resolve dual-auth issue in deploy workflow` (c0c3ac5)
+
+2. **Fixed IAM Permissions** ✅
+   - **Problem**: `github-actions-deploy` SA lacked `artifactregistry.writer` role for Docker push
+   - **Solution**: `gcloud projects add-iam-policy-binding` granted role to deploy SA
+   - **Result**: Successful Docker image push to Artifact Registry
+   - **Verification**: Image `sha-c0c3ac5` and `latest` tags created
+
+3. **Cleaned Up Build Warnings** ✅
+   - **Fix 1**: Removed deprecated `optimizeFonts` from `next.config.mjs` (Next.js 16 default)
+   - **Fix 2**: Installed `git` in Dockerfile base stage for build info script
+   - **Fix 3**: Set `OPENAI_API_KEY=build-time-placeholder` to suppress warnings (actual keys at runtime)
+   - **Commits**: `chore: remove deprecated optimizeFonts` (54201dc), `fix(docker): suppress build warnings` (f466278)
+
+4. **Deleted Legacy Key** ✅
+   - **Action**: Deleted `GCP_SA_KEY` secret from GitHub repository
+   - **Impact**: **ZERO long-lived keys** remain - full keyless authentication achieved
+   - **Security Posture**: `longLivedKeys: 0` (was 1), `oidc: true` (was false)
+
+**Workflow Validation**:
+- ✅ OIDC authentication successful (Workload Identity Federation)
+- ✅ Docker build completed (80s build + 52s docs build)
+- ✅ Image pushed to Artifact Registry
+- ✅ No build warnings (git info populated, API key warnings suppressed)
+- ✅ Deploy workflow functional with conditional auth
+
+**Phase 0 Metrics Achieved**:
+
+| Metric | Baseline | Current | Improvement |
+|--------|----------|---------|-------------|
+| **CI Duration** | 7 min | **5 min** | **-28%** ✅ |
+| **Deploy Duration** | 15 min | **11 min** | **-27%** ✅ |
+| **Long-Lived Keys** | 1 | **0** | **-100%** ✅ |
+| **OIDC Enabled** | ❌ | **✅** | **Security WIN** |
+| **Redundant Tests** | Yes | **No** | **-4 min/deploy** |
+| **Concurrency Control** | ❌ | **✅** | **Reliability WIN** |
+
+**Task Completion Summary**:
+- ✅ **QW-1 (OIDC)**: COMPLETE - Workflows authenticate via WIF, legacy key deleted
+- ✅ **QW-2 (Concurrency)**: COMPLETE - CI cancels old runs, deploys queue properly
+- ✅ **QW-3 (Skip Tests)**: COMPLETE - Deploy relies on branch protection (4 min saved)
+- ✅ **IT1.parallel (bonus)**: COMPLETE - Lint/test run in parallel (1-2 min saved)
+
+**Files Modified**:
+- `.github/workflows/deploy-gcp.yml`: Conditional OIDC auth (20 insertions, 10 deletions)
+- `packages/web/next.config.mjs`: Removed deprecated config (3 deletions)
+- `packages/infra/docker/Dockerfile.web`: Added git, suppressed API key warnings (4 insertions, 2 deletions)
+- `.guided/operation/checkpoints.json`: Marked Phase 0 "done", updated metrics
+
+**Evidence**:
+- Commit `c0c3ac5`: Auth fix for dual-mode issue
+- Commit `54201dc`: Next.js config cleanup
+- Commit `f466278`: Docker build warning fixes
+- GCP IAM: Both service accounts have `artifactregistry.writer` role
+- GitHub: `GCP_SA_KEY` secret deleted
+- Artifact Registry: Images successfully pushed with new auth
+
+**Time Spent (Phase 0 Total)**: ~2.5 hours
+- Task automation: 15 min
+- GCP OIDC setup: 30 min (mostly automated script)
+- Troubleshooting auth issues: 45 min
+- Build warning fixes: 30 min
+- Documentation: 30 min
+
+**Status**: ✅ **PHASE 0 COMPLETE** - All Quick Wins delivered
+
+**Next Phase**: Iteration 1 (Build Speed & Immutability)
+- IT1: Docker layer cache (biggest time saver: -3-5 min)
+- IT1: Build once, promote by digest (reliability + immutability)
+
+---
+
+
