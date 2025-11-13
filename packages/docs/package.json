@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
-    "_postbuild": "pagefind --site .next/server/app --output-path out/_pagefind",
-    "postbuild:manual": "pagefind --site .next/server/app --output-path out/_pagefind",
+    "postbuild": "pagefind --site out --output-path out/_pagefind",
+    "postbuild:manual": "pagefind --site out --output-path out/_pagefind",
     "build:prod": "pnpm build && pnpm deploy:copy",
     "deploy:copy": "node scripts/deploy-to-web.js",
     "start": "next start -p 3001",

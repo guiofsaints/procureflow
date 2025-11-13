@@ -91,8 +91,25 @@ function fixHtmlPaths(dir) {
       content = content.replace(/href="\/_next\//g, 'href="/docs/_next/');
       content = content.replace(/src="\/_next\//g, 'src="/docs/_next/');
 
+      // Fix pagefind paths: /_pagefind/ -> /docs/_pagefind/
+      content = content.replace(
+        /href="\/_pagefind\//g,
+        'href="/docs/_pagefind/'
+      );
+      content = content.replace(/src="\/_pagefind\//g, 'src="/docs/_pagefind/');
+
       // Fix root paths for navigation: href="/ -> href="/docs/
       content = content.replace(/href="\/(?!docs)/g, 'href="/docs/');
+
+      fs.writeFileSync(fullPath, content, 'utf-8');
+    } else if (entry.name.endsWith('.js')) {
+      // Fix JavaScript bundle paths for pagefind
+      let content = fs.readFileSync(fullPath, 'utf-8');
+
+      // Fix pagefind dynamic imports and paths
+      content = content.replace(/"\/\_pagefind\//g, '"/docs/_pagefind/');
+      content = content.replace(/'\/\_pagefind\//g, "'/docs/_pagefind/");
+      content = content.replace(/`\/\_pagefind\//g, '`/docs/_pagefind/');
 
       fs.writeFileSync(fullPath, content, 'utf-8');
     }

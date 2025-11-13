@@ -97,7 +97,13 @@ export default async function RootLayout({ children }) {
           hue: { dark: 250, light: 250 },
           saturation: { dark: 90, light: 90 },
         }}
-      />
+      >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.pagefindBasePath = window.location.origin + '/docs/_pagefind/';`,
+          }}
+        />
+      </Head>
       <body>
         <Layout
           navbar={navbar}
