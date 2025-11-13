@@ -7,8 +7,8 @@
 # Pinned to SHA256 digest for security and reproducibility (node:20-alpine as of 2025-11-11)
 FROM node:20-alpine@sha256:6178e78b972f79c335df281f4b7674a2d85071aae2af020ffa39f0a770265435 AS base
 
-# Install curl for healthchecks (Alpine minimal)
-RUN apk add --no-cache curl
+# Install curl for healthchecks and git for build info (Alpine minimal)
+RUN apk add --no-cache curl git
 
 # Enable corepack for pnpm (built-in package manager)
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -76,6 +76,8 @@ ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA} \
 # Set Turbopack root to /app for monorepo support
 WORKDIR /app/packages/web
 ENV NEXT_PRIVATE_TURBOPACK_ROOT=/app
+# Suppress AI key warnings during build (keys configured at runtime)
+ENV OPENAI_API_KEY=build-time-placeholder
 RUN pnpm build
 
 # ============================================================================
