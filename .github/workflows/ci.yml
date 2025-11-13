@@ -242,6 +242,9 @@ jobs:
   deploy:
     name: Trigger Deployment
     needs: docker
+    permissions:
+      id-token: write # Required for OIDC authentication in called workflow
+      contents: read
     uses: ./.github/workflows/deploy-gcp.yml
     with:
       image-tag: ${{ needs.docker.outputs.image-tag }}
