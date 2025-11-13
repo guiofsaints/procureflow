@@ -81,7 +81,7 @@ jobs:
 
       - name: Build Docker image with cache
         run: |
-          IMAGE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${ { env.ARTIFACT_REPO }}/web"
+          IMAGE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/web"
           CACHE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/web-cache"
           GIT_COMMIT_SHA=$(git rev-parse HEAD)
           
