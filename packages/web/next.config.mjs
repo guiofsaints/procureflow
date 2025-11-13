@@ -9,7 +9,8 @@ const nextConfig = {
   output: 'standalone',
 
   // Production optimizations
-  compress: true,
+  // Disable Next.js compression - let Cloud Run handle it at infrastructure level
+  compress: false,
   poweredByHeader: false,
 
   // Environment variables exposed to the browser
