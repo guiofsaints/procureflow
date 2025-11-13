@@ -107,13 +107,11 @@ export function createCloudRunService(config: CloudRunConfig) {
 
   // Deploy Cloud Run service with FREE TIER optimizations (v1 API for stability)
   // See: https://cloud.google.com/run/docs/configuring/services/containers
-  const service = new gcp.cloudrun.Service(
-    serviceName,
-    {
-      name: serviceName,
-      location: config.region,
+  const service = new gcp.cloudrun.Service(serviceName, {
+    name: serviceName,
+    location: config.region,
 
-      template: {
+    template: {
       metadata: {
         annotations: {
           // ⚡ Scale to zero when idle (FREE TIER: $0 when no traffic)

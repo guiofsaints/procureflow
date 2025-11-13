@@ -10,7 +10,13 @@ import { Providers } from './providers';
 
 import '@/styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  fallback: ['system-ui', 'arial'],
+  variable: '--font-inter',
+  adjustFontFallback: true,
+});
 
 export const metadata: Metadata = {
   title: 'ProcureFlow - AI-Native Procurement Platform',
@@ -28,7 +34,7 @@ export default async function RootLayout({
 
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>
           <AuthProvider session={session}>
             <ThemeProvider

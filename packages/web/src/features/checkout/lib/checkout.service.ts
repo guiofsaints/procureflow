@@ -61,7 +61,7 @@ export async function checkoutCart(
   await connectDB();
 
   try {
-    const cart = await CartModel.findOne({ userId }).lean().exec();
+    const cart = await CartModel.findOne({ userId }).exec();
 
     if (!cart) {
       throw new EmptyCartError();
@@ -225,13 +225,14 @@ export async function getPurchaseRequestById(
 async function generateRequestNumber(): Promise<string> {
   const year = new Date().getFullYear();
 
-  // Find the last request number for this year
+  // Find the last request number for this year (globally, not per user)
   const lastRequest = await PurchaseRequestModel.findOne({
-    requesterId: userId,
+    requestNumber: new RegExp(`^PR-${year}-`),
   })
     .sort({ createdAt: -1 })
     .lean()
     .exec();
+
   let sequence = 1;
   if (lastRequest && lastRequest.requestNumber) {
     const match = lastRequest.requestNumber.match(/PR-\d{4}-(\d{4})$/);

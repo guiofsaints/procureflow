@@ -28,6 +28,7 @@ Key improvements:
 - UI refinement with adjusted card padding for better visual consistency
 
 **Performance Impact**:
+
 - Queries by userId + status: ~70% faster
 - Queries by category + status: ~60% faster
 - Cart queries by userId: ~80% faster
