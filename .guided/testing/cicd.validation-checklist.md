@@ -10,12 +10,12 @@
 
 Document current state before making changes:
 
-- [ ] **Current CI time**: ****\_\_**** min (target: <5 min)
-- [ ] **Current deploy time**: ****\_\_**** min (target: <8 min)
-- [ ] **Current MTTR (manual rollback)**: ****\_\_**** min (target: <1 min)
-- [ ] **Current cache hit rate (pnpm)**: ****\_\_**** % (target: >90%)
-- [ ] **Current build success rate**: ****\_\_**** % (target: >98%)
-- [ ] **Long-lived keys count**: ****\_\_**** (target: 0)
+- [ ] **Current CI time**: \***\*\_\_\*\*** min (target: <5 min)
+- [ ] **Current deploy time**: \***\*\_\_\*\*** min (target: <8 min)
+- [ ] **Current MTTR (manual rollback)**: \***\*\_\_\*\*** min (target: <1 min)
+- [ ] **Current cache hit rate (pnpm)**: \***\*\_\_\*\*** % (target: >90%)
+- [ ] **Current build success rate**: \***\*\_\_\*\*** % (target: >98%)
+- [ ] **Long-lived keys count**: \***\*\_\_\*\*** (target: 0)
 - [ ] **SBOM/provenance present**: ⬜ Yes / ⬜ No (target: Yes)
 
 ---
@@ -44,19 +44,19 @@ Document current state before making changes:
 #### Workflow Testing
 
 - [ ] CI workflow authenticates with OIDC (no `GCP_SA_KEY`)
-  - Workflow run: ****************\_\_\_****************
+  - Workflow run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Auth step shows: "Authenticating via Workload Identity Federation"
 - [ ] Deploy workflow authenticates with OIDC
-  - Workflow run: ****************\_\_\_****************
+  - Workflow run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Artifact push succeeds
 - [ ] Pulumi operations succeed with OIDC auth
-  - Deploy run: ****************\_\_\_****************
+  - Deploy run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Cloud Run update succeeds
 
 #### Security Audit
 
 - [ ] `GCP_SA_KEY` secret deleted from GitHub
-  - Deleted by: ******\_\_\_\_****** Date: ****\_\_****
+  - Deleted by: **\*\***\_\_\_\_**\*\*** Date: \***\*\_\_\*\***
 - [ ] No long-lived keys in GitHub Secrets
   ```bash
   gh secret list
@@ -93,12 +93,12 @@ Document current state before making changes:
   - Make 3 commits within 30 seconds
   - Expected: CI runs 1 and 2 cancelled, only run 3 completes
   - Result: ⬜ Pass / ⬜ Fail
-  - Run IDs: ********\_\_********, ********\_\_********, ********\_\_********
+  - Run IDs: **\*\*\*\***\_\_**\*\*\*\***, **\*\*\*\***\_\_**\*\*\*\***, **\*\*\*\***\_\_**\*\*\*\***
 - [ ] **Test 2: Concurrent deploy attempts**
   - Trigger deploy manually twice in quick succession
   - Expected: First deploy runs, second queued (not parallel)
   - Result: ⬜ Pass / ⬜ Fail
-  - Run IDs: ********\_\_********, ********\_\_********
+  - Run IDs: **\*\*\*\***\_\_**\*\*\*\***, **\*\*\*\***\_\_**\*\*\*\***
 
 ---
 
@@ -119,9 +119,9 @@ Document current state before making changes:
 
 #### Timing Validation
 
-- [ ] **Baseline deploy time** (before): ****\_\_**** min
-- [ ] **New deploy time** (after): ****\_\_**** min
-- [ ] **Time saved**: ****\_\_**** min (expected: ~4 min)
+- [ ] **Baseline deploy time** (before): \***\*\_\_\*\*** min
+- [ ] **New deploy time** (after): \***\*\_\_\*\*** min
+- [ ] **Time saved**: \***\*\_\_\*\*** min (expected: ~4 min)
 
 #### Flow Testing
 
@@ -133,7 +133,7 @@ Document current state before making changes:
   - Merge PR to main
   - Expected: Deploy runs immediately, skips tests
   - Result: ⬜ Pass / ⬜ Fail
-  - Deploy run: ****************\_\_\_****************
+  - Deploy run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
 
 ---
 
@@ -153,14 +153,14 @@ Document current state before making changes:
 #### Performance Testing
 
 - [ ] **Cold build** (clear cache first)
-  - Run: ****************\_\_\_****************
-  - Duration: ****\_\_**** min
-  - Cache writes: ****\_\_**** MB
+  - Run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
+  - Duration: \***\*\_\_\*\*** min
+  - Cache writes: \***\*\_\_\*\*** MB
 - [ ] **Warm build** (cache present)
-  - Run: ****************\_\_\_****************
-  - Duration: ****\_\_**** min (expected: <2 min)
-  - Cache hits: ****\_\_**** MB
-  - **Time saved**: ****\_\_**** min
+  - Run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
+  - Duration: \***\*\_\_\*\*** min (expected: <2 min)
+  - Cache hits: \***\*\_\_\*\*** MB
+  - **Time saved**: \***\*\_\_\*\*** min
 
 #### Cache Verification
 
@@ -169,7 +169,7 @@ Document current state before making changes:
   gh cache list
   # Should show entries like buildkit-*, size ~500MB-1GB
   ```
-- [ ] Cache hit rate: ****\_\_**** % (target: >70%)
+- [ ] Cache hit rate: \***\*\_\_\*\*** % (target: >70%)
 
 ---
 
@@ -186,13 +186,13 @@ Document current state before making changes:
 #### Performance Testing
 
 - [ ] **Build without cache**
-  - Run: ****************\_\_\_****************
-  - Duration: ****\_\_**** s
+  - Run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
+  - Duration: \***\*\_\_\*\*** s
 - [ ] **Build with cache**
-  - Run: ****************\_\_\_****************
-  - Duration: ****\_\_**** s (expected: <60s)
+  - Run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
+  - Duration: \***\*\_\_\*\*** s (expected: <60s)
   - Cache restored: ⬜ Yes / ⬜ No
-  - **Time saved**: ****\_\_**** s
+  - **Time saved**: \***\*\_\_\*\*** s
 
 ---
 
@@ -207,11 +207,11 @@ Document current state before making changes:
 #### Timing Validation
 
 - [ ] **CI run with parallel jobs**
-  - Run: ****************\_\_\_****************
-  - Lint duration: ****\_\_**** s
-  - Test duration: ****\_\_**** s
-  - Build duration: ****\_\_**** s
-  - **Total CI time**: ****\_\_**** min (expected: <5 min)
+  - Run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
+  - Lint duration: \***\*\_\_\*\*** s
+  - Test duration: \***\*\_\_\*\*** s
+  - Build duration: \***\*\_\_\*\*** s
+  - **Total CI time**: \***\*\_\_\*\*** min (expected: <5 min)
 - [ ] **Verify parallelization**
   - Lint and test start times within 5 seconds of each other: ⬜ Yes / ⬜ No
 
@@ -236,15 +236,15 @@ Document current state before making changes:
 #### Flow Testing
 
 - [ ] **Test 1: CI build**
-  - CI run: ****************\_\_\_****************
+  - CI run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Image pushed: ⬜ Yes
-  - Digest exported: ******************\_\_******************
+  - Digest exported: **\*\*\*\***\*\***\*\*\*\***\_\_**\*\*\*\***\*\***\*\*\*\***
   - Tags: git-$SHA, $BRANCH-latest
 - [ ] **Test 2: Deploy uses CI artifact**
-  - Deploy run: ****************\_\_\_****************
+  - Deploy run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Image pulled (not built): ⬜ Yes
   - Digest matches CI: ⬜ Yes
-  - Cloud Run revision image: ******************\_\_******************
+  - Cloud Run revision image: **\*\*\*\***\*\***\*\*\*\***\_\_**\*\*\*\***\*\***\*\*\*\***
 - [ ] **Test 3: Verify deployed artifact**
   ```bash
   gcloud run services describe procureflow-web --region=us-central1 --format='value(spec.template.spec.containers[0].image)'
@@ -253,8 +253,8 @@ Document current state before making changes:
 
 #### Performance
 
-- [ ] **Deploy time without rebuild**: ****\_\_**** min (expected: <8 min)
-- [ ] **Time saved**: ****\_\_**** min (expected: 5-7 min)
+- [ ] **Deploy time without rebuild**: \***\*\_\_\*\*** min (expected: <8 min)
+- [ ] **Time saved**: \***\*\_\_\*\*** min (expected: 5-7 min)
 
 ---
 
@@ -292,17 +292,17 @@ Document current state before making changes:
 #### Deployment Testing
 
 - [ ] **Test 1: Gradual rollout**
-  - Deploy run: ****************\_\_\_****************
+  - Deploy run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Initial traffic to new revision: 0%
   - After health checks: 10% → 50% → 100%
-  - Total deployment time: ****\_\_**** min
+  - Total deployment time: \***\*\_\_\*\*** min
 - [ ] **Test 2: Zero-downtime verification**
   - Run load test during deploy:
     ```bash
     while true; do curl -s https://YOUR_SERVICE_URL/api/health; sleep 1; done
     ```
-  - Downtime: ****\_\_**** seconds (expected: 0s)
-  - 5xx errors: ****\_\_**** (expected: 0)
+  - Downtime: \***\*\_\_\*\*** seconds (expected: 0s)
+  - 5xx errors: \***\*\_\_\*\*** (expected: 0)
 
 #### Rollback Testing
 
@@ -315,7 +315,7 @@ Document current state before making changes:
     ```bash
     gcloud run services update-traffic procureflow-web --to-revisions=PREVIOUS_REVISION=100
     ```
-  - Rollback time: ****\_\_**** s (target: <60s)
+  - Rollback time: \***\*\_\_\*\*** s (target: <60s)
   - Service available: ⬜ Yes / ⬜ No
 
 ---
@@ -337,13 +337,13 @@ Document current state before making changes:
 #### Testing
 
 - [ ] **Test 1: Health checks pass**
-  - Deploy run: ****************\_\_\_****************
+  - Deploy run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Health check step: ⬜ Pass
   - Endpoints tested: /api/health, /api/items
   - Database connectivity verified: ⬜ Yes
 - [ ] **Test 2: Health checks fail (simulated)**
   - Intentionally break `/api/health` endpoint
-  - Deploy attempt: ****************\_\_\_****************
+  - Deploy attempt: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Expected: Deploy fails before traffic shift
   - Result: ⬜ Pass (deploy blocked) / ⬜ Fail
 
@@ -365,13 +365,13 @@ Document current state before making changes:
 
 - [ ] **Test 1: Rollback on health check failure**
   - Intentionally fail health checks
-  - Deploy run: ****************\_\_\_****************
+  - Deploy run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Expected: Automatic rollback to previous revision
   - Result: ⬜ Pass / ⬜ Fail
-  - Rollback time: ****\_\_**** s (target: <60s)
+  - Rollback time: \***\*\_\_\*\*** s (target: <60s)
 - [ ] **Test 2: Service availability during rollback**
   - Run load test during failed deploy
-  - Downtime: ****\_\_**** s (expected: <5s)
+  - Downtime: \***\*\_\_\*\*** s (expected: <5s)
   - Service remains available: ⬜ Yes / ⬜ No
 
 ---
@@ -426,17 +426,17 @@ Document current state before making changes:
 #### Testing
 
 - [ ] **Scan runs on every build**
-  - CI run: ****************\_\_\_****************
+  - CI run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Trivy step: ⬜ Pass
-  - Vulnerabilities found: ****\_\_****
+  - Vulnerabilities found: \***\*\_\_\*\***
   - Severity breakdown: CRITICAL: **, HIGH: **, MEDIUM: **, LOW: **
 - [ ] **SARIF upload to GitHub Security**
   - Navigate to: Security → Code scanning
   - Trivy results visible: ⬜ Yes / ⬜ No
-  - Sample alert: ****************\_\_\_****************
+  - Sample alert: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
 - [ ] **Build fails on critical vulnerabilities**
   - Intentionally add vulnerable package (e.g., old lodash)
-  - CI run: ****************\_\_\_****************
+  - CI run: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
   - Build fails: ⬜ Yes / ⬜ No
 
 ---
@@ -450,12 +450,12 @@ Document current state before making changes:
 - [ ] **staging environment**: 1 required reviewer
   - Settings → Environments → staging → Protection rules
   - Required reviewers: 1
-  - Reviewers: ****************\_\_\_****************
+  - Reviewers: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
 - [ ] **production environment**: 2 required reviewers + branch restriction
   - Settings → Environments → production → Protection rules
   - Required reviewers: 2
   - Deployment branches: `main` only
-  - Reviewers: ****************\_\_\_****************, ****************\_\_\_****************
+  - Reviewers: **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***, **\*\***\*\*\*\***\*\***\_\_\_**\*\***\*\*\*\***\*\***
 
 #### Testing
 
@@ -480,30 +480,30 @@ Document current state before making changes:
 
 ### Cold Start Timing (No Cache)
 
-| Stage                | Baseline          | Target          | Actual       | Pass/Fail |
-| -------------------- | ----------------- | --------------- | ------------ | --------- |
-| Checkout             | 15s               | 15s             | **\_** s     | ⬜        |
-| Setup pnpm           | 30s               | 30s             | **\_** s     | ⬜        |
-| Install deps (cold)  | 90s               | 60s             | **\_** s     | ⬜        |
-| Lint                 | 45s               | 45s             | **\_** s     | ⬜        |
-| Test                 | 30s               | 30s             | **\_** s     | ⬜        |
-| Build Next.js (cold) | 120s              | 90s             | **\_** s     | ⬜        |
-| Docker build (cold)  | 420s              | 240s            | **\_** s     | ⬜        |
-| Docker push          | 45s               | 45s             | **\_** s     | ⬜        |
-| Pulumi up            | 180s              | 120s            | **\_** s     | ⬜        |
-| Health checks        | 45s               | 45s             | **\_** s     | ⬜        |
-| **Total CI**         | **420s (7min)**   | **300s (5min)** | ****\_** s** | ⬜        |
-| **Total Deploy**     | **1020s (17min)** | **480s (8min)** | ****\_** s** | ⬜        |
+| Stage                | Baseline          | Target          | Actual           | Pass/Fail |
+| -------------------- | ----------------- | --------------- | ---------------- | --------- |
+| Checkout             | 15s               | 15s             | **\_** s         | ⬜        |
+| Setup pnpm           | 30s               | 30s             | **\_** s         | ⬜        |
+| Install deps (cold)  | 90s               | 60s             | **\_** s         | ⬜        |
+| Lint                 | 45s               | 45s             | **\_** s         | ⬜        |
+| Test                 | 30s               | 30s             | **\_** s         | ⬜        |
+| Build Next.js (cold) | 120s              | 90s             | **\_** s         | ⬜        |
+| Docker build (cold)  | 420s              | 240s            | **\_** s         | ⬜        |
+| Docker push          | 45s               | 45s             | **\_** s         | ⬜        |
+| Pulumi up            | 180s              | 120s            | **\_** s         | ⬜        |
+| Health checks        | 45s               | 45s             | **\_** s         | ⬜        |
+| **Total CI**         | **420s (7min)**   | **300s (5min)** | \***\*\_** s\*\* | ⬜        |
+| **Total Deploy**     | **1020s (17min)** | **480s (8min)** | \***\*\_** s\*\* | ⬜        |
 
 ### Warm Start Timing (With Cache)
 
-| Stage                   | Baseline  | Target          | Actual       | Pass/Fail |
-| ----------------------- | --------- | --------------- | ------------ | --------- |
-| Install deps (warm)     | 90s       | 25s             | **\_** s     | ⬜        |
-| Build Next.js (warm)    | 120s      | 45s             | **\_** s     | ⬜        |
-| Docker build (warm)     | 420s      | 90s             | **\_** s     | ⬜        |
-| **Total CI (warm)**     | **420s**  | **240s (4min)** | ****\_** s** | ⬜        |
-| **Total Deploy (warm)** | **1020s** | **360s (6min)** | ****\_** s** | ⬜        |
+| Stage                   | Baseline  | Target          | Actual           | Pass/Fail |
+| ----------------------- | --------- | --------------- | ---------------- | --------- |
+| Install deps (warm)     | 90s       | 25s             | **\_** s         | ⬜        |
+| Build Next.js (warm)    | 120s      | 45s             | **\_** s         | ⬜        |
+| Docker build (warm)     | 420s      | 90s             | **\_** s         | ⬜        |
+| **Total CI (warm)**     | **420s**  | **240s (4min)** | \***\*\_** s\*\* | ⬜        |
+| **Total Deploy (warm)** | **1020s** | **360s (6min)** | \***\*\_** s\*\* | ⬜        |
 
 ### Reliability Metrics
 
@@ -543,14 +543,14 @@ Document current state before making changes:
 
 ## Acceptance Sign-Off
 
-| Phase       | Completed | Validated By   | Date         | Notes |
-| ----------- | --------- | -------------- | ------------ | ----- |
-| Quick Wins  | ⬜        | ******\_****** | **\_\_\_\_** |       |
-| Iteration 1 | ⬜        | ******\_****** | **\_\_\_\_** |       |
-| Iteration 2 | ⬜        | ******\_****** | **\_\_\_\_** |       |
-| Later       | ⬜        | ******\_****** | **\_\_\_\_** |       |
+| Phase       | Completed | Validated By       | Date         | Notes |
+| ----------- | --------- | ------------------ | ------------ | ----- |
+| Quick Wins  | ⬜        | **\*\***\_**\*\*** | **\_\_\_\_** |       |
+| Iteration 1 | ⬜        | **\*\***\_**\*\*** | **\_\_\_\_** |       |
+| Iteration 2 | ⬜        | **\*\***\_**\*\*** | **\_\_\_\_** |       |
+| Later       | ⬜        | **\*\***\_**\*\*** | **\_\_\_\_** |       |
 
-**Final Approval**: ************\_************ Date: ****\_\_****  
+**Final Approval**: \***\*\*\*\*\*\*\***\_\***\*\*\*\*\*\*\*** Date: \***\*\_\_\*\***  
 **Production Rollout**: ⬜ Approved / ⬜ Rejected
 
 ---

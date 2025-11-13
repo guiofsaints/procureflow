@@ -261,6 +261,7 @@ This document provides a **time-phased implementation roadmap** for modernizing 
 **Steps**:
 
 1. Remove `needs` from lint and test jobs in `ci.yml`:
+
    ```yaml
    jobs:
      lint:
@@ -350,6 +351,7 @@ This document provides a **time-phased implementation roadmap** for modernizing 
 **Steps**:
 
 1. Update tagging strategy:
+
    ```yaml
    # Push with git SHA tag
    - run: |
@@ -420,6 +422,7 @@ This document provides a **time-phased implementation roadmap** for modernizing 
    ```
 
 2. Add gradual traffic shift to deploy workflow:
+
    ```yaml
    - name: Canary rollout
      run: |
