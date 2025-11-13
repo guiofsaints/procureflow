@@ -79,15 +79,23 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Generated image tag: $TAG"
 
-      - name: Build Docker image
+      - name: Build Docker image with cache
         run: |
-          IMAGE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/web"
+          IMAGE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${ { env.ARTIFACT_REPO }}/web"
+          CACHE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/web-cache"
           GIT_COMMIT_SHA=$(git rev-parse HEAD)
+          
+          # Enable Docker BuildKit for cache support
+          export DOCKER_BUILDKIT=1
+          
+          # Build with inline cache export and registry cache import
           docker build \
             -f packages/infra/docker/Dockerfile.web \
             --build-arg GIT_COMMIT_SHA=$GIT_COMMIT_SHA \
             --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
             --build-arg VERSION=${{ steps.image-tag.outputs.tag }} \
+            --cache-from type=registry,ref=$CACHE_URL:latest \
+            --cache-to type=registry,ref=$CACHE_URL:latest,mode=max \
             -t $IMAGE_URL:${{ steps.image-tag.outputs.tag }} \
             -t $IMAGE_URL:latest \
             .
