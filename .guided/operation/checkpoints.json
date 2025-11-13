@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "version": "1.0",
+    "created": "2025-11-13T00:00:00Z",
+    "lastUpdated": "2025-11-13T00:00:00Z",
+    "executionMode": "incremental",
+    "guardrails": {
+      "freeTierOnly": true,
+      "noDowntime": true,
+      "reversible": true,
+      "oidcRequired": true
+    }
+  },
+  "baseline": {
+    "ciDuration": "7min",
+    "deployDuration": "15min",
+    "mttr": "15min",
+    "monthlyCost": "$0.34",
+    "cacheHitRate": {
+      "pnpm": "85%",
+      "docker": "0%",
+      "nextjs": "0%"
+    },
+    "securityPosture": {
+      "oidc": false,
+      "longLivedKeys": 1,
+      "sbom": false,
+      "vulnerabilityScanning": false
+    }
+  },
+  "phases": {
+    "quickWins": {
+      "id": "phase-0",
+      "title": "Quick Wins (≤2.5h)",
+      "status": "pending",
+      "estimatedEffort": "2.5h",
+      "tasks": [
+        {
+          "id": "qw.oidc",
+          "title": "Enable OIDC (WIF) and remove long-lived keys",
+          "status": "in-progress",
+          "effort": "2h",
+          "impact": "🔴 HIGH - Security",
+          "startTime": "2025-11-13T00:15:00Z",
+          "endTime": null,
+          "evidence": [
+            "workflows/ci.yml: Added id-token write permission",
+            "workflows/deploy-gcp.yml: Added OIDC support with fallback",
+            ".guided/operation/ci/OIDC_SETUP.md: Complete setup guide created",
+            "GCP: Workload Identity Pool 'github' created",
+            "GCP: OIDC provider 'github-oidc' created",
+            "GCP: Service accounts created and bound to WIF pool",
+            "scripts/setup/setup-oidc.ps1: Automated setup script",
+            "scripts/setup/oidc-config.txt: Configuration reference"
+          ],
+          "notes": "GCP setup complete. Pending: Set GitHub variables (GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT_EMAIL), test deploy, delete GCP_SA_KEY",
+          "rollbackPlan": "Keep GCP_SA_KEY until OIDC verified"
+        },
+        {
+          "id": "qw.concurrency",
+          "title": "Add concurrency controls (CI + deploy)",
+          "status": "done",
+          "effort": "10m",
+          "impact": "🟡 MEDIUM - Reliability",
+          "startTime": "2025-11-13T00:15:00Z",
+          "endTime": "2025-11-13T00:15:00Z",
+          "evidence": [
+            "ci.yml: concurrency group with cancel-in-progress",
+            "deploy-gcp.yml: concurrency group without cancel"
+          ],
+          "notes": "CI runs cancel old builds, deploys queue properly",
+          "rollbackPlan": "Remove concurrency blocks from workflows"
+        },
+        {
+          "id": "qw.skip-redundant-tests",
+          "title": "Skip redundant test runs in deploy workflow",
+          "status": "done",
+          "effort": "15m",
+          "impact": "🟢 HIGH - Speed (-4 min)",
+          "startTime": "2025-11-13T00:15:00Z",
+          "endTime": "2025-11-13T00:15:00Z",
+          "evidence": [
+            "deploy-gcp.yml: Removed 40-line test job",
+            "Comment added: tests enforced by branch protection"
+          ],
+          "notes": "Saves 4 min per deploy. Requires branch protection on main",
+          "rollbackPlan": "Re-add test job to deploy workflow"
+        }
+      ]
+    },
+    "iteration1": {
+      "id": "phase-1",
+      "title": "Iteration 1 - Build speed & immutability (≤5h)",
+      "status": "pending",
+      "estimatedEffort": "5h",
+      "tasks": [
+        {
+          "id": "it1.docker-cache",
+          "title": "Enable Docker layer cache (BuildKit) + Next.js cache",
+          "status": "pending",
+          "effort": "30m",
+          "impact": "🟢 HIGH - Speed (-3-5 min)",
+          "startTime": null,
+          "endTime": null,
+          "evidence": [],
+          "notes": "",
+          "rollbackPlan": "Remove cache-from/cache-to from workflow"
+        },
+        {
+          "id": "it1.parallel",
+          "title": "Parallelize lint and test in CI",
+          "status": "done",
+          "effort": "10m",
+          "impact": "🟡 MEDIUM - Speed (-1-2 min)",
+          "startTime": "2025-11-13T00:15:00Z",
+          "endTime": "2025-11-13T00:15:00Z",
+          "evidence": [
+            "ci.yml: Removed needs dependency from test job"
+          ],
+          "notes": "Completed as bonus during QW phase. Lint and test now parallel",
+          "rollbackPlan": "Restore needs dependency between lint and test"
+        },
+        {
+          "id": "it1.build-once",
+          "title": "Build once, promote by digest",
+          "status": "pending",
+          "effort": "2h",
+          "impact": "🔴 HIGH - Speed + Reliability",
+          "startTime": null,
+          "endTime": null,
+          "evidence": [],
+          "notes": "",
+          "rollbackPlan": "Revert to rebuild-per-deploy pattern"
+        }
+      ]
+    },
+    "iteration2": {
+      "id": "phase-2",
+      "title": "Iteration 2 - Reliability + security hardening (≤12h)",
+      "status": "pending",
+      "estimatedEffort": "12h",
+      "tasks": [
+        {
+          "id": "it2.bluegreen",
+          "title": "Blue/green + gradual traffic shift + automated rollback",
+          "status": "pending",
+          "effort": "4h",
+          "impact": "🔴 HIGH - Reliability (MTTR <1min)",
+          "startTime": null,
+          "endTime": null,
+          "evidence": [],
+          "notes": "",
+          "rollbackPlan": "Revert to 100% traffic to latest"
+        },
+        {
+          "id": "it2.attestation",
+          "title": "SBOM + provenance + vuln scanning",
+          "status": "pending",
+          "effort": "4h",
+          "impact": "🟡 MEDIUM - Security (SLSA L2)",
+          "startTime": null,
+          "endTime": null,
+          "evidence": [],
+          "notes": "",
+          "rollbackPlan": "Remove Trivy scan and attestation flags"
+        },
+        {
+          "id": "it2.pulumi-ux",
+          "title": "PR preview comments + multi-stack + drift detection",
+          "status": "pending",
+          "effort": "4h",
+          "impact": "🟡 MEDIUM - Reliability + Maintainability",
+          "startTime": null,
+          "endTime": null,
+          "evidence": [],
+          "notes": "",
+          "rollbackPlan": "Remove pulumi-preview workflow"
+        }
+      ]
+    },
+    "later": {
+      "id": "phase-3",
+      "title": "Later - Housekeeping (optional, ≤5h)",
+      "status": "pending",
+      "estimatedEffort": "5h",
+      "tasks": [
+        {
+          "id": "later.retention-costs",
+          "title": "Artifact Registry retention + image size trim + budget alerts",
+          "status": "pending",
+          "effort": "3h",
+          "impact": "🟢 MEDIUM - Cost (-$0.16/m)",
+          "startTime": null,
+          "endTime": null,
+          "evidence": [],
+          "notes": "",
+          "rollbackPlan": "Remove cleanup policies"
+        }
+      ]
+    }
+  },
+  "currentMetrics": {
+    "ciDuration": "~5min (projected, was 7min)",
+    "deployDuration": "~11min (projected, was 15min)",
+    "mttr": "15min",
+    "monthlyCost": "$0.34",
+    "cacheHitRate": {
+      "pnpm": "85%",
+      "docker": "0%",
+      "nextjs": "0%"
+    },
+    "securityPosture": {
+      "oidc": "in-progress (workflows ready, GCP setup pending)",
+      "longLivedKeys": 1,
+      "sbom": false,
+      "vulnerabilityScanning": false
+    },
+    "lastUpdated": "2025-11-13T00:15:00Z"
+  }
+}

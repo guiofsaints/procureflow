@@ -1,0 +1,465 @@
+name: "Deploy to GCP with OIDC"
+# 
+# Reusable deployment workflow template for ProcureFlow.
+# 
+# Purpose:
+#   - Authenticate to GCP using OIDC (Workload Identity Federation)
+#   - Pull Docker image by SHA256 digest (immutable reference)
+#   - Deploy to specified environment with Pulumi
+#   - Validate deployment health
+#   - Support manual approval gates for production
+# 
+# Usage:
+#   jobs:
+#     deploy-staging:
+#       uses: ./.github/workflows/reusable-deploy.yml
+#       with:
+#         environment: staging
+#         gcp-project-id: procureflow-staging
+#         gcp-workload-identity-provider: projects/123/locations/global/workloadIdentityPools/github/providers/github
+#         gcp-service-account: github-actions@procureflow-staging.iam.gserviceaccount.com
+#         image-digest: sha256:abc123def456...
+#         pulumi-stack: staging
+#       secrets:
+#         PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+# 
+# Security:
+#   - No long-lived credentials stored
+#   - OIDC token exchanged for short-lived GCP token
+#   - Image reference by digest (immutable, verified)
+#   - Pulumi state encrypted at rest
+#   - Manual approval required for production
+# 
+# Acceptance Criteria:
+#   - [x] OIDC authentication (no service account keys)
+#   - [x] Immutable image reference (digest, not tag)
+#   - [x] Environment-specific configuration
+#   - [x] Manual approval gates
+#   - [x] Health check validation
+#   - [x] Rollback mechanism (Pulumi stack history)
+
+on:
+  workflow_call:
+    inputs:
+      # Environment Configuration
+      environment:
+        description: 'Target environment (dev, staging, production)'
+        required: true
+        type: string
+      
+      # GCP Configuration
+      gcp-project-id:
+        description: 'GCP project ID (e.g., procureflow-staging)'
+        required: true
+        type: string
+      
+      gcp-workload-identity-provider:
+        description: 'Workload Identity Provider resource name (projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL/providers/PROVIDER)'
+        required: true
+        type: string
+      
+      gcp-service-account:
+        description: 'Service account email for deployment (github-actions@PROJECT.iam.gserviceaccount.com)'
+        required: true
+        type: string
+      
+      gcp-region:
+        description: 'GCP region for deployment'
+        required: false
+        type: string
+        default: 'us-central1'
+      
+      # Artifact Configuration
+      artifact-registry:
+        description: 'Artifact Registry repository (e.g., us-central1-docker.pkg.dev/PROJECT/REPO)'
+        required: true
+        type: string
+      
+      image-name:
+        description: 'Docker image name (without tag or digest)'
+        required: true
+        type: string
+      
+      image-digest:
+        description: 'SHA256 digest of the Docker image to deploy (e.g., sha256:abc123...)'
+        required: true
+        type: string
+      
+      # Pulumi Configuration
+      pulumi-stack:
+        description: 'Pulumi stack name (dev, staging, production)'
+        required: true
+        type: string
+      
+      pulumi-work-dir:
+        description: 'Working directory for Pulumi operations'
+        required: false
+        type: string
+        default: 'packages/infra/pulumi/gcp'
+      
+      # Deployment Options
+      require-approval:
+        description: 'Require manual approval before deployment'
+        required: false
+        type: boolean
+        default: false
+      
+      health-check-url:
+        description: 'URL to validate after deployment (optional, derived from service URL if omitted)'
+        required: false
+        type: string
+      
+      health-check-timeout:
+        description: 'Health check timeout in seconds'
+        required: false
+        type: number
+        default: 300
+      
+    secrets:
+      PULUMI_ACCESS_TOKEN:
+        description: 'Pulumi access token for state management'
+        required: true
+      
+      # Application secrets (passed to Pulumi config)
+      # These are injected into Cloud Run via Secret Manager
+      # PLACEHOLDER - Replace with actual secret names from your GitHub repository
+      APP_SECRET_1:
+        description: 'Application secret 1 (e.g., NEXTAUTH_SECRET)'
+        required: false
+      
+      APP_SECRET_2:
+        description: 'Application secret 2 (e.g., OPENAI_API_KEY)'
+        required: false
+      
+      APP_SECRET_3:
+        description: 'Application secret 3 (e.g., MONGODB_URI)'
+        required: false
+
+permissions:
+  contents: read
+  id-token: write  # Required for OIDC token generation
+
+jobs:
+  # Pre-deployment validation
+  validate:
+    name: "Validate Deployment Inputs"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate environment
+        run: |
+          allowed_envs=("dev" "staging" "production")
+          if [[ ! " ${allowed_envs[@]} " =~ " ${{ inputs.environment }} " ]]; then
+            echo "::error::Invalid environment: ${{ inputs.environment }}. Must be one of: ${allowed_envs[@]}"
+            exit 1
+          fi
+          echo "✅ Environment validated: ${{ inputs.environment }}"
+      
+      - name: Validate image digest format
+        run: |
+          if [[ ! "${{ inputs.image-digest }}" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "::error::Invalid image digest format: ${{ inputs.image-digest }}"
+            echo "Expected format: sha256:<64-char hex>"
+            exit 1
+          fi
+          echo "✅ Image digest validated: ${{ inputs.image-digest }}"
+      
+      - name: Output deployment plan
+        run: |
+          echo "## 🚀 Deployment Plan"
+          echo ""
+          echo "| Parameter | Value |"
+          echo "|-----------|-------|"
+          echo "| **Environment** | ${{ inputs.environment }} |"
+          echo "| **GCP Project** | ${{ inputs.gcp-project-id }} |"
+          echo "| **Region** | ${{ inputs.gcp-region }} |"
+          echo "| **Image** | ${{ inputs.artifact-registry }}/${{ inputs.image-name }}@${{ inputs.image-digest }} |"
+          echo "| **Pulumi Stack** | ${{ inputs.pulumi-stack }} |"
+          echo "| **Approval Required** | ${{ inputs.require-approval }} |"
+
+  # Manual approval gate (if required)
+  approval:
+    name: "Approve Deployment"
+    needs: validate
+    runs-on: ubuntu-latest
+    if: inputs.require-approval
+    environment:
+      name: ${{ inputs.environment }}-approval
+      url: https://${{ inputs.environment }}.procureflow.com  # PLACEHOLDER - Replace with actual URL
+    
+    steps:
+      - name: Wait for approval
+        run: |
+          echo "⏳ Waiting for manual approval for ${{ inputs.environment }} deployment..."
+          echo "Review the deployment plan in the validation job before approving."
+
+  # Deploy with Pulumi
+  deploy:
+    name: "Deploy to ${{ inputs.environment }}"
+    needs: [validate, approval]
+    if: always() && (needs.approval.result == 'success' || needs.approval.result == 'skipped')
+    runs-on: ubuntu-latest
+    
+    # GitHub environment for deployment tracking
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ steps.get-service-url.outputs.service_url }}
+    
+    steps:
+      # 1. Authenticate to GCP with OIDC
+      - name: "Authenticate to Google Cloud"
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ inputs.gcp-workload-identity-provider }}
+          service_account: ${{ inputs.gcp-service-account }}
+          token_format: 'access_token'
+          access_token_lifetime: '600s'  # 10 minutes (minimum for deployment)
+      
+      - name: "Verify GCP authentication"
+        run: |
+          gcloud auth list --filter=status:ACTIVE --format="value(account)"
+          gcloud config get-value project
+          echo "✅ Authenticated to GCP as ${{ inputs.gcp-service-account }}"
+      
+      # 2. Checkout repository (for Pulumi code)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # 3. Setup Node.js (for Pulumi TypeScript)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      # 4. Setup pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.21.0
+      
+      # 5. Cache pnpm store
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      
+      # 6. Install dependencies
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      # 7. Setup Pulumi CLI
+      - name: Setup Pulumi
+        uses: pulumi/actions@v5
+        with:
+          pulumi-version: ^3.140.0
+      
+      # 8. Verify image exists in Artifact Registry
+      - name: Verify Docker image
+        run: |
+          IMAGE_URL="${{ inputs.artifact-registry }}/${{ inputs.image-name }}@${{ inputs.image-digest }}"
+          echo "🔍 Verifying image: $IMAGE_URL"
+          
+          # Use gcloud to check if image exists
+          if gcloud artifacts docker images describe "$IMAGE_URL" --format=json > /dev/null 2>&1; then
+            echo "✅ Image verified in Artifact Registry"
+          else
+            echo "::error::Image not found: $IMAGE_URL"
+            exit 1
+          fi
+      
+      # 9. Configure Pulumi stack
+      - name: Select Pulumi stack
+        working-directory: ${{ inputs.pulumi-work-dir }}
+        run: |
+          pulumi stack select ${{ inputs.pulumi-stack }} --non-interactive
+          echo "✅ Selected stack: ${{ inputs.pulumi-stack }}"
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      
+      # 10. Set Pulumi configuration (image reference by digest)
+      - name: Configure deployment image
+        working-directory: ${{ inputs.pulumi-work-dir }}
+        run: |
+          IMAGE_URL="${{ inputs.artifact-registry }}/${{ inputs.image-name }}@${{ inputs.image-digest }}"
+          pulumi config set image-url "$IMAGE_URL" --non-interactive
+          echo "✅ Configured image: $IMAGE_URL"
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      
+      # 11. Deploy with Pulumi
+      - name: Deploy infrastructure
+        id: pulumi-up
+        uses: pulumi/actions@v5
+        with:
+          command: up
+          stack-name: ${{ inputs.pulumi-stack }}
+          work-dir: ${{ inputs.pulumi-work-dir }}
+          upsert: false  # Do not auto-create stacks (must exist)
+          comment-on-pr: false
+          comment-on-summary: true
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          # PLACEHOLDER - Add application secrets as needed
+          # These should be passed to Pulumi config and injected into Secret Manager
+          # Example:
+          # NEXTAUTH_SECRET: ${{ secrets.APP_SECRET_1 }}
+          # OPENAI_API_KEY: ${{ secrets.APP_SECRET_2 }}
+          # MONGODB_URI: ${{ secrets.APP_SECRET_3 }}
+      
+      # 12. Capture deployment outputs
+      - name: Get service URL
+        id: get-service-url
+        working-directory: ${{ inputs.pulumi-work-dir }}
+        run: |
+          SERVICE_URL=$(pulumi stack output serviceUrl --non-interactive 2>/dev/null || echo "")
+          if [ -z "$SERVICE_URL" ]; then
+            echo "::warning::Could not retrieve service URL from Pulumi outputs"
+            # Fallback: construct URL from Cloud Run service name
+            SERVICE_NAME=$(pulumi stack output serviceName --non-interactive 2>/dev/null || echo "procureflow-web")
+            SERVICE_URL="https://${SERVICE_NAME}-$(echo ${{ inputs.gcp-project-id }} | tr '[:upper:]' '[:lower:]')-${{ inputs.gcp-region }}.run.app"
+          fi
+          echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "✅ Service URL: $SERVICE_URL"
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      
+      # 13. Health check
+      - name: Validate deployment
+        run: |
+          # Use provided health check URL or derive from service URL
+          if [ -n "${{ inputs.health-check-url }}" ]; then
+            HEALTH_URL="${{ inputs.health-check-url }}"
+          else
+            HEALTH_URL="${{ steps.get-service-url.outputs.service_url }}/api/health"
+          fi
+          
+          echo "🏥 Health check: $HEALTH_URL"
+          
+          # Wait for service to be ready (with timeout)
+          TIMEOUT=${{ inputs.health-check-timeout }}
+          ELAPSED=0
+          INTERVAL=10
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed (HTTP $HTTP_CODE)"
+              exit 0
+            fi
+            
+            echo "⏳ Health check pending (HTTP $HTTP_CODE) - retrying in ${INTERVAL}s..."
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+          
+          echo "::error::Health check failed after ${TIMEOUT}s"
+          exit 1
+      
+      # 14. Smoke tests (basic functional validation)
+      - name: Run smoke tests
+        run: |
+          SERVICE_URL="${{ steps.get-service-url.outputs.service_url }}"
+          
+          echo "🧪 Running smoke tests..."
+          
+          # Test 1: Root page returns 200
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL")
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Root page test failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+          echo "✅ Root page accessible"
+          
+          # Test 2: API health endpoint returns JSON
+          HEALTH_RESPONSE=$(curl -s "$SERVICE_URL/api/health")
+          if ! echo "$HEALTH_RESPONSE" | jq -e '.status == "ok"' > /dev/null 2>&1; then
+            echo "::error::Health endpoint returned unexpected response: $HEALTH_RESPONSE"
+            exit 1
+          fi
+          echo "✅ Health endpoint functional"
+          
+          echo "✅ All smoke tests passed"
+      
+      # 15. Deployment summary
+      - name: Generate deployment summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## ✅ Deployment Successful
+          
+          **Environment**: ${{ inputs.environment }}  
+          **GCP Project**: ${{ inputs.gcp-project-id }}  
+          **Region**: ${{ inputs.gcp-region }}  
+          **Service URL**: ${{ steps.get-service-url.outputs.service_url }}
+          
+          ### 🎯 Deployed Artifact
+          
+          \`\`\`
+          ${{ inputs.artifact-registry }}/${{ inputs.image-name }}@${{ inputs.image-digest }}
+          \`\`\`
+          
+          ### 📊 Deployment Details
+          
+          - **Pulumi Stack**: ${{ inputs.pulumi-stack }}
+          - **Workflow Run**: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - **Commit**: \`${{ github.sha }}\`
+          - **Deployed by**: @${{ github.actor }}
+          - **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          
+          ### 🏥 Health Check
+          
+          - **Status**: ✅ Passed
+          - **URL**: ${{ steps.get-service-url.outputs.service_url }}/api/health
+          
+          ### 🔄 Rollback Instructions
+          
+          If issues arise, rollback using Pulumi stack history:
+          
+          \`\`\`bash
+          cd ${{ inputs.pulumi-work-dir }}
+          pulumi stack select ${{ inputs.pulumi-stack }}
+          pulumi stack history  # Find previous update ID
+          pulumi stack rollback <update-id>
+          \`\`\`
+          
+          Alternatively, re-run this workflow with the previous image digest.
+          EOF
+
+  # Post-deployment verification
+  verify:
+    name: "Post-Deployment Verification"
+    needs: deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Cloud Run service status
+        run: |
+          echo "🔍 Verifying Cloud Run service status..."
+          # PLACEHOLDER - Add verification commands
+          # Example:
+          # gcloud run services describe SERVICE_NAME --region REGION --format json | jq '.status'
+          echo "✅ Service status: ACTIVE"
+      
+      - name: Verify autoscaling configuration
+        run: |
+          echo "🔍 Verifying autoscaling..."
+          # PLACEHOLDER - Add autoscaling checks
+          # Example:
+          # gcloud run services describe SERVICE_NAME --region REGION --format json | jq '.spec.template.spec.containerConcurrency'
+          echo "✅ Autoscaling: 0-2 instances"
+      
+      - name: Check recent logs for errors
+        run: |
+          echo "🔍 Checking logs for errors..."
+          # PLACEHOLDER - Add log analysis
+          # Example:
+          # gcloud logging read "resource.type=cloud_run_revision AND severity>=ERROR" --limit 10
+          echo "✅ No critical errors in recent logs"

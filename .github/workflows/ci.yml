@@ -12,6 +12,11 @@ on:
       - main
       - dev
 
+# Cancel old CI runs when new commits are pushed
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: '20'
   PNPM_VERSION: '10.21.0'
@@ -61,7 +66,7 @@ jobs:
         run: pnpm lint:prettier
 
   # ==============================================================================
-  # Job 2: Test
+  # Job 2: Test (runs in parallel with lint)
   # ==============================================================================
   test:
     name: Run Tests

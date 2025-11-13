@@ -1,0 +1,21 @@
+OIDC Configuration for GitHub Actions
+Generated: 2025-11-13 10:41:21
+
+GCP Project ID: procureflow-dev
+GCP Project Number: 592353558869
+
+Workload Identity Provider:
+projects/592353558869/locations/global/workloadIdentityPools/github/providers/github-oidc
+
+Service Account Email:
+github-actions-deploy@procureflow-dev.iam.gserviceaccount.com
+
+GitHub Repository Variables (to be set):
+- GCP_WORKLOAD_IDENTITY_PROVIDER = projects/592353558869/locations/global/workloadIdentityPools/github/providers/github-oidc
+- GCP_SERVICE_ACCOUNT_EMAIL = github-actions-deploy@procureflow-dev.iam.gserviceaccount.com
+
+Next Steps:
+1. Set GitHub variables: https://github.com/guiofsaints/procureflow/settings/variables/actions
+2. Test deploy workflow
+3. Delete GCP_SA_KEY secret after successful test
+4. Verify no service account keys exist

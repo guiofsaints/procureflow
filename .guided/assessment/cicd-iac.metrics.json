@@ -1,0 +1,434 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProcureFlow CI/CD Metrics Baseline",
+  "description": "Machine-readable metrics for CI/CD and IaC performance tracking",
+  "generatedAt": "2025-11-13T00:00:00Z",
+  "version": "1.0.0",
+  "project": "procureflow",
+  
+  "workflows": {
+    "ci.yml": {
+      "name": "CI - Lint and Test",
+      "triggers": ["pull_request", "push"],
+      "branches": ["main", "dev", "feat/**"],
+      "jobs": 3,
+      "estimatedDuration": {
+        "total": {
+          "min": 300,
+          "max": 420,
+          "median": 360,
+          "unit": "seconds"
+        },
+        "breakdown": {
+          "lint": { "median": 120, "unit": "seconds" },
+          "test": { "median": 120, "unit": "seconds" },
+          "build": { "median": 180, "unit": "seconds" }
+        }
+      },
+      "caching": {
+        "pnpmStore": {
+          "enabled": true,
+          "hitRate": 0.85,
+          "size": { "value": 400, "unit": "MB" },
+          "saveTime": { "cold": 90, "warm": 25, "unit": "seconds" }
+        },
+        "nextjsCache": {
+          "enabled": false,
+          "potentialSaveTime": { "value": 45, "unit": "seconds" }
+        },
+        "dockerLayers": {
+          "enabled": false,
+          "potentialSaveTime": { "value": 0, "unit": "seconds" }
+        }
+      },
+      "parallelization": {
+        "current": false,
+        "potential": true,
+        "estimatedImprovement": { "value": 90, "unit": "seconds" }
+      }
+    },
+    
+    "deploy-gcp.yml": {
+      "name": "Deploy to GCP (FREE TIER)",
+      "triggers": ["push", "workflow_dispatch"],
+      "branches": ["main"],
+      "pathFilters": ["packages/web/**", "packages/infra/**"],
+      "jobs": 4,
+      "estimatedDuration": {
+        "total": {
+          "min": 780,
+          "max": 1020,
+          "median": 900,
+          "unit": "seconds"
+        },
+        "breakdown": {
+          "test": { "median": 240, "unit": "seconds", "redundant": true },
+          "build": { "median": 420, "unit": "seconds" },
+          "deploy": { "median": 210, "unit": "seconds" },
+          "healthCheck": { "median": 45, "unit": "seconds" }
+        }
+      },
+      "caching": {
+        "dockerLayers": {
+          "enabled": false,
+          "potentialSaveTime": { "value": 240, "unit": "seconds" }
+        }
+      },
+      "security": {
+        "oidc": false,
+        "longLivedKeys": true,
+        "sbom": false,
+        "provenance": false,
+        "vulnerabilityScanning": false
+      }
+    }
+  },
+  
+  "docker": {
+    "image": {
+      "name": "us-central1-docker.pkg.dev/procureflow-dev/procureflow/web",
+      "estimatedSize": { "value": 225, "unit": "MB" },
+      "baseImage": "node:20-alpine",
+      "stages": 4,
+      "buildTime": {
+        "cold": { "value": 420, "unit": "seconds" },
+        "cached": { "value": 150, "unit": "seconds", "estimated": true }
+      },
+      "pushTime": { "value": 45, "unit": "seconds" },
+      "layers": 12,
+      "optimization": {
+        "multiStage": true,
+        "nonRootUser": true,
+        "sha256Pinned": true,
+        "buildKitCacheMounts": true
+      }
+    },
+    "tagging": {
+      "strategy": "commit-sha",
+      "immutable": false,
+      "tags": ["sha-{short}", "latest"],
+      "digestExport": false,
+      "retention": {
+        "enabled": false,
+        "policy": null
+      }
+    }
+  },
+  
+  "artifactRegistry": {
+    "region": "us-central1",
+    "repository": "procureflow",
+    "format": "DOCKER",
+    "storage": {
+      "estimated": { "value": 2.5, "unit": "GB" },
+      "costPerMonth": { "value": 0.25, "unit": "USD" }
+    },
+    "images": {
+      "estimatedCount": 15,
+      "retention": {
+        "enabled": false,
+        "maxAge": null
+      }
+    },
+    "vulnerabilityScanning": {
+      "enabled": false
+    }
+  },
+  
+  "pulumi": {
+    "project": "procureflow-gcp",
+    "stacks": {
+      "count": 1,
+      "list": ["dev"]
+    },
+    "stateBackend": {
+      "type": "pulumi-cloud",
+      "tier": "free"
+    },
+    "resources": {
+      "managed": 8,
+      "manual": 1,
+      "total": 9,
+      "breakdown": {
+        "serviceAccount": 1,
+        "secretManager": 3,
+        "secretIAM": 3,
+        "cloudRun": 1,
+        "cloudRunIAM": 1,
+        "artifactRegistry": 0
+      }
+    },
+    "operations": {
+      "preview": {
+        "enabled": true,
+        "prComments": false,
+        "duration": { "median": 45, "unit": "seconds" }
+      },
+      "up": {
+        "duration": { "median": 180, "unit": "seconds" }
+      },
+      "refresh": {
+        "scheduled": false,
+        "frequency": null
+      }
+    },
+    "policies": {
+      "enabled": false,
+      "crossGuard": false
+    },
+    "driftDetection": {
+      "enabled": false
+    }
+  },
+  
+  "gcp": {
+    "cloudRun": {
+      "service": "procureflow-web",
+      "region": "us-central1",
+      "generation": "gen2",
+      "scaling": {
+        "minInstances": 0,
+        "maxInstances": 2,
+        "concurrency": 80
+      },
+      "resources": {
+        "cpu": "1000m",
+        "memory": "512Mi"
+      },
+      "costPerMonth": {
+        "estimated": { "value": 0, "unit": "USD" },
+        "freeTier": {
+          "requests": 2000000,
+          "gbSeconds": 360000,
+          "vcpuSeconds": 180000
+        }
+      },
+      "deployment": {
+        "strategy": "all-or-nothing",
+        "blueGreen": false,
+        "canary": false,
+        "trafficSplit": false,
+        "rollbackTime": { "value": 900, "unit": "seconds", "manual": true }
+      },
+      "healthChecks": {
+        "preTraffic": false,
+        "postDeploy": true,
+        "endpoints": ["/api/health"]
+      }
+    },
+    "secretManager": {
+      "secrets": 3,
+      "versions": 3,
+      "accessOperations": {
+        "estimatedPerMonth": 5000,
+        "freeTier": 10000
+      },
+      "costPerMonth": { "value": 0, "unit": "USD" }
+    },
+    "iam": {
+      "serviceAccounts": {
+        "cloudRun": {
+          "email": "procureflow-cloudrun@procureflow-dev.iam.gserviceaccount.com",
+          "roles": ["secretmanager.secretAccessor"],
+          "leastPrivilege": true
+        },
+        "githubActions": {
+          "email": "github-actions@procureflow-dev.iam.gserviceaccount.com",
+          "roles": [
+            "run.admin",
+            "iam.serviceAccountUser",
+            "artifactregistry.writer",
+            "secretmanager.admin",
+            "iam.serviceAccountAdmin",
+            "compute.viewer"
+          ],
+          "leastPrivilege": false,
+          "keyType": "long-lived-json"
+        }
+      },
+      "oidc": {
+        "enabled": false,
+        "workloadIdentityPool": null
+      }
+    }
+  },
+  
+  "github": {
+    "secrets": {
+      "count": 6,
+      "list": [
+        "GCP_SA_KEY",
+        "GCP_PROJECT_ID",
+        "PULUMI_ACCESS_TOKEN",
+        "NEXTAUTH_SECRET",
+        "OPENAI_API_KEY",
+        "MONGODB_CONNECTION_STRING"
+      ],
+      "longLivedKeys": 1,
+      "rotation": {
+        "automated": false
+      }
+    },
+    "environments": {
+      "count": 1,
+      "list": ["dev"],
+      "protection": {
+        "dev": {
+          "requiredReviewers": 0,
+          "branchRestrictions": false,
+          "deploymentBranchPolicy": null
+        }
+      }
+    },
+    "branchProtection": {
+      "main": {
+        "requiredStatusChecks": [],
+        "requiresApprovingReviews": false,
+        "requiredApprovingReviewCount": 0
+      }
+    }
+  },
+  
+  "performance": {
+    "cicdPipeline": {
+      "fullPipeline": {
+        "current": { "value": 1260, "unit": "seconds" },
+        "target": { "value": 480, "unit": "seconds" },
+        "improvement": { "value": 62, "unit": "percent" }
+      },
+      "deployOnly": {
+        "current": { "value": 900, "unit": "seconds" },
+        "target": { "value": 420, "unit": "seconds" },
+        "improvement": { "value": 53, "unit": "percent" }
+      },
+      "mttr": {
+        "current": { "value": 900, "unit": "seconds" },
+        "target": { "value": 60, "unit": "seconds" },
+        "improvement": { "value": 93, "unit": "percent" }
+      }
+    },
+    "cacheHitRates": {
+      "pnpm": { "current": 0.85, "target": 0.90 },
+      "docker": { "current": 0, "target": 0.75 },
+      "nextjs": { "current": 0, "target": 0.80 }
+    }
+  },
+  
+  "reliability": {
+    "deployment": {
+      "successRate": { "current": 0.90, "target": 0.98 },
+      "rollbackRate": { "current": 0.10, "target": 0.02 },
+      "mttr": {
+        "current": { "value": 900, "unit": "seconds" },
+        "target": { "value": 60, "unit": "seconds" }
+      },
+      "downtime": {
+        "perDeploy": { "current": 0, "target": 0, "unit": "seconds" }
+      }
+    },
+    "healthChecks": {
+      "preTraffic": false,
+      "postDeploy": true,
+      "coverage": {
+        "endpoints": 1,
+        "databaseConnectivity": false,
+        "externalDependencies": false
+      }
+    }
+  },
+  
+  "security": {
+    "authentication": {
+      "method": "service-account-key",
+      "oidc": false,
+      "keyRotation": false,
+      "keyExpiration": null
+    },
+    "supplyChain": {
+      "sbom": false,
+      "provenance": false,
+      "slsaLevel": 0,
+      "attestationVerification": false
+    },
+    "vulnerabilityScanning": {
+      "enabled": false,
+      "tool": null,
+      "frequency": null,
+      "severity": null
+    },
+    "secretManagement": {
+      "githubSecrets": 6,
+      "pulumiSecrets": 3,
+      "secretManager": 3,
+      "rotation": false
+    },
+    "leastPrivilege": {
+      "runtime": true,
+      "cicd": false
+    }
+  },
+  
+  "costs": {
+    "github": {
+      "actions": {
+        "estimatedMinutesPerMonth": 500,
+        "freeTier": 2000,
+        "costPerMonth": { "value": 0, "unit": "USD" }
+      }
+    },
+    "gcp": {
+      "cloudRun": { "value": 0, "unit": "USD" },
+      "secretManager": { "value": 0, "unit": "USD" },
+      "artifactRegistry": { "value": 0.25, "unit": "USD" },
+      "total": { "value": 0.25, "unit": "USD" }
+    },
+    "pulumi": {
+      "stateBackend": { "value": 0, "unit": "USD", "tier": "free" }
+    },
+    "totalPerMonth": {
+      "current": { "value": 0.25, "unit": "USD" },
+      "projected": { "value": 0.15, "unit": "USD" },
+      "savings": { "value": 0.10, "unit": "USD" }
+    }
+  },
+  
+  "compliance": {
+    "auditTrail": {
+      "githubActions": true,
+      "pulumi": true,
+      "gcp": true
+    },
+    "approvals": {
+      "required": false,
+      "environments": []
+    },
+    "branchProtection": {
+      "enabled": false
+    },
+    "slsa": {
+      "level": 0,
+      "target": 2
+    }
+  },
+  
+  "opportunitySummary": {
+    "total": 27,
+    "byPriority": {
+      "high": 5,
+      "medium": 17,
+      "low": 5
+    },
+    "byCategory": {
+      "security": 5,
+      "speed": 5,
+      "artifacts": 4,
+      "deployment": 4,
+      "iac": 6,
+      "costs": 3
+    },
+    "estimatedTotalEffort": {
+      "hours": 32,
+      "days": 4
+    }
+  }
+}
