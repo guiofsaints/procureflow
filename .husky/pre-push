@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running lint checks..."
+pnpm lint || {
+  echo "❌ Lint failed. Please fix errors before pushing."
+  exit 1
+}
+
+echo "🧪 Running tests..."
+pnpm test:run || {
+  echo "❌ Tests failed. Please fix tests before pushing."
+  exit 1
+}
+
+echo "✅ All checks passed!"
