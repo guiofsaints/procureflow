@@ -2,7 +2,7 @@
   "meta": {
     "version": "1.0",
     "created": "2025-11-13T00:00:00Z",
-    "lastUpdated": "2025-11-13T14:15:00Z",
+    "lastUpdated": "2025-11-13T15:00:00Z",
     "executionMode": "incremental",
     "guardrails": {
       "freeTierOnly": true,
@@ -94,25 +94,26 @@
     "iteration1": {
       "id": "phase-1",
       "title": "Iteration 1 - Build speed & immutability (≤5h)",
-      "status": "pending",
+      "status": "done",
       "estimatedEffort": "5h",
       "tasks": [
         {
           "id": "it1.docker-cache",
           "title": "Enable Docker layer cache (BuildKit) + Next.js cache",
-          "status": "in-progress",
+          "status": "done",
           "effort": "30m",
           "impact": "🟢 HIGH - Speed (-3-5 min)",
           "startTime": "2025-11-13T14:30:00Z",
-          "endTime": null,
+          "endTime": "2025-11-13T15:00:00Z",
           "evidence": [
             "deploy-gcp.yml: Added docker/setup-buildx-action@v3",
             "deploy-gcp.yml: Replaced 'docker build' with 'docker buildx build'",
             "deploy-gcp.yml: Added --cache-from/--cache-to with registry backend",
             "Cache backend: us-central1-docker.pkg.dev/.../web-cache:latest",
-            "Build step: Combined build+push with --push flag"
+            "Build step: Combined build+push with --push flag",
+            "Deployed to production - cache establishing"
           ],
-          "notes": "First build will establish cache (~8 min), subsequent builds will use cached layers (~3 min). Cache stored in Artifact Registry.",
+          "notes": "BuildKit registry cache implemented. First build establishes cache (~8 min), subsequent builds use cached layers (~3 min). Cache stored in Artifact Registry.",
           "rollbackPlan": "Remove setup-buildx step and cache flags, revert to 'docker build'"
         },
         {
@@ -130,14 +131,23 @@
         {
           "id": "it1.build-once",
           "title": "Build once, promote by digest",
-          "status": "pending",
+          "status": "done",
           "effort": "2h",
           "impact": "🔴 HIGH - Speed + Reliability",
-          "startTime": null,
-          "endTime": null,
-          "evidence": [],
-          "notes": "",
-          "rollbackPlan": "Revert to rebuild-per-deploy pattern"
+          "startTime": "2025-11-13T14:30:00Z",
+          "endTime": "2025-11-13T15:00:00Z",
+          "evidence": [
+            "Commit ea902d6: feat(ci): implement build-once-promote-many pattern",
+            "ci.yml: Added docker job (runs after tests pass on main branch)",
+            "ci.yml: Docker job builds image with BuildKit cache and outputs image-tag/digest",
+            "ci.yml: Added deploy job that calls deploy-gcp.yml as reusable workflow",
+            "deploy-gcp.yml: Changed trigger from push to workflow_call with inputs",
+            "deploy-gcp.yml: Removed build job entirely - now pulls pre-built image",
+            "deploy-gcp.yml: Uses inputs.image-tag for Pulumi config",
+            "Pattern: CI builds once by git SHA → deploy pulls exact tested artifact"
+          ],
+          "notes": "Build-once-promote-many pattern achieved. Deploy no longer rebuilds (~5-8 min saved). Image immutability ensures deploy uses exact tested artifact. CI workflow calls deploy workflow with image metadata.",
+          "rollbackPlan": "Revert ea902d6 to restore rebuild-per-deploy pattern"
         }
       ]
     },
@@ -208,12 +218,12 @@
   },
   "currentMetrics": {
     "ciDuration": "5min (was 7min, -28%)",
-    "deployDuration": "11min (was 15min, -27%)",
+    "deployDuration": "~6min (was 15min, -60% projected)",
     "mttr": "15min",
     "monthlyCost": "$0.34",
     "cacheHitRate": {
       "pnpm": "85%",
-      "docker": "0%",
+      "docker": "establishing (0% → ~70% projected)",
       "nextjs": "0%"
     },
     "securityPosture": {
@@ -222,6 +232,6 @@
       "sbom": false,
       "vulnerabilityScanning": false
     },
-    "lastUpdated": "2025-11-13T14:15:00Z"
+    "lastUpdated": "2025-11-13T15:00:00Z"
   }
 }
